@@ -315,7 +315,7 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <div class="security-card security-mode-card"><div class="security-panel-head"><div><h2>Security mode</h2><div class="security-sub">Select the active security mode.</div></div></div><div class="security-mode"><button class="security-pill active" data-mode="Home" onclick="setSecurityMode(this,'Home')"><span class="security-mode-icon">🏠</span><span>Home</span></button><button class="security-pill" data-mode="Night" onclick="setSecurityMode(this,'Night')"><span class="security-mode-icon">🌙</span><span>Night</span></button><button class="security-pill" data-mode="Away" onclick="setSecurityMode(this,'Away')"><span class="security-mode-icon">🚪</span><span>Away</span></button></div></div>
 <div class="security-grid security-page-grid"><div class="security-card"><div class="security-panel-head"><div><h2>🔐 Locks</h2><div class="security-sub">Electric locks grouped by room.</div></div></div><div id="securityLocks" class="security-page-room-grid"></div></div>
 <div class="security-card"><div class="security-panel-head"><div><h2><span class="motion-heading-icon"></span> Motion sensors</h2><div class="security-sub">Motion detection and sensor enable state.</div></div></div><div id="securityMotion" class="security-page-room-grid"></div></div></div>
-</section></template><template data-page-id="rooms"><section class="page" id="rooms"><div class="card"><h2>Rooms</h2><div class="devices"><div class="device">🛋️ <b>Woonkamer</b><br/><span class="muted">Lighting · TV · Sonos · climate</span></div><div class="device">🍽️ <b>Keuken</b><br/><span class="muted">Lighting · ventilation</span></div><div class="device">🛏️ <b>Slaapkamer</b><br/><span class="muted">Lighting · climate</span></div><div class="device">💼 <b>Kantoor</b><br/><span class="muted">Lighting · climate</span></div></div></div></section></template><template data-page-id="scenes"><section class="page" id="scenes"><div class="card"><div class="settings-heading"><div><h2>Scenes</h2><div class="muted">Scenes configured in Devices are shown here.</div></div></div><div id="sceneDeviceList" class="devices"></div></div></section></template><template data-page-id="energy"><section class="page" id="energy"><div class="grid"><div class="card s4"><div class="muted">Today</div><div class="value">8,4 kWh</div></div><div class="card s4"><div class="muted">Current</div><div class="value">412 W</div></div><div class="card s4"><div class="muted">Solar</div><div class="value">1,8 kW</div></div></div></section></template><template data-page-id="settings"><section class="page" id="settings"><div class="grid">
+</section></template><template data-page-id="rooms"><section class="page" id="rooms"><div class="card"><h2>Rooms</h2><div id="configuredRoomsPage" class="devices"></div></div></section></template><template data-page-id="scenes"><section class="page" id="scenes"><div class="card"><div class="settings-heading"><div><h2>Scenes</h2><div class="muted">Scenes configured in Devices are shown here.</div></div></div><div id="sceneDeviceList" class="devices"></div></div></section></template><template data-page-id="energy"><section class="page" id="energy"><div class="grid"><div class="card s4"><div class="muted">Today</div><div class="value">8,4 kWh</div></div><div class="card s4"><div class="muted">Current</div><div class="value">412 W</div></div><div class="card s4"><div class="muted">Solar</div><div class="value">1,8 kW</div></div></div></section></template><template data-page-id="settings"><section class="page" id="settings"><div class="grid">
 <details class="card s12 knx-settings-card" id="knxSettingsCard">
 <summary class="settings-heading knx-summary"><div><h2>KNX/IP connection</h2><div class="muted">Connection, parameters and communication log.</div></div><div id="knxConnectionBadge" class="knx-connection-badge offline"><span class="status-led"></span><span>Disconnected</span></div></summary>
 <div class="knx-settings-body"><div class="settings-grid">
@@ -389,6 +389,7 @@ function showPage(id,b){
   if(title){title.textContent='';requestAnimationFrame(()=>{title.textContent=meta[id][0];});}
   if(sub){sub.textContent='';requestAnimationFrame(()=>{sub.textContent=meta[id][1];});}
   if(id==='settings'){renderRoomConfigs();renderDeviceConfigs();renderCommunicationLog();loadGithubSettings();}
+  if(id==='rooms')renderConfiguredRooms();
   if(id==='cameras')renderConfiguredCameras();
   if(id==='av')renderConfiguredAv();
   if(id==='scenes')renderConfiguredScenes();
@@ -431,8 +432,9 @@ function securityLockIcon(locked){
 }
 function renderSecurity(){
  const locksBox=document.getElementById('securityLocks'), motionBox=document.getElementById('securityMotion'); if(!locksBox||!motionBox)return;
- const raw=securityDevices(), devices=raw.map(x=>({...x,type:x.type==='security'?(x.securityType==='motion'?'motion':'lock'):x.type})),rs=rooms();
- const roomsWith=(type)=>[...new Set([...rs.filter(r=>devices.some(x=>(x.room||'')===r&&x.type===type)),...devices.filter(x=>x.type===type).map(x=>x.room||'No room')])];
+ const rs=rooms(), permittedRooms=new Set(rs);
+ const raw=securityDevices(), devices=raw.filter(x=>permittedRooms.has(String(x.room||''))).map(x=>({...x,type:x.type==='security'?(x.securityType==='motion'?'motion':'lock'):x.type}));
+ const roomsWith=(type)=>rs.filter(r=>devices.some(x=>x.room===r&&x.type===type));
  const dot=(red)=>'<span class="security-dot '+(red?'red':'')+'"></span>';
  function renderRoomCards(box,type){
    box.innerHTML=''; const uniqueRooms=roomsWith(type);
@@ -501,11 +503,11 @@ function openConfiguredCameraFullscreen(x){const fs=document.getElementById('cam
 function renderConfiguredScenes(){
  const box=document.getElementById('sceneDeviceList');if(!box)return;const scenes=genericDevices().filter(x=>x.type==='scene');box.innerHTML='';
  if(!scenes.length){box.innerHTML='<div class="muted" style="padding:20px 4px">No scenes configured yet. Add a Scenes device in Settings → Devices.</div>';return}
- const byRoom={};scenes.forEach(x=>(byRoom[x.room||'Overig']??=[]).push(x));Object.entries(byRoom).forEach(([room,list])=>{const card=document.createElement('div');card.className='device';card.innerHTML='<b>'+esc(room)+'</b><div class="actions" style="margin-top:10px">'+list.map(x=>'<button class="btn" data-scene="'+esc(x.id)+'">✨ '+esc(x.name||'Scene')+'</button>').join('')+'</div>';card.querySelectorAll('[data-scene]').forEach(btn=>btn.addEventListener('click',()=>{const x=list.find(y=>String(y.id)===btn.dataset.scene);if(x?.writeGa)send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:'1.001',value:true});toast((x?.name||'Scene')+' activated')}));box.appendChild(card)})
+ const byRoom={};scenes.forEach(x=>(byRoom[x.room||'']??=[]).push(x));Object.entries(byRoom).forEach(([room,list])=>{const card=document.createElement('div');card.className='device';card.innerHTML='<b>'+esc(room)+'</b><div class="actions" style="margin-top:10px">'+list.map(x=>'<button class="btn" data-scene="'+esc(x.id)+'">✨ '+esc(x.name||'Scene')+'</button>').join('')+'</div>';card.querySelectorAll('[data-scene]').forEach(btn=>btn.addEventListener('click',()=>{const x=list.find(y=>String(y.id)===btn.dataset.scene);if(x?.writeGa)send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:'1.001',value:true});toast((x?.name||'Scene')+' activated')}));box.appendChild(card)})
 }
 function renderOverview(){
  const secBox=document.getElementById('overviewSecuritySummary');
- const sec=securityDevices();
+ const sec=securityDevices().filter(x=>rooms().includes(String(x.room||'')));
  const mode=securityState.mode||'Home';
  if(secBox){
    const locks=sec.filter(x=>x.type==='lock'||x.securityType==='lock');
@@ -520,7 +522,7 @@ function renderOverview(){
 
  const lightBox=document.getElementById('overviewLightingSummary'), lightCard=document.getElementById('overviewLightingCard');
  if(lightBox){lightBox.innerHTML='';const ss=sliders(),rs=rooms();let activeCount=0;
-   rs.forEach(room=>{const items=ss.filter(x=>(x.room||'Woonkamer')===room);const on=items.filter(x=>{const v=x.mode==='rgbw'?rgbwBrightnessFromValues(x.feedbackRGBW||[0,0,0,0]):Number(x.feedbackValue??x.value??0);return v>0;});if(!on.length)return;activeCount+=on.length;const card=document.createElement('div');card.className='overview-room';card.innerHTML='<div class="overview-room-head"><b>'+esc(room)+'</b><span class="muted">'+on.length+' active</span></div><div class="overview-lights">'+on.map(x=>{const v=x.mode==='rgbw'?rgbwBrightnessFromValues(x.feedbackRGBW||[0,0,0,0]):Number(x.feedbackValue??x.value??0);return '<span class="overview-light">'+esc(x.name)+' <b>'+Math.round(v)+'%</b></span>'}).join('')+'</div>';lightBox.appendChild(card)});
+   rs.forEach(room=>{const items=ss.filter(x=>(x.room||'')===room);const on=items.filter(x=>{const v=x.mode==='rgbw'?rgbwBrightnessFromValues(x.feedbackRGBW||[0,0,0,0]):Number(x.feedbackValue??x.value??0);return v>0;});if(!on.length)return;activeCount+=on.length;const card=document.createElement('div');card.className='overview-room';card.innerHTML='<div class="overview-room-head"><b>'+esc(room)+'</b><span class="muted">'+on.length+' active</span></div><div class="overview-lights">'+on.map(x=>{const v=x.mode==='rgbw'?rgbwBrightnessFromValues(x.feedbackRGBW||[0,0,0,0]):Number(x.feedbackValue??x.value??0);return '<span class="overview-light">'+esc(x.name)+' <b>'+Math.round(v)+'%</b></span>'}).join('')+'</div>';lightBox.appendChild(card)});
    if(document.getElementById('overviewLightCount'))document.getElementById('overviewLightCount').textContent=activeCount+' active'; if(lightCard)lightCard.style.display=activeCount?'':'none';
  }
  const avBox=document.getElementById('overviewAvSummary'),avCard=document.getElementById('overviewAvCard');
@@ -637,16 +639,21 @@ function connectSocket(){
  }
 }
 function send(o){if(socket&&socket.readyState===1)socket.send(JSON.stringify(o));else toast('No server connection')}
-function sliders(){try{const a=JSON.parse(localStorage.getItem('knxSliders')||'null');return Array.isArray(a)?a:[{id:'w1',name:'Woonkamer',room:'Woonkamer',mode:'dim',writeGa:'1/1/69',feedbackGa:'2/1/69',value:70,feedbackValue:null,rgbw:{write:['','','',''],feedback:['','','','']}}]}catch(e){return []}}
+function sliders(){try{const a=JSON.parse(localStorage.getItem('knxSliders')||'null');return Array.isArray(a)?a:[]}catch(e){return []}}
 function saveSliders(a){localStorage.setItem('knxSliders',JSON.stringify(a)); syncSharedStateDebounced()}
-function normalizeSliders(){const a=sliders().map(x=>({...x,room:x.room||'Woonkamer',mode:x.mode==='rgbw'?'rgbw':'dim',rgbw:x.rgbw||{write:['','','',''],feedback:['','','','']}}));saveSliders(a);return a}
+function normalizeSliders(){const a=sliders().map(x=>({...x,room:x.room||'',mode:x.mode==='rgbw'?'rgbw':'dim',rgbw:x.rgbw||{write:['','','',''],feedback:['','','','']}}));saveSliders(a);return a}
 function gaOK(v){return /^\d{1,3}\/\d{1,3}\/\d{1,3}$/.test(v)}
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 
-const DEFAULT_ROOMS=['Woonkamer','Keuken','Eetkamer','Slaapkamer','Kantoor','Badkamer','Hal','Overig'];
-function rooms(){try{return JSON.parse(localStorage.getItem('knxRooms')||'null')||DEFAULT_ROOMS.slice()}catch(e){return DEFAULT_ROOMS.slice()}}
+function rooms(){try{const a=JSON.parse(localStorage.getItem('knxRooms')||'null');return Array.isArray(a)?a:[]}catch(e){return []}}
 function saveRooms(a){localStorage.setItem('knxRooms',JSON.stringify(a)); syncSharedStateDebounced()}
-function normalizeRooms(){const a=rooms().map(String).map(x=>x.trim()).filter(Boolean);const unique=[...new Set(a)];if(!unique.length)unique.push(...DEFAULT_ROOMS);saveRooms(unique);return unique}
+function normalizeRooms(){const a=rooms().map(String).map(x=>x.trim()).filter(Boolean);const unique=[...new Set(a)];saveRooms(unique);return unique}
+function renderConfiguredRooms(){
+ const box=document.getElementById('configuredRoomsPage');if(!box)return;
+ const rs=rooms(),devices=allConfiguredDevices();box.innerHTML='';
+ if(!rs.length){box.innerHTML='<div class="muted" style="padding:20px 4px">No rooms configured yet. Add a room in Settings.</div>';return;}
+ rs.forEach(room=>{const items=devices.filter(x=>x.room===room);const card=document.createElement('div');card.className='device';card.innerHTML='<b>'+esc(room)+'</b><br/><span class="muted">'+(items.length?items.map(x=>esc(x.name)).join(' · '):'No devices configured')+'</span>';box.appendChild(card);});
+}
 function roomOptions(selected){const rs=rooms();const active=rs.includes(selected)?selected:(rs[0]||'');return rs.map(r=>'<option '+(r===active?'selected ':'')+'value="'+esc(r)+'">'+esc(r)+'</option>').join('')}
 let lightingRoom='all';
 function availableRooms(){
@@ -661,7 +668,7 @@ function renderRoomFilter(){
  sel.innerHTML='<option value="all">All rooms</option>'+rooms.map(r=>'<option value="'+esc(r)+'">'+esc(r)+'</option>').join('');
  sel.value=lightingRoom;
  const count=document.getElementById('roomCount');
- const total=sliders().filter(x=>lightingRoom==='all'||(x.room||'Woonkamer')===lightingRoom).length;
+ const total=sliders().filter(x=>lightingRoom==='all'||(x.room||'')===lightingRoom).length;
  if(count)count.textContent=total+' '+(total===1?'slider':'sliders');
 }
 function setLightingRoom(v){lightingRoom=v;renderLightingSliders()}
@@ -671,7 +678,7 @@ function renderRoomConfigs(){
  const box=document.getElementById('roomConfigList');if(!box)return;
  const rs=normalizeRooms();box.innerHTML='';
  rs.forEach(r=>{
-   const count=sliders().filter(x=>(x.room||'Woonkamer')===r).length;
+   const count=sliders().filter(x=>(x.room||'')===r).length;
    const d=document.createElement('div');d.className='device';
    d.innerHTML='<div class="row" style="padding:0;border:0"><span><b>'+esc(r)+'</b><br><small class="muted">'+count+' slider'+(count===1?'':'s')+'</small></span><button class="btn danger room-remove">Delete</button></div>';
    const btn=d.querySelector('.room-remove');
@@ -691,7 +698,7 @@ function addRoom(){
 function removeRoom(name){
  const rs=rooms();
  if(rs.length<=1){toast('Minimaal één ruimte is nodig');return}
- const used=sliders().some(x=>(x.room||'Woonkamer')===name);
+ const used=sliders().some(x=>(x.room||'')===name);
  if(used){toast('Verplaats eerst de sliders uit '+name);return}
  saveRooms(rs.filter(r=>r!==name));
  if(lightingRoom===name)lightingRoom='all';
@@ -757,7 +764,7 @@ function renderDeviceConfigs(){
    if(window.deviceRoomOpen[room]) requestAnimationFrame(()=>{ if(group.isConnected) group.open=true; });
  });
 }
-function updateUnifiedDevice(item,el){ window.deviceRoomOpen=window.deviceRoomOpen||{}; window.deviceRoomFilters=window.deviceRoomFilters||{}; const room=item.room||item.data?.room||rooms()[0]||'Overig'; window.deviceRoomOpen[room]=true;
+function updateUnifiedDevice(item,el){ window.deviceRoomOpen=window.deviceRoomOpen||{}; window.deviceRoomFilters=window.deviceRoomFilters||{}; const room=item.room||item.data?.room||rooms()[0]||''; window.deviceRoomOpen[room]=true;
  if(item.source==='lighting'){
    const a=sliders(),x=a.find(z=>z.id===item.sourceId);if(!x)return;
    if(el.dataset.u==='type' && el.value!=='lighting'){convertLightingToGeneric(x,el.value);return}
@@ -774,8 +781,8 @@ function updateUnifiedDevice(item,el){ window.deviceRoomOpen=window.deviceRoomOp
  } else {
    const a=genericDevices(),x=a.find(z=>z.id===item.sourceId);if(!x)return;
    if(el.dataset.u==='type' && el.value!==x.type){
-     if(el.value==='lighting'){const ga=x.writeGa||'',fb=x.feedbackGa||'';saveGenericDevices(a.filter(z=>z.id!==x.id));const la=sliders();la.push({id:'s'+Date.now(),name:x.name||'New lighting',room:x.room||rooms()[0]||'Overig',mode:'dim',writeGa:ga,feedbackGa:fb,value:0,feedbackValue:null,rgbw:{write:['','','',''],feedback:['','','','']}});saveSliders(la);renderDeviceConfigs();renderLightingSliders();return;}
-     if(el.value==='security'){const ga=x.writeGa||'',fb=x.feedbackGa||'';saveGenericDevices(a.filter(z=>z.id!==x.id));const sa=securityDevices();sa.push({id:'sec'+Date.now(),type:'security',securityType:'lock',name:x.name||'Security device',room:x.room||rooms()[0]||'Overig',controllable:true,writeGa:ga,feedbackGa:fb,physicalStatusGa:'',enableWriteGa:'',enableFeedbackGa:'',motionStatusGa:'',controlInvert:false,statusInvert:false,enableInvert:false,motionInvert:false,enabled:true,locked:true,motion:false,lastTime:'—'});saveSecurityDevices(sa);renderDeviceConfigs();renderSecurity();return;}
+     if(el.value==='lighting'){const ga=x.writeGa||'',fb=x.feedbackGa||'';saveGenericDevices(a.filter(z=>z.id!==x.id));const la=sliders();la.push({id:'s'+Date.now(),name:x.name||'New lighting',room:x.room||rooms()[0]||'',mode:'dim',writeGa:ga,feedbackGa:fb,value:0,feedbackValue:null,rgbw:{write:['','','',''],feedback:['','','','']}});saveSliders(la);renderDeviceConfigs();renderLightingSliders();return;}
+     if(el.value==='security'){const ga=x.writeGa||'',fb=x.feedbackGa||'';saveGenericDevices(a.filter(z=>z.id!==x.id));const sa=securityDevices();sa.push({id:'sec'+Date.now(),type:'security',securityType:'lock',name:x.name||'Security device',room:x.room||rooms()[0]||'',controllable:true,writeGa:ga,feedbackGa:fb,physicalStatusGa:'',enableWriteGa:'',enableFeedbackGa:'',motionStatusGa:'',controlInvert:false,statusInvert:false,enableInvert:false,motionInvert:false,enabled:true,locked:true,motion:false,lastTime:'—'});saveSecurityDevices(sa);renderDeviceConfigs();renderSecurity();return;}
      x.type=el.value;saveGenericDevices(a);renderDeviceConfigs();renderConfiguredCameras();renderConfiguredScenes();return;
    }
    x[el.dataset.u]=el.value;
@@ -804,7 +811,7 @@ function convertSecurityToGeneric(x,type){
  const a=securityDevices().filter(z=>z.id!==x.id);saveSecurityDevices(a);const g=genericDevices();g.push({id:'g'+Date.now(),type,name:x.name,room:x.room,writeGa:x.writeGa||'',feedbackGa:x.feedbackGa||'',url:''});saveGenericDevices(g);renderDeviceConfigs();renderSecurity();renderConfiguredCameras();renderConfiguredScenes();toast('Device type changed');
 }
 function addUnifiedDevice(roomName){
- const room=roomName||rooms()[0]||'Overig';const a=sliders(),n=a.length+1;a.push({id:'s'+Date.now(),name:'New device '+n,room,mode:'dim',writeGa:'',feedbackGa:'',value:0,feedbackValue:null,rgbw:{write:['','','',''],feedback:['','','','']}});saveSliders(a);renderDeviceConfigs();renderLightingSliders();toast('New device added to '+room+' — choose its type');
+ const room=roomName||rooms()[0];if(!room){toast('Add a room first');return;}const a=sliders(),n=a.length+1;a.push({id:'s'+Date.now(),name:'New device '+n,room,mode:'dim',writeGa:'',feedbackGa:'',value:0,feedbackValue:null,rgbw:{write:['','','','']}});saveSliders(a);renderDeviceConfigs();renderLightingSliders();toast('New device added to '+room+' — choose its type');
 }
 function removeUnifiedDevice(item){
  if(item.source==='lighting')removeSlider(item.sourceId);
@@ -825,7 +832,7 @@ function renderLightingSliders(){
  const box=document.getElementById('lightingSliders');if(!box)return;
  renderRoomFilter();
  box.replaceChildren();
- const arr=sliders().filter(x=>lightingRoom==='all'||(x.room||'Woonkamer')===lightingRoom);
+ const arr=sliders().filter(x=>lightingRoom==='all'||(x.room||'')===lightingRoom);
  if(!arr.length){box.innerHTML='<div class="muted" style="padding:20px 4px">Geen verlichting in deze ruimte.</div>';return}
  arr.forEach(x=>{
   if(x.mode==='rgbw'){
@@ -850,7 +857,7 @@ function renderLightingSliders(){
   }
  });
 }
-function addSlider(){ addUnifiedDevice(rooms()[0]||'Overig'); }
+function addSlider(){ addUnifiedDevice(rooms()[0]||''); }
 function removeSlider(id){saveSliders(sliders().filter(x=>x.id!==id));renderSliderConfigs();renderLightingSliders();toast('Slider removed')}
 function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){x.value=Number(v);saveSliders(a)}}
 function sendSlider(id,v){
@@ -973,7 +980,6 @@ async function postSharedState(){
   lastSharedSignature=sharedSignature(payload);
  }catch(e){}
 }
-if(!securityDevices().length){saveSecurityDevices([{id:'lock1',type:'security',securityType:'lock',name:'Front Door',room:'Entrance',controllable:true,writeGa:'1/2/10',feedbackGa:'2/2/10',physicalStatusGa:'3/2/10',controlInvert:false,statusInvert:false,locked:true,controlLocked:true},{id:'lock2',type:'security',securityType:'lock',name:'Back Door',room:'Garden Side',controllable:true,writeGa:'1/2/11',feedbackGa:'2/2/11',physicalStatusGa:'3/2/11',controlInvert:false,statusInvert:false,locked:true,controlLocked:true},{id:'motion1',type:'security',securityType:'motion',name:'Hall Motion',room:'Hall',controllable:true,enableWriteGa:'1/3/10',enableFeedbackGa:'2/3/10',motionStatusGa:'3/3/10',enableInvert:false,motionInvert:false,enabled:true,motion:false,lastTime:'—'},{id:'motion2',type:'security',securityType:'motion',name:'Living Room Motion',room:'Living Room',controllable:true,enableWriteGa:'1/3/11',enableFeedbackGa:'2/3/11',motionStatusGa:'3/3/11',enableInvert:false,motionInvert:false,enabled:true,motion:false,lastTime:'—'}]);}
 const _secMigrated=securityDevices().map(x=>{x.type='security';x.securityType=x.securityType==='motion'||x.type==='motion'?'motion':(x.securityType||'lock');x.controllable=x.controllable!==false;x.physicalStatusGa=x.physicalStatusGa||x.statusGa||'';x.motionStatusGa=x.motionStatusGa||'';x.controlInvert=!!x.controlInvert;x.statusInvert=!!x.statusInvert;x.enableInvert=!!x.enableInvert;x.motionInvert=!!x.motionInvert;x.controlLocked=x.controlLocked!==undefined?!!x.controlLocked:!!x.locked;return x;}); if(_secMigrated.length) saveSecurityDevices(_secMigrated);
 syncSharedState();
 
