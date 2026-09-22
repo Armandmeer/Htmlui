@@ -284,6 +284,17 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 
 /* Compact iPhone Overview security controls. */
 @media(max-width:850px){#overviewSecuritySummary .overview-security-mode{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;margin:8px 0 12px!important}#overviewSecuritySummary .overview-security-mode .security-pill{min-height:48px!important;height:48px!important;padding:5px 4px!important;border-radius:9px!important;font-size:12px!important;line-height:1!important;gap:4px!important}#overviewSecuritySummary .overview-security-mode .security-mode-icon{font-size:18px!important}}
+
+/* Match Security mode controls to the compact Overview controls. */
+#security .security-mode{gap:8px;margin:12px 0 16px}
+#security .security-pill{min-height:68px;height:68px;padding:10px 12px;border-radius:11px;font-size:16px;gap:8px}
+#security .security-mode-icon{font-size:28px}
+@media(max-width:850px){#security .security-mode{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;margin:8px 0 12px!important}#security .security-pill{min-height:48px!important;height:48px!important;padding:5px 4px!important;border-radius:9px!important;font-size:12px!important;line-height:1!important;gap:4px!important}#security .security-mode-icon{font-size:18px!important}}
+
+/* Consistent SVG lock icons across browsers and devices. */
+.security-lock-icon{display:block;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.security-icon .security-lock-icon{width:46px;height:46px}.security-icon .security-lock-icon.is-locked{color:#69dda0}.security-icon .security-lock-icon.is-unlocked{color:#ff7777}
+.overview-security-row-icon .security-lock-icon{width:30px;height:30px}.overview-security-row-icon .security-lock-icon.is-locked{color:#69dda0}.overview-security-row-icon .security-lock-icon.is-unlocked{color:#ff7777}
 </style></head>
 <body><button aria-label="Menu" class="menu-toggle" onclick="toggleSidebar()">☰</button><div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div><div class="app">
 <aside><div class="label">Dashboard</div><nav>
@@ -408,7 +419,11 @@ function removeSecurityDevice(id){saveSecurityDevices(securityDevices().filter(x
 function motionIconSvg(state='motion'){return state==='standby'?'<svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="12" r="5" fill="currentColor"/><path d="M17 22c2-3 5-4 7-4s5 1 7 4l4 9-5 2-3-6v8l5 8-4 2-4-6-4 6-4-2 5-8v-8l-3 6-5-2 4-9Z" fill="currentColor"/><path d="M9 15h5M34 15h5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity=".55"/></svg>':'<svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="26" cy="8" r="4" fill="currentColor"/><path d="M22 14c2-2 6-2 8 1l3 6 5 2-2 4-7-3-3-5-1 7 6 5-3 4-7-5-3 9-4-1 4-15 1-8-6 5-3-3 8-9Z" fill="currentColor"/><path d="M9 30c-2 2-3 4-3 7M14 33c-2 2-3 4-3 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity=".65"/></svg>'}
 let securityView=localStorage.getItem('knxSecurityView')||'locks';
 function setSecurityView(view){securityView=view;localStorage.setItem('knxSecurityView',view);renderSecurity();}
-function renderSecurity(){
+function securityLockIcon(locked){
+ const state=locked?'is-locked':'is-unlocked';
+ const shackle=locked?'<path d="M8 10V7a4 4 0 0 1 8 0v3"/>':'<path d="M8 10V7a4 4 0 0 1 7.6-2.2"/>';
+ return '<svg class="security-lock-icon '+state+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="10" rx="2"/>'+shackle+'<path d="M12 14v2"/></svg>';
+}function renderSecurity(){
  const locksBox=document.getElementById('securityLocks'), motionBox=document.getElementById('securityMotion'); if(!locksBox||!motionBox)return;
  const raw=securityDevices(), devices=raw.map(x=>({...x,type:x.type==='security'?(x.securityType==='motion'?'motion':'lock'):x.type})),rs=rooms();
  const roomsWith=(type)=>[...new Set([...rs.filter(r=>devices.some(x=>(x.room||'')===r&&x.type===type)),...devices.filter(x=>x.type===type).map(x=>x.room||'No room')])];
@@ -428,7 +443,7 @@ function renderSecurity(){
          const unlockLedRed=x.statusInvert?!physical:physical;
          const controlLockRed=x.controlInvert?!control:!control;
          const controlUnlockRed=x.controlInvert?control:!control;
-         return '<div class="security-item"><div class="security-icon">'+(physical?'🔒':'🔓')+'</div><div><div class="security-name">'+esc(x.name)+'</div><div class="security-state '+(physical?'locked':'unlocked')+'">'+dot(lockLedRed)+(physical?'Locked':'Unlocked')+'</div></div>'+(x.controllable?'<div class="security-actions"><button class="security-btn lock '+(control?'active':'')+(controlLockRed?' red-led':' green-led')+'" onclick="toggleSecurityLock('+i+',true)">Lock</button><button class="security-btn unlock '+(!control?'active':'')+(controlUnlockRed?' red-led':' green-led')+'" onclick="toggleSecurityLock('+i+',false)">Unlock</button></div>':'')+'</div>';
+         return '<div class="security-item"><div class="security-icon">'+securityLockIcon(physical)+'</div><div><div class="security-name">'+esc(x.name)+'</div><div class="security-state '+(physical?'locked':'unlocked')+'">'+dot(lockLedRed)+(physical?'Locked':'Unlocked')+'</div></div>'+(x.controllable?'<div class="security-actions"><button class="security-btn lock '+(control?'active':'')+(controlLockRed?' red-led':' green-led')+'" onclick="toggleSecurityLock('+i+',true)">Lock</button><button class="security-btn unlock '+(!control?'active':'')+(controlUnlockRed?' red-led':' green-led')+'" onclick="toggleSecurityLock('+i+',false)">Unlock</button></div>':'')+'</div>';
        }).join('');
      } else {
        html+=items.map(x=>{const i=raw.findIndex(z=>z.id===x.id),motion=x.motion===true,enabled=x.enabled!==false;const motionRed=x.motionInvert?(!motion):motion;const enableRed=x.enableInvert?enabled:!enabled;return '<div class="security-motion-row"><div class="security-motion-icon">'+(motion?motionIconSvg('motion'):motionIconSvg('standby'))+'</div><div><div class="security-motion-name">'+esc(x.name)+'</div><div class="security-motion-status '+(motion?'detected':'standby')+'">'+dot(motionRed)+(motion?'Motion':'Standby')+'</div><div class="security-motion-last">Last detection: '+esc(x.lastTime||'—')+'</div></div>'+(x.controllable?'<div class="security-motion-actions"><button class="security-enable-btn '+(enabled?'enabled':'disabled')+(enableRed?' red-led':' green-led')+'" onclick="toggleMotionEnable('+i+','+(!enabled)+')">'+(enabled?'Enabled':'Disabled')+'</button></div>':'')+'</div>'}).join('');
@@ -488,7 +503,7 @@ function renderOverview(){
    const motions=sec.filter(x=>x.type==='motion'||x.securityType==='motion');
    let html='<div class="overview-security-mode">'+['Home','Night','Away'].map(m=>'<button class="security-pill '+(mode===m?'active':'')+'" data-mode="'+m+'" onclick="setSecurityMode(this,\''+m+'\')"><span class="security-mode-icon">'+(m==='Home'?'🏠':m==='Night'?'🌙':'🚪')+'</span><span>'+m+'</span></button>').join('')+'</div><div class="overview-security-columns">';
    html+='<div><div class="overview-security-section-title">Locks</div><div class="overview-security-list">';
-   if(!locks.length)html+='<div class="overview-security-empty">No locks configured</div>'; else locks.forEach(x=>{const locked=x.locked!==false;const red=x.statusInvert?!locked:!locked;html+='<div class="overview-security-row"><span class="overview-security-row-icon">'+(locked?'🔒':'🔓')+'</span><span class="overview-security-row-main"><b>'+esc(x.name||'Lock')+'</b><small>'+esc(x.room||'Other')+'</small></span><span class="overview-security-row-state '+(red?'alert':'ok')+'">'+(red?'Unlocked':'Locked')+'</span></div>'});
+   if(!locks.length)html+='<div class="overview-security-empty">No locks configured</div>'; else locks.forEach(x=>{const locked=x.locked!==false;const red=x.statusInvert?!locked:!locked;html+='<div class="overview-security-row"><span class="overview-security-row-icon">'+securityLockIcon(locked)+'</span><span class="overview-security-row-main"><b>'+esc(x.name||'Lock')+'</b><small>'+esc(x.room||'Other')+'</small></span><span class="overview-security-row-state '+(red?'alert':'ok')+'">'+(red?'Unlocked':'Locked')+'</span></div>'});
    html+='</div></div><div><div class="overview-security-section-title">Motion sensors</div><div class="overview-security-list">';
    if(!motions.length)html+='<div class="overview-security-empty">No motion sensors configured</div>'; else motions.forEach(x=>{const moving=x.motion===true;const red=x.motionInvert?!moving:moving;html+='<div class="overview-security-row"><span class="overview-security-row-icon motion-icon">'+motionIconSvg(moving?'motion':'standby')+'</span><span class="overview-security-row-main"><b>'+esc(x.name||'Motion sensor')+'</b><small>'+esc(x.room||'Other')+'</small></span><span class="overview-security-row-state '+(red?'alert':'ok')+'">'+(red?'Motion':'Standby')+'</span></div>'});
    html+='</div></div></div>'; secBox.innerHTML=html;
