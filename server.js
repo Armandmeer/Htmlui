@@ -646,14 +646,18 @@ const server = http.createServer((req, res) => {
         try { if (fs.existsSync(STATE_FILE)) savedState = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch (_) {}
         const validSecurityModes = new Set(["Home", "Night", "Away"]);
         const securityMode = validSecurityModes.has(String(state.securityMode || "")) ? String(state.securityMode) : (validSecurityModes.has(String(savedState.securityMode || "")) ? String(savedState.securityMode) : "Home");
+        const sampleSecurityIds = new Set(["lock1", "lock2", "motion1", "motion2"]);
         const clean = {
           rooms: Array.isArray(state.rooms) ? state.rooms.map(String).map(x => x.trim()).filter(Boolean).slice(0, 100) : [],
           sliders: Array.isArray(state.sliders) ? state.sliders.slice(0, 200) : [],
-          securityDevices: Array.isArray(state.securityDevices) ? state.securityDevices.slice(0, 200) : [],
+          securityDevices: Array.isArray(state.securityDevices) ? state.securityDevices.filter(x => !sampleSecurityIds.has(String(x && x.id || ""))).slice(0, 200) : [],
           genericDevices: Array.isArray(state.genericDevices) ? state.genericDevices.slice(0, 300) : [],
           presets: state.presets && typeof state.presets === "object" ? state.presets : {},
           securityMode
         };
+        const sampleRoomNames = new Set(["Woonkamer", "Keuken", "Eetkamer", "Slaapkamer", "Kantoor", "Badkamer", "Hal", "Overig"]);
+        const usedRoomNames = new Set([...clean.sliders, ...clean.securityDevices, ...clean.genericDevices].map(x => String(x && x.room || "").trim()).filter(Boolean));
+        clean.rooms = clean.rooms.filter(room => !sampleRoomNames.has(room) || usedRoomNames.has(room));
         fs.writeFileSync(STATE_FILE, JSON.stringify(clean, null, 2));
         // Informeer alle geopende dashboards direct, zodat laptop en iPhone
         // dezelfde configuratie tonen zonder handmatig te verversen.
