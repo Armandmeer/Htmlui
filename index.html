@@ -936,6 +936,7 @@ function applySharedState(state){
  renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();
 }
 let lastSharedSignature='';
+let sharedStateHydrated=false;
 function sharedSignature(state){
  try{return JSON.stringify({rooms:state?.rooms||[],sliders:state?.sliders||[],securityDevices:state?.securityDevices||[],genericDevices:state?.genericDevices||[],presets:state?.presets||{},securityMode:normalizeSecurityMode(state?.securityMode)});}catch(e){return ''}
 }
@@ -947,18 +948,15 @@ async function syncSharedState(){
   const sig=sharedSignature(state);
   const active=document.activeElement;
   const editing=!!(active && (active.matches('input,select,textarea') || active.isContentEditable));
-  // Do not rebuild the DOM while an input/select is focused. The previous
-  // 2-second refresh replaced the field under the user's finger.
-  if(sig===lastSharedSignature) return;
+  // Wacht tijdens bewerken; de volgende verversing haalt dan dezelfde serverconfiguratie op.
+  if(sig===lastSharedSignature){sharedStateHydrated=true;return;}
+  if(editing)return;
   lastSharedSignature=sig;
-  if(editing) return;
   const serverHasData=(Array.isArray(state.rooms)&&state.rooms.length)||(Array.isArray(state.sliders)&&state.sliders.length)||(Array.isArray(state.securityDevices)&&state.securityDevices.length)||(Array.isArray(state.genericDevices)&&state.genericDevices.length);
-  if(serverHasData){
-    applySharedState(state);
-  }else{
-    normalizeRooms();normalizeSliders();
-    await postSharedState();
-  }
+  if(serverHasData)applySharedState(state);
+  // Pas na het inladen van de serverconfiguratie mogen lokale wijzigingen terug naar de server.
+  // Zo kan een nieuwe pagina nooit met standaardwaarden een bestaande configuratie overschrijven.
+  sharedStateHydrated=true;
   renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();renderConfiguredCameras();renderConfiguredScenes();renderConfiguredAv();if(currentPageId==='home')renderOverview();if(currentPageId==='security')renderSecurity();if(currentPageId==='settings')renderSecurityConfigs();loadConnection();
  }catch(e){
   // Keep the current UI intact on a temporary network error.
@@ -967,6 +965,7 @@ async function syncSharedState(){
 let syncTimer=null;
 function syncSharedStateDebounced(){clearTimeout(syncTimer);syncTimer=setTimeout(postSharedState,700);}
 async function postSharedState(){
+ if(!sharedStateHydrated)return;
  try{
   const payload={rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),presets:rgbwPresets(),securityMode:securityState.mode};
   const r=await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},cache:'no-store',body:JSON.stringify(payload)});

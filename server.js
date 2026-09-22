@@ -30,6 +30,7 @@ if (typeof KNXClient !== "function") {
 const PORT = Number(process.env.HTML_UI_PORT || process.env.PORT || 3010);
 const STATE_FILE = path.join(__dirname, "smarthome_state.json");
 const GITHUB_CONFIG_FILE = path.join(__dirname, "github_update.json");
+const STATE_BACKUP_FILE = path.join(__dirname, "smarthome_state.before-update.json");
 
 function readGithubConfig() {
   try {
@@ -165,7 +166,7 @@ async function updateFromGithub() {
   const roots = fs.readdirSync(extractDir, { withFileTypes: true }).filter(x => x.isDirectory());
   if (!roots.length) throw new Error("GitHub archive is empty");
   const sourceRoot = path.join(extractDir, roots[0].name);
-  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "github_update.json", "restart-after-update.js", "apply-update.js", "START_WINDOWS.bat"]);
+  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "smarthome_state.before-update.json", "github_update.json", "restart-after-update.js", "apply-update.js", "START_WINDOWS.bat"]);
   const copyTree = (src, dest) => {
     for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
       if (protectedNames.has(ent.name)) continue;
@@ -584,6 +585,7 @@ const server = http.createServer((req, res) => {
       return res.end(JSON.stringify({ ok: false, error: "An update is already in progress." }));
     }
     githubUpdateInProgress = true;
+    try { if (fs.existsSync(STATE_FILE)) fs.copyFileSync(STATE_FILE, STATE_BACKUP_FILE); } catch (e) { console.error('[GITHUB] Could not back up dashboard state:', e.message); }
     updateFromGithub().then(result => {
       res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Connection": "close" });
       res.end(JSON.stringify({ ok: true, result, restarting: true }));

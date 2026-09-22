@@ -8,7 +8,7 @@ const stageDir = path.resolve(process.argv[2]);
 const appDir = path.resolve(process.argv[3] || __dirname);
 const port = Number(process.argv[4] || 3010);
 const protectedNames = new Set([
-  'node_modules', '.git', 'smarthome_state.json', 'github_update.json',
+  'node_modules', '.git', 'smarthome_state.json', 'smarthome_state.before-update.json', 'github_update.json',
   'restart-after-update.js', 'apply-update.js', 'START_WINDOWS.bat'
 ]);
 
