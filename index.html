@@ -298,6 +298,9 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 
 /* iPhone-inspired lock SVG style, shared by every interface. */
 .security-lock-icon{display:block}.security-lock-icon .lock-body{fill:#f5c857;stroke:#c78a1d;stroke-width:1.2}.security-lock-icon .lock-shackle{fill:none;stroke:#dfe7eb;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round}.security-lock-icon .lock-keyhole{fill:#754d1e}.security-lock-icon .lock-keyline{fill:none;stroke:#754d1e;stroke-width:1.35;stroke-linecap:round}
+
+/* Match the Security lock symbols to the menu's native emoji family. */
+.security-lock-emoji{display:block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1}.security-icon .security-lock-emoji{font-size:46px}.overview-security-row-icon .security-lock-emoji{font-size:30px}
 </style></head>
 <body><button aria-label="Menu" class="menu-toggle" onclick="toggleSidebar()">☰</button><div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div><div class="app">
 <aside><div class="label">Dashboard</div><nav>
@@ -424,8 +427,7 @@ let securityView=localStorage.getItem('knxSecurityView')||'locks';
 function setSecurityView(view){securityView=view;localStorage.setItem('knxSecurityView',view);renderSecurity();}
 function securityLockIcon(locked){
  const state=locked?'is-locked':'is-unlocked';
- const shackle=locked?'<path class="lock-shackle" d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/>':'<path class="lock-shackle" d="M8 10.5V7a4 4 0 0 1 7.5-2.2"/>';
- return '<svg class="security-lock-icon '+state+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect class="lock-body" x="4" y="10" width="16" height="10" rx="2.8"/>'+shackle+'<circle class="lock-keyhole" cx="12" cy="14.5" r="1.25"/><path class="lock-keyline" d="M12 15.7v1.9"/></svg>';
+ return '<span class="security-lock-emoji '+state+'" aria-hidden="true">'+(locked?'🔒':'🔓')+'</span>';
 }
 function renderSecurity(){
  const locksBox=document.getElementById('securityLocks'), motionBox=document.getElementById('securityMotion'); if(!locksBox||!motionBox)return;
