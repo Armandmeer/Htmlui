@@ -583,7 +583,7 @@ function connectSocket(){
    return;
  }
  socket=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
- socket.onopen=()=>{log('Dashboard connection established','ok');};
+ socket.onopen=()=>{log('Dashboard connection established','ok');if(sessionStorage.getItem('knxReconnectAfterUpdate')==='1'){sessionStorage.removeItem('knxReconnectAfterUpdate');setTimeout(()=>connectKnx(),350);}};
  socket.onclose=()=>{log('Dashboard connection lost — reconnecting…','err');clearTimeout(window.wsRetry);window.wsRetry=setTimeout(connectSocket,3000)};
  socket.onerror=()=>{log('Dashboard connection unavailable. Check that the server is running.','err')};
  socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='knx-status'){updateKnxUi(!!m.connected,m.message|| (m.connected?'KNX connected':'KNX offline'));}
@@ -911,6 +911,7 @@ async function updateFromGithub(){
    }
    return false;
  };
+ sessionStorage.setItem('knxReconnectAfterUpdate','1');
  setBusy(true);
  setStatus('1/4  Downloading latest files from GitHub…');
  try{
@@ -924,6 +925,7 @@ async function updateFromGithub(){
    if(!back)throw new Error('The server did not come back online after the update.');
    setStatus('4/4  Update complete.');
  }catch(e){
+   sessionStorage.removeItem('knxReconnectAfterUpdate');
    setStatus('Update failed: '+e.message);
    toast('GitHub update failed');
    setBusy(false);
@@ -983,8 +985,12 @@ async function postSharedState(){
 const _secMigrated=securityDevices().map(x=>{x.type='security';x.securityType=x.securityType==='motion'||x.type==='motion'?'motion':(x.securityType||'lock');x.controllable=x.controllable!==false;x.physicalStatusGa=x.physicalStatusGa||x.statusGa||'';x.motionStatusGa=x.motionStatusGa||'';x.controlInvert=!!x.controlInvert;x.statusInvert=!!x.statusInvert;x.enableInvert=!!x.enableInvert;x.motionInvert=!!x.motionInvert;x.controlLocked=x.controlLocked!==undefined?!!x.controlLocked:!!x.locked;return x;}); if(_secMigrated.length) saveSecurityDevices(_secMigrated);
 syncSharedState();
 
-function connectKnx(){const ss=sliders(),security=securityDevices(),feedbackGAs=[],securityFeedbackGAs=[],cameraFeedbackGAs=[];ss.forEach(x=>{if(x.mode==='rgbw'){(x.rgbw?.feedback||[]).forEach(g=>{if(g)feedbackGAs.push(String(g).trim())})}else if(x.feedbackGa)feedbackGAs.push(String(x.feedbackGa).trim())});security.forEach(x=>{if(x.securityType==='motion'){if(x.enableFeedbackGa)securityFeedbackGAs.push(String(x.enableFeedbackGa).trim());if(x.motionStatusGa)securityFeedbackGAs.push(String(x.motionStatusGa).trim());}else{if(x.feedbackGa)securityFeedbackGAs.push(String(x.feedbackGa).trim());if(x.physicalStatusGa)securityFeedbackGAs.push(String(x.physicalStatusGa).trim());}});genericDevices().filter(x=>x.type==='camera'&&x.feedbackGa).forEach(x=>cameraFeedbackGAs.push(String(x.feedbackGa).trim()));send({type:'knx-connect',config:{ip:ip.value,port:Number(port.value),mode:mode.value,physAddr:phys.value,writeGa:ss[0]?.writeGa||'1/1/69',feedbackGa:feedbackGAs[0]||'2/1/69',feedbackGAs:[...new Set(feedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]}})}
-function disconnectKnx(){send({type:'knx-disconnect'})}
+function savedKnxConnection(){try{return JSON.parse(localStorage.getItem('knxConnection')||'{}')||{}}catch(e){return {}}}
+function currentKnxConnection(){const saved=savedKnxConnection(),field=id=>document.getElementById(id);const ipField=field('ip'),portField=field('port'),modeField=field('mode'),physField=field('phys');return {ip:String(ipField?ipField.value:(saved.ip||'')).trim(),port:Number(portField?portField.value:(saved.port||3671)),mode:String(modeField?modeField.value:(saved.mode||'TunnelUDP')),physAddr:String(physField?physField.value:(saved.phys||'')).trim()}}function connectKnx(){
+ const connection=currentKnxConnection();if(!connection.ip){toast('Enter KNX/IP connection first');return;}localStorage.setItem('knxConnection',JSON.stringify({ip:connection.ip,port:connection.port,mode:connection.mode,phys:connection.physAddr}));
+ const ss=sliders(),security=securityDevices(),feedbackGAs=[],securityFeedbackGAs=[],cameraFeedbackGAs=[];ss.forEach(x=>{if(x.mode==='rgbw'){(x.rgbw?.feedback||[]).forEach(g=>{if(g)feedbackGAs.push(String(g).trim())})}else if(x.feedbackGa)feedbackGAs.push(String(x.feedbackGa).trim())});security.forEach(x=>{if(x.securityType==='motion'){if(x.enableFeedbackGa)securityFeedbackGAs.push(String(x.enableFeedbackGa).trim());if(x.motionStatusGa)securityFeedbackGAs.push(String(x.motionStatusGa).trim());}else{if(x.feedbackGa)securityFeedbackGAs.push(String(x.feedbackGa).trim());if(x.physicalStatusGa)securityFeedbackGAs.push(String(x.physicalStatusGa).trim());}});genericDevices().filter(x=>x.type==='camera'&&x.feedbackGa).forEach(x=>cameraFeedbackGAs.push(String(x.feedbackGa).trim()));
+ send({type:'knx-connect',config:{...connection,writeGa:ss[0]?.writeGa||'',feedbackGa:feedbackGAs[0]||'',feedbackGAs:[...new Set(feedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]}})
+}function disconnectKnx(){send({type:'knx-disconnect'})}
 connectSocket();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCameraFullscreen()});
 window.addEventListener('DOMContentLoaded',()=>{

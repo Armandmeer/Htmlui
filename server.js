@@ -30,6 +30,49 @@ if (typeof KNXClient !== "function") {
 const PORT = Number(process.env.HTML_UI_PORT || process.env.PORT || 3010);
 const STATE_FILE = path.join(__dirname, "smarthome_state.json");
 const GITHUB_CONFIG_FILE = path.join(__dirname, "github_update.json");
+function readDashboardState() {
+  try {
+    const value = fs.existsSync(STATE_FILE) ? JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) : {};
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  } catch (_) { return {}; }
+}
+
+function writeDashboardState(state) {
+  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
+
+function persistKNXConnection(connection, reconnect) {
+  try {
+    const list = value => Array.isArray(value) ? value.map(x => String(x).trim()).filter(Boolean) : [];
+    const state = readDashboardState();
+    state.knxConnection = {
+      ip: String(connection.ip || "").trim(),
+      port: Number(connection.port) || 3671,
+      mode: connection.mode === "Multicast" ? "Multicast" : "TunnelUDP",
+      physAddr: String(connection.physAddr || "").trim(),
+      writeGa: String(connection.writeGa || "").trim(),
+      feedbackGa: String(connection.feedbackGa || "").trim(),
+      feedbackGAs: list(connection.feedbackGAs),
+      securityFeedbackGAs: list(connection.securityFeedbackGAs),
+      cameraFeedbackGAs: list(connection.cameraFeedbackGAs),
+      reconnect: !!reconnect
+    };
+    writeDashboardState(state);
+  } catch (e) { console.error("[KNX] Could not save connection settings:", e.message); }
+}
+
+function setKNXReconnectEnabled(enabled) {
+  const state = readDashboardState();
+  if (!state.knxConnection || typeof state.knxConnection !== "object") return;
+  state.knxConnection.reconnect = !!enabled;
+  try { writeDashboardState(state); } catch (e) { console.error("[KNX] Could not save reconnect preference:", e.message); }
+}
+
+function savedKNXConnection() {
+  const saved = readDashboardState().knxConnection;
+  if (!saved || typeof saved !== "object" || saved.reconnect === false || !String(saved.ip || "").trim()) return null;
+  return saved;
+}
 const STATE_BACKUP_FILE = path.join(__dirname, "smarthome_state.before-update.json");
 
 function readGithubConfig() {
@@ -405,6 +448,7 @@ function connectKNX(newConfig) {
   knx = new KNXClient(options);
 
   knx.on("connected", () => {
+    persistKNXConnection(config, true);
     status(true, `KNX verbonden met ${config.ip}:${config.port}`);
     const securityFeedbackGAs = Array.isArray(config.securityFeedbackGAs) ? config.securityFeedbackGAs : [];
     const cameraFeedbackGAs = Array.isArray(config.cameraFeedbackGAs) ? config.cameraFeedbackGAs : [];
@@ -648,6 +692,7 @@ const server = http.createServer((req, res) => {
         const securityMode = validSecurityModes.has(String(state.securityMode || "")) ? String(state.securityMode) : (validSecurityModes.has(String(savedState.securityMode || "")) ? String(savedState.securityMode) : "Home");
         const sampleSecurityIds = new Set(["lock1", "lock2", "motion1", "motion2"]);
         const clean = {
+          ...(savedState && typeof savedState === 'object' ? savedState : {}),
           rooms: Array.isArray(state.rooms) ? state.rooms.map(String).map(x => x.trim()).filter(Boolean).slice(0, 100) : [],
           sliders: Array.isArray(state.sliders) ? state.sliders.slice(0, 200) : [],
           securityDevices: Array.isArray(state.securityDevices) ? state.securityDevices.filter(x => !sampleSecurityIds.has(String(x && x.id || ""))).slice(0, 200) : [],
@@ -717,6 +762,7 @@ wss.on("connection", ws => {
           try { knx.Disconnect(); } catch (_) {}
           knx = null;
         }
+        setKNXReconnectEnabled(false);
         status(false, "KNX manually disconnected");
       } else if (msg.type === "knx-write") {
         writeKNX(msg.ga, msg.dpt, msg.value);
@@ -753,5 +799,10 @@ server.listen(PORT, "0.0.0.0", () => {
   console.log(`Write GA  : ${DEFAULT.writeGa}`);
   console.log(`Feedback  : ${DEFAULT.feedbackGa}`);
   console.log("======================================");
+  const savedConnection = savedKNXConnection();
+  if (savedConnection) {
+    console.log("[KNX] Herstellen van de opgeslagen verbinding na serverstart.");
+    setTimeout(() => connectKNX(savedConnection), 500);
+  }
   console.log("");
 });
