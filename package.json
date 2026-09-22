@@ -1,0 +1,14 @@
+{
+  "name": "smart-home-knx-dashboard",
+  "version": "2.1.6",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "knxultimate": "^6.0.6",
+    "ws": "^8.18.0",
+    "ffmpeg-static": "^5.2.0"
+  }
+}
