@@ -628,7 +628,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (requestPath === "/api/state" && req.method === "GET") {
-    let state = { rooms: [], sliders: [], securityDevices: [], genericDevices: [], presets: {} };
+    let state = { rooms: [], sliders: [], securityDevices: [], genericDevices: [], presets: {}, securityMode: "Home" };
     try { if (fs.existsSync(STATE_FILE)) state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch (_) {}
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     return res.end(JSON.stringify(state));
@@ -640,12 +640,17 @@ const server = http.createServer((req, res) => {
     req.on("end", () => {
       try {
         const state = JSON.parse(body);
+        let savedState = {};
+        try { if (fs.existsSync(STATE_FILE)) savedState = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch (_) {}
+        const validSecurityModes = new Set(["Home", "Night", "Away"]);
+        const securityMode = validSecurityModes.has(String(state.securityMode || "")) ? String(state.securityMode) : (validSecurityModes.has(String(savedState.securityMode || "")) ? String(savedState.securityMode) : "Home");
         const clean = {
           rooms: Array.isArray(state.rooms) ? state.rooms.map(String).map(x => x.trim()).filter(Boolean).slice(0, 100) : [],
           sliders: Array.isArray(state.sliders) ? state.sliders.slice(0, 200) : [],
           securityDevices: Array.isArray(state.securityDevices) ? state.securityDevices.slice(0, 200) : [],
           genericDevices: Array.isArray(state.genericDevices) ? state.genericDevices.slice(0, 300) : [],
-          presets: state.presets && typeof state.presets === "object" ? state.presets : {}
+          presets: state.presets && typeof state.presets === "object" ? state.presets : {},
+          securityMode
         };
         fs.writeFileSync(STATE_FILE, JSON.stringify(clean, null, 2));
         // Informeer alle geopende dashboards direct, zodat laptop en iPhone

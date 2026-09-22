@@ -461,10 +461,13 @@ function renderSecurity(){
  document.querySelectorAll('.security-mode .security-pill').forEach(b=>b.classList.toggle('active',b.dataset.mode===securityState.mode));
  const ms=document.querySelector('.motion-heading-icon');if(ms&&!ms.innerHTML)ms.innerHTML=motionIconSvg('motion');
 }
-const securityState={mode:(localStorage.getItem('knxSecurityMode')||'Home')};
+const securityModes=['Home','Night','Away'];
+function normalizeSecurityMode(mode){return securityModes.includes(mode)?mode:'Home';}
+const securityState={mode:normalizeSecurityMode(localStorage.getItem('knxSecurityMode'))};
 function toggleSecurityLock(i,wantLocked){const a=securityDevices(),x=a[i];if(!x||x.controllable===false)return;const ga=String(x.writeGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:wantLocked?1:0});toast(x.name+(wantLocked?' lock command sent':' unlock command sent'));}
 function toggleMotionEnable(i,wantEnabled){const a=securityDevices(),x=a[i];if(!x||x.controllable===false)return;const ga=String(x.enableWriteGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:wantEnabled?1:0});toast(x.name+(wantEnabled?' enable command sent':' disable command sent'));}
-function setSecurityMode(btn,mode){securityState.mode=mode;localStorage.setItem('knxSecurityMode',mode);document.querySelectorAll('.security-mode .security-pill').forEach(x=>x.classList.toggle('active',x.dataset.mode===mode));renderOverview();toast('Security mode: '+mode);}
+function setSecurityMode(btn,mode){applySecurityMode(mode);renderOverview();postSharedState();toast('Security mode: '+securityState.mode);}
+function applySecurityMode(mode){securityState.mode=normalizeSecurityMode(mode);localStorage.setItem('knxSecurityMode',securityState.mode);document.querySelectorAll('.security-mode .security-pill').forEach(x=>x.classList.toggle('active',x.dataset.mode===securityState.mode));}
 
 function renderConfiguredAv(){
  const box=document.getElementById('avDeviceList'),status=document.getElementById('avDeviceStatus');
@@ -582,6 +585,10 @@ function connectSocket(){
  socket.onclose=()=>{log('Dashboard connection lost — reconnecting…','err');clearTimeout(window.wsRetry);window.wsRetry=setTimeout(connectSocket,3000)};
  socket.onerror=()=>{log('Dashboard connection unavailable. Check that the server is running.','err')};
  socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='knx-status'){updateKnxUi(!!m.connected,m.message|| (m.connected?'KNX connected':'KNX offline'));}
+ if(m.type==='state-update'){
+   const state=m.state||{},sig=sharedSignature(state);
+   if(sig!==lastSharedSignature){lastSharedSignature=sig;applySharedState(state);renderConfiguredCameras();renderConfiguredScenes();renderConfiguredAv();if(currentPageId==='home')renderOverview();if(currentPageId==='security')renderSecurity();if(currentPageId==='settings')renderSecurityConfigs();}
+ }
  if(m.type==='security-feedback'){
    const ga=String(m.ga||'').trim(), value=!!m.value, arr=securityDevices(); let changed=false;
    arr.forEach(x=>{
@@ -925,11 +932,12 @@ function applySharedState(state){
  if(Array.isArray(state.securityDevices)) localStorage.setItem('knxSecurityDevices',JSON.stringify(state.securityDevices));
  if(Array.isArray(state.genericDevices)) localStorage.setItem('knxGenericDevices',JSON.stringify(state.genericDevices));
  if(state.presets && typeof state.presets==='object') localStorage.setItem('knxRGBWPresets',JSON.stringify(state.presets));
+ if(typeof state.securityMode==='string') applySecurityMode(state.securityMode);
  renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();
 }
 let lastSharedSignature='';
 function sharedSignature(state){
- try{return JSON.stringify({rooms:state?.rooms||[],sliders:state?.sliders||[],securityDevices:state?.securityDevices||[],genericDevices:state?.genericDevices||[],presets:state?.presets||{}});}catch(e){return ''}
+ try{return JSON.stringify({rooms:state?.rooms||[],sliders:state?.sliders||[],securityDevices:state?.securityDevices||[],genericDevices:state?.genericDevices||[],presets:state?.presets||{},securityMode:normalizeSecurityMode(state?.securityMode)});}catch(e){return ''}
 }
 async function syncSharedState(){
  try{
@@ -960,7 +968,7 @@ let syncTimer=null;
 function syncSharedStateDebounced(){clearTimeout(syncTimer);syncTimer=setTimeout(postSharedState,700);}
 async function postSharedState(){
  try{
-  const payload={rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),presets:rgbwPresets()};
+  const payload={rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),presets:rgbwPresets(),securityMode:securityState.mode};
   const r=await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},cache:'no-store',body:JSON.stringify(payload)});
   if(!r.ok)throw new Error('save '+r.status);
   lastSharedSignature=sharedSignature(payload);
