@@ -301,6 +301,74 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 
 /* Match the Security lock symbols to the menu's native emoji family. */
 .security-lock-emoji{display:block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1}.security-icon .security-lock-emoji{font-size:46px}.overview-security-row-icon .security-lock-emoji{font-size:30px}
+
+/* Clean local review changes */
+.overview-security-alert{display:none;background:rgba(23,33,41,.34);border-color:rgba(116,145,157,.24);backdrop-filter:blur(10px)}.overview-security-alert.is-visible{display:block}.overview-security-alert-content{display:flex;align-items:center;gap:13px;min-height:54px}.overview-security-alert-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;background:rgba(255,190,99,.13);border:1px solid rgba(255,190,99,.34);color:#ffd391;font-size:20px;font-weight:900}.overview-security-alert-copy{display:flex;flex-direction:column;gap:3px;min-width:0}.overview-security-alert-copy b{font-size:15px;color:#f6fbff}.overview-security-alert-copy span{font-size:13px;color:#c5d2dc}.device-room-group:not([open]) .device-room-actions{display:flex!important}.device-room-availability{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 16px;margin:0 0 12px;border:1px solid rgba(116,145,157,.28);border-radius:13px;background:rgba(23,33,41,.45)}.device-room-availability .actions{display:flex;gap:8px;align-items:center}.device-room-availability select{min-width:170px}.security-settings-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}.security-settings-row>div{min-width:0}.security-settings-row label{margin-top:0}@media(max-width:700px){.device-room-availability{align-items:stretch;flex-direction:column}.device-room-availability .actions{width:100%}.device-room-availability select{flex:1;min-width:0}.security-settings-row{grid-template-columns:1fr}}
+/* Local overview and security consistency */
+#overviewLightingSummary{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;grid-auto-rows:1fr}
+#overviewLightingSummary .overview-room{display:flex;flex-direction:column;min-height:128px;height:100%}
+#overviewLightingSummary .overview-lights{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;align-content:start}
+#overviewLightingSummary .overview-light{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;overflow:hidden;white-space:nowrap}
+#overviewLightingSummary .overview-light-name{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#overviewLightingSummary .overview-light b{flex:0 0 auto}
+.security-state.red-led,.security-motion-status.red-led{color:#ff7777}
+.security-state.green-led,.security-motion-status.green-led{color:#69dda0}
+.security-btn.red-led{background:rgba(255,119,119,.13)!important;border-color:rgba(255,119,119,.46)!important;color:#ffdede!important}
+.security-btn.green-led{background:rgba(105,221,160,.13)!important;border-color:rgba(105,221,160,.46)!important;color:#dff8ea!important}
+.security-btn.red-led::before{background:#ff7777!important;box-shadow:0 0 7px rgba(255,119,119,.55)!important}
+.security-btn.green-led::before{background:#69dda0!important;box-shadow:0 0 7px rgba(105,221,160,.55)!important}
+.unified-device[data-type="security"] .unified-device-grid{grid-template-columns:1.2fr 1fr 1fr 1fr}
+.security-settings-row.security-settings-addresses{grid-template-columns:repeat(3,minmax(0,1fr))}
+.security-settings-row.security-settings-extra{grid-template-columns:minmax(220px,1fr);max-width:420px}
+@media(max-width:850px){#overviewLightingSummary{grid-template-columns:1fr}.unified-device[data-type="security"] .unified-device-grid{grid-template-columns:1fr 1fr}.security-settings-row.security-settings-addresses{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.unified-device[data-type="security"] .unified-device-grid,.security-settings-row.security-settings-addresses{grid-template-columns:1fr}}#security .security-btn.lock.red-led,#security .security-btn.unlock.red-led{background:rgba(255,119,119,.20)!important;border-color:#ff7777!important;color:#ffdede!important}
+#security .security-btn.lock.green-led,#security .security-btn.unlock.green-led{background:rgba(105,221,160,.20)!important;border-color:#69dda0!important;color:#dff8ea!important}
+#security .security-btn.red-led::before{background:#ff7777!important;box-shadow:0 0 8px rgba(255,119,119,.65)!important}
+#security .security-btn.green-led::before{background:#69dda0!important;box-shadow:0 0 8px rgba(105,221,160,.65)!important}#overviewLightingSummary .overview-lights{grid-template-columns:repeat(2,minmax(0,1fr))}
+#overviewLightingSummary .overview-light{white-space:normal;overflow:visible;align-items:flex-start}
+#overviewLightingSummary .overview-light-name{overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+#security .security-state.red-led{color:#ff7777!important}
+#security .security-state.green-led{color:#69dda0!important}#overviewLightingSummary .overview-room{min-height:76px;justify-content:center}@media(max-width:600px){
+  .lighting-root .lighting-control{height:96px;min-height:96px;padding:11px 13px;border-radius:13px}
+  .lighting-root .lighting-control .topline{margin-bottom:7px;font-size:15px}
+  .lighting-root .lighting-control .topline b:last-child,.lighting-root .lighting-control .topline b.dim-value{font-size:17px!important}
+  .lighting-root .lighting-control .range-wrap{width:calc(100% - 16px);margin:0 8px}
+}#overviewLightingSummary{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+#overviewLightingSummary .overview-room{min-height:68px;padding:11px 12px;border-radius:12px}
+#overviewLightingSummary .overview-room-head{margin-bottom:0;gap:8px;font-size:14px}
+#overviewLightingSummary .overview-room-head .muted{font-size:12px;white-space:nowrap}@media(max-width:850px){
+  #overviewLightingSummary{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  #overviewLightingSummary .overview-room{min-height:58px;padding:8px 9px;border-radius:10px}
+  #overviewLightingSummary .overview-room-head{flex-direction:column;align-items:flex-start;gap:2px;font-size:12px}
+  #overviewLightingSummary .overview-room-head .muted{font-size:10px;white-space:normal;line-height:1.2}
+}
+@media(max-width:600px){
+  .lighting-root .lighting-control{height:84px;min-height:84px;padding:8px 11px}
+  .lighting-root .lighting-control .topline{margin-bottom:5px;font-size:14px}
+  .lighting-root .lighting-control .topline b:last-child,.lighting-root .lighting-control .topline b.dim-value{font-size:16px!important}
+}#security .security-sub{display:none}
+#security .security-panel-head h2{font-family:inherit;font-size:20px;font-weight:700;line-height:1.3;display:flex;align-items:center;gap:10px}
+#security .security-heading-lock-icon,#security .motion-heading-icon{display:inline-grid;width:24px;height:26px;flex:0 0 24px;place-items:center}
+#security .security-heading-lock-icon .security-lock-emoji,#security .motion-heading-icon svg{width:24px;height:26px}
+#security .security-page-room-title{font-size:13px}
+@media(max-width:600px){
+  #security .security-card{padding:13px}
+  #security .security-page-room{padding:8px 11px;border-radius:10px}
+  #security .security-page-room-title{font-size:13px}
+  #security .security-item{grid-template-columns:46px minmax(0,1fr) auto;gap:7px;padding:6px 0;min-height:0}
+  #security .security-motion-row{grid-template-columns:46px minmax(0,1fr);gap:7px;padding:6px 0;min-height:0}
+  #security .security-icon,#security .security-motion-icon{width:46px;height:46px;border-radius:11px}
+  #security .security-motion-icon svg{width:30px;height:30px}
+  #security .security-name,#security .security-motion-name{font-size:15px}
+  #security .security-state,#security .security-motion-status{font-size:13px;margin-top:3px}
+  #security .security-actions{grid-column:auto;gap:4px;margin:0;white-space:nowrap}
+  #security .security-motion-actions{grid-column:2;gap:5px;margin-top:3px}
+  #security .security-btn{min-width:48px;padding:7px 5px;font-size:11px}
+  #security .security-enable-btn{min-width:68px;padding:7px;font-size:11px}
+}/* Compact independent security options */
+.security-settings-row.security-settings-extra{display:flex;flex-wrap:wrap;gap:10px 20px;max-width:none}
+.security-settings-extra .security-option{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;cursor:pointer}
+.security-settings-extra .security-option input[type=checkbox]{width:18px;height:18px;min-height:0;margin:0;padding:0;flex:0 0 18px;accent-color:var(--green)}
 </style></head>
 <body><button aria-label="Menu" class="menu-toggle" onclick="toggleSidebar()">☰</button><div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div><div class="app">
 <aside><div class="label">Dashboard</div><nav>
@@ -311,10 +379,10 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <button onclick="page('rooms',this)">🛋️ Rooms</button><button onclick="page('scenes',this)">✨ Scenes</button><button onclick="page('energy',this)">⚡ Energy</button>
 </nav><div class="label">System</div><nav><button onclick="page('settings',this)">⚙ Settings</button></nav></aside>
 <main><div class="top"><div><h1 id="title">Overview</h1><div class="muted" id="sub"></div></div></div>
-<div id="pageHost"></div><div hidden="True" id="pageCache"><template data-page-id="home"><section class="page" id="home"><div class="grid"><div class="card s12 security-overview-card"><div class="settings-heading"><div><h2>Security</h2><div class="muted">Security mode, locks and motion sensors.</div></div></div><div id="overviewSecuritySummary" class="overview-summary"></div></div><div class="card s12" id="overviewLightingCard"><div class="settings-heading"><div><h2>Lighting</h2><div class="muted">Active lighting by room.</div></div></div><div id="overviewLightingSummary" class="overview-summary"></div></div><div class="card s12" id="overviewAvCard"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Active AV devices by room.</div></div></div><div id="overviewAvSummary" class="overview-summary"></div></div><div class="card s12" id="overviewErrorsCard" style="display:none"><div class="settings-heading"><div><h2>Errors</h2><div class="muted">Connections that need attention.</div></div></div><div id="overviewErrors"></div></div></div></section></template><template data-page-id="lighting"><section class="page" id="lighting"><div class="lighting-root" id="lightingRoot"><div class="lighting-filter"><select aria-label="Room" id="lightingRoomFilter" onchange="setLightingRoom(this.value)"></select><span class="muted" id="roomCount"></span></div><div class="devices" id="lightingSliders"></div></div></section></template><template data-page-id="av"><section class="page" id="av"><div class="card"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Configured AV devices, grouped by room.</div></div><span class="badge" id="avDeviceStatus">0 devices</span></div><div id="avDeviceList" class="devices"></div></div></section></template><template data-page-id="cameras"><section class="page" id="cameras"><div class="card camera-card"><div class="settings-heading"><div><h2>Cameras</h2><div class="muted">Cameras configured in Devices are shown here.</div></div><span class="badge" id="cameraStatus">0 cameras</span></div><div id="cameraDeviceGrid" class="camera-grid"></div></div></section></template><template data-page-id="climate"><section class="page" id="climate"><div class="climate-card"><div class="climate-head"><div class="climate-title-row"><button class="climate-back" aria-label="Back" onclick="page('home')">←</button><div><div class="climate-room">Thermostat</div><h2 style="margin:4px 0 0">Living Room</h2></div></div><div class="climate-readings"><div class="climate-reading"><span class="reading-icon">🌡️</span><span id="climateOutdoor">25 °C</span></div><div class="climate-reading"><span class="reading-icon">☁</span><span id="climateAmbient">21.5 °C</span></div></div></div><div class="climate-dial-wrap"><div class="climate-dial"><div class="climate-dial-content"><div class="climate-current-label">Target</div><div class="climate-temp-main"><span id="climateTargetBig">21.0</span><small>°C</small></div><div class="climate-mode-indicator" id="climateModeIndicator">❄ Cooling</div><div class="climate-target">Current room temperature <span id="climateCurrentSmall">21.5 °C</span></div></div></div></div><div class="climate-adjust"><button class="minus" onclick="adjustClimate(-0.5)" aria-label="Decrease target temperature">−</button><div></div><button class="plus" onclick="adjustClimate(0.5)" aria-label="Increase target temperature">+</button></div><div class="climate-actions"><div class="climate-control"><button id="climatePower" class="active" onclick="toggleClimatePower()"><span class="control-icon">⏻</span><span id="climatePowerText">On</span><span class="control-sub" id="climatePowerSub">System active</span></button></div><div class="climate-control"><button id="climateModeButton" onclick="toggleClimateModeMenu()"><span class="control-icon" id="climateModeIcon">❄️</span><span id="climateModeText">Cooling</span><span class="control-sub">Heat / Cool</span></button><div class="climate-menu" id="climateModeMenu"><button onclick="setClimateMode('heat')">🔥 Heating <span>Heat</span></button><button onclick="setClimateMode('cool')">❄️ Cooling <span>Cool</span></button></div></div><div class="climate-control"><button id="climateFanButton" onclick="toggleClimateFanMenu()"><span class="control-icon">🌀</span><span id="climateFanText">50%</span><span class="control-sub">Ventilation</span></button><div class="climate-menu" id="climateFanMenu"><button onclick="setClimateFan(25)">25%</button><button onclick="setClimateFan(50)">50%</button><button onclick="setClimateFan(75)">75%</button><button onclick="setClimateFan(100)">100%</button></div></div></div><div class="climate-status"><span>System status:</span><span class="state" id="climateState">Cooling · Fan 50%</span></div></div></section></template><template data-page-id="security"><section class="page" id="security">
+<div id="pageHost"></div><div hidden="True" id="pageCache"><template data-page-id="home"><section class="page" id="home"><div class="grid"><div class="card s12 overview-security-alert" id="overviewSecurityAlert" style="display:none"><div id="overviewSecurityAlertContent"></div></div><div class="card s12 security-overview-card"><div class="settings-heading"><div><h2>Security</h2><div class="muted">Security mode, locks and motion sensors.</div></div></div><div id="overviewSecuritySummary" class="overview-summary"></div></div><div class="card s12" id="overviewLightingCard"><div class="settings-heading"><div><h2>Lighting</h2><div class="muted">Active lighting by room.</div></div></div><div id="overviewLightingSummary" class="overview-summary"></div></div><div class="card s12" id="overviewAvCard"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Active AV devices by room.</div></div></div><div id="overviewAvSummary" class="overview-summary"></div></div><div class="card s12" id="overviewErrorsCard" style="display:none"><div class="settings-heading"><div><h2>Errors</h2><div class="muted">Connections that need attention.</div></div></div><div id="overviewErrors"></div></div></div></section></template><template data-page-id="lighting"><section class="page" id="lighting"><div class="lighting-root" id="lightingRoot"><div class="lighting-filter"><select aria-label="Room" id="lightingRoomFilter" onchange="setLightingRoom(this.value)"></select><span class="muted" id="roomCount"></span></div><div class="devices" id="lightingSliders"></div></div></section></template><template data-page-id="av"><section class="page" id="av"><div class="card"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Configured AV devices, grouped by room.</div></div><span class="badge" id="avDeviceStatus">0 devices</span></div><div id="avDeviceList" class="devices"></div></div></section></template><template data-page-id="cameras"><section class="page" id="cameras"><div class="card camera-card"><div class="settings-heading"><div><h2>Cameras</h2><div class="muted">Cameras configured in Devices are shown here.</div></div><span class="badge" id="cameraStatus">0 cameras</span></div><div id="cameraDeviceGrid" class="camera-grid"></div></div></section></template><template data-page-id="climate"><section class="page" id="climate"><div class="climate-card"><div class="climate-head"><div class="climate-title-row"><button class="climate-back" aria-label="Back" onclick="page('home')">←</button><div><div class="climate-room">Thermostat</div><h2 style="margin:4px 0 0">Living Room</h2></div></div><div class="climate-readings"><div class="climate-reading"><span class="reading-icon">🌡️</span><span id="climateOutdoor">25 °C</span></div><div class="climate-reading"><span class="reading-icon">☁</span><span id="climateAmbient">21.5 °C</span></div></div></div><div class="climate-dial-wrap"><div class="climate-dial"><div class="climate-dial-content"><div class="climate-current-label">Target</div><div class="climate-temp-main"><span id="climateTargetBig">21.0</span><small>°C</small></div><div class="climate-mode-indicator" id="climateModeIndicator">❄ Cooling</div><div class="climate-target">Current room temperature <span id="climateCurrentSmall">21.5 °C</span></div></div></div></div><div class="climate-adjust"><button class="minus" onclick="adjustClimate(-0.5)" aria-label="Decrease target temperature">−</button><div></div><button class="plus" onclick="adjustClimate(0.5)" aria-label="Increase target temperature">+</button></div><div class="climate-actions"><div class="climate-control"><button id="climatePower" class="active" onclick="toggleClimatePower()"><span class="control-icon">⏻</span><span id="climatePowerText">On</span><span class="control-sub" id="climatePowerSub">System active</span></button></div><div class="climate-control"><button id="climateModeButton" onclick="toggleClimateModeMenu()"><span class="control-icon" id="climateModeIcon">❄️</span><span id="climateModeText">Cooling</span><span class="control-sub">Heat / Cool</span></button><div class="climate-menu" id="climateModeMenu"><button onclick="setClimateMode('heat')">🔥 Heating <span>Heat</span></button><button onclick="setClimateMode('cool')">❄️ Cooling <span>Cool</span></button></div></div><div class="climate-control"><button id="climateFanButton" onclick="toggleClimateFanMenu()"><span class="control-icon">🌀</span><span id="climateFanText">50%</span><span class="control-sub">Ventilation</span></button><div class="climate-menu" id="climateFanMenu"><button onclick="setClimateFan(25)">25%</button><button onclick="setClimateFan(50)">50%</button><button onclick="setClimateFan(75)">75%</button><button onclick="setClimateFan(100)">100%</button></div></div></div><div class="climate-status"><span>System status:</span><span class="state" id="climateState">Cooling · Fan 50%</span></div></div></section></template><template data-page-id="security"><section class="page" id="security">
 <div class="security-card security-mode-card"><div class="security-panel-head"><div><h2>Security mode</h2><div class="security-sub">Select the active security mode.</div></div></div><div class="security-mode"><button class="security-pill active" data-mode="Home" onclick="setSecurityMode(this,'Home')"><span class="security-mode-icon">🏠</span><span>Home</span></button><button class="security-pill" data-mode="Night" onclick="setSecurityMode(this,'Night')"><span class="security-mode-icon">🌙</span><span>Night</span></button><button class="security-pill" data-mode="Away" onclick="setSecurityMode(this,'Away')"><span class="security-mode-icon">🚪</span><span>Away</span></button></div></div>
-<div class="security-grid security-page-grid"><div class="security-card"><div class="security-panel-head"><div><h2>🔐 Locks</h2><div class="security-sub">Electric locks grouped by room.</div></div></div><div id="securityLocks" class="security-page-room-grid"></div></div>
-<div class="security-card"><div class="security-panel-head"><div><h2><span class="motion-heading-icon"></span> Motion sensors</h2><div class="security-sub">Motion detection and sensor enable state.</div></div></div><div id="securityMotion" class="security-page-room-grid"></div></div></div>
+<div class="security-grid security-page-grid"><div class="security-card"><div class="security-panel-head"><div><h2><span class="security-heading-lock-icon"></span><span>Locks</span></h2></div></div><div id="securityLocks" class="security-page-room-grid"></div></div>
+<div class="security-card"><div class="security-panel-head"><div><h2><span class="motion-heading-icon"></span><span>Motion sensors</span></h2></div></div><div id="securityMotion" class="security-page-room-grid"></div></div></div>
 </section></template><template data-page-id="rooms"><section class="page" id="rooms"><div class="card"><h2>Rooms</h2><div id="configuredRoomsPage" class="devices"></div></div></section></template><template data-page-id="scenes"><section class="page" id="scenes"><div class="card"><div class="settings-heading"><div><h2>Scenes</h2><div class="muted">Scenes configured in Devices are shown here.</div></div></div><div id="sceneDeviceList" class="devices"></div></div></section></template><template data-page-id="energy"><section class="page" id="energy"><div class="grid"><div class="card s4"><div class="muted">Today</div><div class="value">8,4 kWh</div></div><div class="card s4"><div class="muted">Current</div><div class="value">412 W</div></div><div class="card s4"><div class="muted">Solar</div><div class="value">1,8 kW</div></div></div></section></template><template data-page-id="settings"><section class="page" id="settings"><div class="grid">
 <details class="card s12 knx-settings-card" id="knxSettingsCard">
 <summary class="settings-heading knx-summary"><div><h2>KNX/IP connection</h2><div class="muted">Connection, parameters and communication log.</div></div><div id="knxConnectionBadge" class="knx-connection-badge offline"><span class="status-led"></span><span>Disconnected</span></div></summary>
@@ -400,7 +468,7 @@ function showPage(id,b){
   if(id==='home'){renderOverview();}
 }
 function securityDevices(){try{const a=JSON.parse(localStorage.getItem('knxSecurityDevices')||'null');if(!Array.isArray(a))return [];return a.map((x,i)=>{if(x.type==='lock'||x.type==='motion'){return {...x,type:'security',securityType:x.type,enableWriteGa:x.enableWriteGa||'',enableFeedbackGa:x.enableFeedbackGa||''};}return {...x,type:'security',securityType:x.securityType==='motion'?'motion':'lock',enableWriteGa:x.enableWriteGa||'',enableFeedbackGa:x.enableFeedbackGa||''};});}catch(e){return []}}
-function saveSecurityDevices(a){localStorage.setItem('knxSecurityDevices',JSON.stringify(a));syncSharedStateDebounced()}
+function saveSecurityDevices(a,options={}){localStorage.setItem('knxSecurityDevices',JSON.stringify(a));if(options.shared!==false)syncSharedStateDebounced()}
 function normalizeSecurityDevices(){
   const a=securityDevices().map((x,i)=>{
     const motion=(x.securityType==='motion'||x.type==='motion');
@@ -426,9 +494,11 @@ function removeSecurityDevice(id){saveSecurityDevices(securityDevices().filter(x
 function motionIconSvg(state='motion'){return state==='standby'?'<svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="24" cy="12" r="5" fill="currentColor"/><path d="M17 22c2-3 5-4 7-4s5 1 7 4l4 9-5 2-3-6v8l5 8-4 2-4-6-4 6-4-2 5-8v-8l-3 6-5-2 4-9Z" fill="currentColor"/><path d="M9 15h5M34 15h5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity=".55"/></svg>':'<svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><circle cx="26" cy="8" r="4" fill="currentColor"/><path d="M22 14c2-2 6-2 8 1l3 6 5 2-2 4-7-3-3-5-1 7 6 5-3 4-7-5-3 9-4-1 4-15 1-8-6 5-3-3 8-9Z" fill="currentColor"/><path d="M9 30c-2 2-3 4-3 7M14 33c-2 2-3 4-3 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity=".65"/></svg>'}
 let securityView=localStorage.getItem('knxSecurityView')||'locks';
 function setSecurityView(view){securityView=view;localStorage.setItem('knxSecurityView',view);renderSecurity();}
+let securityLockIconId=0;
 function securityLockIcon(locked){
- const state=locked?'is-locked':'is-unlocked';
- return '<span class="security-lock-emoji '+state+'" aria-hidden="true">'+(locked?'🔒':'🔓')+'</span>';
+ const id='security-lock-'+(++securityLockIconId),shackle='M20 35V23C20 6 46 6 46 23V35',turn=locked?'':'rotate(-35 20 35)';
+ const layers=[36,40,44,48,52,56].map(y=>'<path d="M12 '+y+'H53" stroke="#756c32" stroke-opacity=".34" stroke-width="1"/><path d="M12 '+(y+1)+'H53" stroke="#fff4b2" stroke-opacity=".32" stroke-width=".7"/>').join('');
+ return '<span class="security-lock-emoji '+(locked?'is-locked':'is-unlocked')+'" aria-hidden="true"><svg viewBox="0 0 64 64" data-lock-state="'+(locked?'locked':'unlocked')+'"><defs><linearGradient id="'+id+'-brass" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#d6ce80"/><stop offset=".16" stop-color="#e9df9a"/><stop offset=".52" stop-color="#bbb267"/><stop offset=".88" stop-color="#a79c51"/><stop offset="1" stop-color="#877b39"/></linearGradient><linearGradient id="'+id+'-steel" x1="0" y1="0" x2="1" y2=".2"><stop stop-color="#7f96aa"/><stop offset=".24" stop-color="#f4fafc"/><stop offset=".52" stop-color="#c3d1db"/><stop offset=".75" stop-color="#f1f6f9"/><stop offset="1" stop-color="#7a90a3"/></linearGradient></defs><ellipse cx="33" cy="60" rx="23" ry="2" fill="#000" opacity=".2"/><g transform="'+turn+'"><path d="'+shackle+'" fill="none" stroke="#566876" stroke-width="8" stroke-linecap="round"/><path d="'+shackle+'" fill="none" stroke="url(#'+id+'-steel)" stroke-width="5.7" stroke-linecap="round"/></g><path d="M11 31H53V59H11Z" fill="url(#'+id+'-brass)" stroke="#8b8144" stroke-width=".6"/><path d="M12 32H52" stroke="#f6edb2" stroke-width="1.3"/>'+layers+'<path d="M12 32V58" stroke="#fff5ba" stroke-opacity=".55" stroke-width="1.4"/><path d="M51 32V58" stroke="#746a30" stroke-opacity=".25" stroke-width="2"/><path d="M12 58H52" stroke="#70662c" stroke-opacity=".65" stroke-width="1"/></svg></span>';
 }
 function renderSecurity(){
  const locksBox=document.getElementById('securityLocks'), motionBox=document.getElementById('securityMotion'); if(!locksBox||!motionBox)return;
@@ -466,8 +536,8 @@ function renderSecurity(){
 const securityModes=['Home','Night','Away'];
 function normalizeSecurityMode(mode){return securityModes.includes(mode)?mode:'Home';}
 const securityState={mode:normalizeSecurityMode(localStorage.getItem('knxSecurityMode'))};
-function toggleSecurityLock(i,wantLocked){const a=securityDevices(),x=a[i];if(!x||x.controllable===false)return;const ga=String(x.writeGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:wantLocked?1:0});toast(x.name+(wantLocked?' lock command sent':' unlock command sent'));}
-function toggleMotionEnable(i,wantEnabled){const a=securityDevices(),x=a[i];if(!x||x.controllable===false)return;const ga=String(x.enableWriteGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:wantEnabled?1:0});toast(x.name+(wantEnabled?' enable command sent':' disable command sent'));}
+function toggleSecurityLock(i,wantLocked){const a=securityDevices(),x=a[i];if(!x||x.controllable===false)return;const ga=String(x.writeGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:securityKnxValue(x,wantLocked)?1:0});toast(x.name+(wantLocked?' lock command sent':' unlock command sent'));}
+function toggleMotionEnable(i,wantEnabled){const a=securityDevices(),x=a[i];if(!x||x.controllable===false)return;const ga=String(x.enableWriteGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:securityKnxValue(x,wantEnabled)?1:0});toast(x.name+(wantEnabled?' enable command sent':' disable command sent'));}
 function setSecurityMode(btn,mode){applySecurityMode(mode);renderOverview();postSharedState();toast('Security mode: '+securityState.mode);}
 function applySecurityMode(mode){securityState.mode=normalizeSecurityMode(mode);localStorage.setItem('knxSecurityMode',securityState.mode);document.querySelectorAll('.security-mode .security-pill').forEach(x=>x.classList.toggle('active',x.dataset.mode===securityState.mode));}
 
@@ -522,7 +592,7 @@ function renderOverview(){
 
  const lightBox=document.getElementById('overviewLightingSummary'), lightCard=document.getElementById('overviewLightingCard');
  if(lightBox){lightBox.innerHTML='';const ss=sliders(),rs=rooms();let activeCount=0;
-   rs.forEach(room=>{const items=ss.filter(x=>(x.room||'')===room);const on=items.filter(x=>{const v=x.mode==='rgbw'?rgbwBrightnessFromValues(x.feedbackRGBW||[0,0,0,0]):Number(x.feedbackValue??x.value??0);return v>0;});if(!on.length)return;activeCount+=on.length;const card=document.createElement('div');card.className='overview-room';card.innerHTML='<div class="overview-room-head"><b>'+esc(room)+'</b><span class="muted">'+on.length+' active</span></div><div class="overview-lights">'+on.map(x=>{const v=x.mode==='rgbw'?rgbwBrightnessFromValues(x.feedbackRGBW||[0,0,0,0]):Number(x.feedbackValue??x.value??0);return '<span class="overview-light">'+esc(x.name)+' <b>'+Math.round(v)+'%</b></span>'}).join('')+'</div>';lightBox.appendChild(card)});
+   rs.forEach(room=>{const items=ss.filter(x=>(x.room||'')===room);const on=items.filter(x=>{const v=x.mode==='rgbw'?rgbwBrightnessFromValues(x.feedbackRGBW||[0,0,0,0]):Number(x.feedbackValue??x.value??0);return v>0;});if(!on.length)return;activeCount+=on.length;const card=document.createElement('div');card.className='overview-room';card.innerHTML='<div class="overview-room-head"><b>'+esc(room)+'</b><span class="muted">'+on.length+' active '+(on.length===1?'light group':'light groups')+'</span></div>';lightBox.appendChild(card)});
    if(document.getElementById('overviewLightCount'))document.getElementById('overviewLightCount').textContent=activeCount+' active'; if(lightCard)lightCard.style.display=activeCount?'':'none';
  }
  const avBox=document.getElementById('overviewAvSummary'),avCard=document.getElementById('overviewAvCard');
@@ -583,17 +653,20 @@ function connectSocket(){
    return;
  }
  socket=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
- socket.onopen=()=>{log('Dashboard connection established','ok');if(sessionStorage.getItem('knxReconnectAfterUpdate')==='1'){sessionStorage.removeItem('knxReconnectAfterUpdate');setTimeout(()=>connectKnx(),350);}};
+ socket.onopen=()=>{log('Dashboard connection established','ok');setTimeout(refreshKNXFeedbackSubscriptions,500);if(sessionStorage.getItem('knxReconnectAfterUpdate')==='1'){sessionStorage.removeItem('knxReconnectAfterUpdate');setTimeout(()=>connectKnx(),350);}};
  socket.onclose=()=>{log('Dashboard connection lost — reconnecting…','err');clearTimeout(window.wsRetry);window.wsRetry=setTimeout(connectSocket,3000)};
  socket.onerror=()=>{log('Dashboard connection unavailable. Check that the server is running.','err')};
  socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='knx-status'){updateKnxUi(!!m.connected,m.message|| (m.connected?'KNX connected':'KNX offline'));}
  if(m.type==='state-update'){
    const state=m.state||{},sig=sharedSignature(state);
+   const active=document.activeElement;
+   const editing=!!(active&&active.matches&&active.matches('.unified-device input,.unified-device select,.unified-device textarea'));
+   if(editing){window.reviewDeferredSharedState=state;return;}
    if(sig!==lastSharedSignature){lastSharedSignature=sig;applySharedState(state);renderConfiguredCameras();renderConfiguredScenes();renderConfiguredAv();if(currentPageId==='home')renderOverview();if(currentPageId==='security')renderSecurity();if(currentPageId==='settings')renderSecurityConfigs();}
- }
- if(m.type==='security-feedback'){
-   const ga=String(m.ga||'').trim(), value=!!m.value, arr=securityDevices(); let changed=false;
+ } if(m.type==='security-feedback'){
+   const ga=String(m.ga||'').trim(), rawValue=!!m.value, arr=securityDevices(); let changed=false;
    arr.forEach(x=>{
+     const value=securityKnxValue(x,rawValue);
      if(x.securityType==='motion'){
        if(String(x.enableFeedbackGa||'').trim()===ga){x.enabled=value;changed=true;}
        if(String(x.motionStatusGa||'').trim()===ga){x.motion=value;x.lastTime=value?new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):x.lastTime;changed=true;}
@@ -602,11 +675,11 @@ function connectSocket(){
        if(String(x.physicalStatusGa||'').trim()===ga){x.locked=value;changed=true;}
      }
    });
-   if(changed){saveSecurityDevices(arr);renderSecurity();renderOverview();log(`Security feedback ${ga} = ${value?'ON':'OFF'}`,'ok');}
+   if(changed){saveSecurityDevices(arr,{shared:false});renderSecurity();renderOverview();log(`Security feedback ${ga} = ${rawValue?'ON':'OFF'}`,'ok');}
  }
  if(m.type==='camera-feedback'){
    const ga=String(m.ga||'').trim(),value=!!m.value, arr=genericDevices(); const x=arr.find(z=>z.type==='camera'&&String(z.feedbackGa||'').trim()===ga);
-   if(x){x.fullscreen= value; saveGenericDevices(arr); if(value)openConfiguredCameraFullscreen(x); else closeCameraFullscreen(); renderConfiguredCameras(); log(`Camera status ${ga} = ${value?'ON':'OFF'}`,'ok');}
+   if(x){x.fullscreen= value; saveGenericDevices(arr,{shared:false}); if(value)openConfiguredCameraFullscreen(x); else closeCameraFullscreen(); renderConfiguredCameras(); log(`Camera status ${ga} = ${value?'ON':'OFF'}`,'ok');}
  }
  if(m.type==='feedback'){
    const v=Math.max(0,Math.min(100,Number(m.value)));
@@ -632,7 +705,7 @@ function connectSocket(){
        if(lb)lb.textContent=v+'%';if(lv)lv.textContent=v+'%';if(sl){sl.value=v;sl.style.setProperty('--fill',v+'%')}if(prev){prev.value=v;prev.style.setProperty('--fill',v+'%')}
      }
      if(currentPageId==='home')renderOverview();
-     saveSliders(arr);
+     saveSliders(arr,{shared:false});
    }
    const homeFb=document.getElementById('homeFb');if(homeFb)homeFb.textContent=v+'%';const homeSlider=document.getElementById('homeSlider');if(homeSlider)homeSlider.value=v;const homeLight=document.getElementById('homeLight');if(homeLight)homeLight.textContent=v;log(`Feedback ${ga} = ${v}%`,'ok');
  }
@@ -640,7 +713,7 @@ function connectSocket(){
 }
 function send(o){if(socket&&socket.readyState===1)socket.send(JSON.stringify(o));else toast('No server connection')}
 function sliders(){try{const a=JSON.parse(localStorage.getItem('knxSliders')||'null');return Array.isArray(a)?a:[]}catch(e){return []}}
-function saveSliders(a){localStorage.setItem('knxSliders',JSON.stringify(a)); syncSharedStateDebounced()}
+function saveSliders(a,options={}){localStorage.setItem('knxSliders',JSON.stringify(a));if(options.shared!==false)syncSharedStateDebounced()}
 function normalizeSliders(){const a=sliders().map(x=>({...x,room:x.room||'',mode:x.mode==='rgbw'?'rgbw':'dim',rgbw:x.rgbw||{write:['','','',''],feedback:['','','','']}}));saveSliders(a);return a}
 function gaOK(v){return /^\d{1,3}\/\d{1,3}\/\d{1,3}$/.test(v)}
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
@@ -711,7 +784,7 @@ function allConfiguredDevices(){
   try{const a=JSON.parse(localStorage.getItem('knxGenericDevices')||'[]');if(Array.isArray(a))a.forEach(x=>out.push({id:'generic:'+x.id,type:x.type||'thermostat',name:x.name||'New device',room:x.room||rooms()[0]||'',sourceId:x.id,source:'generic',data:x}));}catch(e){}
   return out;
 }
-function saveGenericDevices(a){localStorage.setItem('knxGenericDevices',JSON.stringify(a));syncSharedStateDebounced()}
+function saveGenericDevices(a,options={}){localStorage.setItem('knxGenericDevices',JSON.stringify(a));if(options.shared!==false)syncSharedStateDebounced()}
 function genericDevices(){try{const a=JSON.parse(localStorage.getItem('knxGenericDevices')||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
 function deviceTypeLabel(t){return ({lighting:'Lighting',security:'Security',thermostat:'Thermostat',screen:'Screens',camera:'Cameras',scene:'Scenes',av:'Audio & Video'})[t]||'Device'}
 function deviceIcon(t){return ({lighting:'💡',security:'🔐',thermostat:'🌡️',screen:'🪟',camera:'📷',scene:'✨',av:'🎬'})[t]||'⚙️'}
@@ -719,7 +792,7 @@ function unifiedAddressFields(item){
   const x=item.data,t=item.type;
   if(t==='lighting'){
     if((x.mode||'dim')==='rgbw'){
-      const rgb=x.rgbw||{write:['','','',''],feedback:['','','','']};
+      const rgb={write:Array.isArray(x.rgbw?.write)?x.rgbw.write:['','','',''],feedback:Array.isArray(x.rgbw?.feedback)?x.rgbw.feedback:['','','','']};
       return '<div class="unified-device-addresses" style="grid-template-columns:1fr 1fr 1fr 1fr"><div><label>Red write</label><input class="knx" data-addr="rgbw-w-0" value="'+esc(rgb.write[0]||'')+'"></div><div><label>Green write</label><input class="knx" data-addr="rgbw-w-1" value="'+esc(rgb.write[1]||'')+'"></div><div><label>Blue write</label><input class="knx" data-addr="rgbw-w-2" value="'+esc(rgb.write[2]||'')+'"></div><div><label>White write</label><input class="knx" data-addr="rgbw-w-3" value="'+esc(rgb.write[3]||'')+'"></div></div><div class="unified-device-addresses" style="grid-template-columns:1fr 1fr 1fr 1fr"><div><label>Red feedback</label><input class="knx" data-addr="rgbw-f-0" value="'+esc(rgb.feedback[0]||'')+'"></div><div><label>Green feedback</label><input class="knx" data-addr="rgbw-f-1" value="'+esc(rgb.feedback[1]||'')+'"></div><div><label>Blue feedback</label><input class="knx" data-addr="rgbw-f-2" value="'+esc(rgb.feedback[2]||'')+'"></div><div><label>White feedback</label><input class="knx" data-addr="rgbw-f-3" value="'+esc(rgb.feedback[3]||'')+'"></div></div>';
     }
     return '<div class="unified-device-addresses"><div><label>Write group address</label><input class="knx" data-addr="writeGa" value="'+esc(x.writeGa||'')+'"></div><div><label>Feedback group address</label><input class="knx" data-addr="feedbackGa" value="'+esc(x.feedbackGa||'')+'"></div></div>';
@@ -754,7 +827,7 @@ function renderDeviceConfigs(){
    filtered.forEach(item=>{
      const x=item.data,d=document.createElement('details');d.className='unified-device';d.dataset.type=item.type;d.dataset.id=item.id;d.open=!!window.deviceOpen?.[item.id];d.addEventListener('toggle',()=>{window.deviceOpen=window.deviceOpen||{};window.deviceOpen[item.id]=d.open;});
      const typeOptions=['lighting','security','thermostat','screen','camera','scene','av'].map(t=>'<option value="'+t+'" '+(item.type===t?'selected':'')+'>'+deviceTypeLabel(t)+'</option>').join('');
-     d.innerHTML='<summary class="unified-device-head"><div class="unified-device-title"><span class="unified-type-icon">'+deviceIcon(item.type)+'</span>'+esc(x.name||item.name)+' <span class="device-type-label">'+deviceTypeLabel(item.type)+'</span></div></summary><div class="unified-device-body"><div class="unified-device-grid"><div><label>Name</label><input data-u="name" value="'+esc(x.name||item.name)+'"></div><div><label>Type</label><select data-u="type">'+typeOptions+'</select></div>'+(item.type==='lighting'?'<div><label>Lighting mode</label><select data-u="mode"><option value="dim" '+(x.mode!=='rgbw'?'selected':'')+'>Dim</option><option value="rgbw" '+(x.mode==='rgbw'?'selected':'')+'>RGBW</option></select></div>':'<div></div>')+'<div></div></div>'+unifiedAddressFields(item)+'</div>';
+     d.innerHTML='<summary class="unified-device-head"><div class="unified-device-title"><span class="unified-type-icon">'+deviceIcon(item.type)+'</span>'+esc(x.name||item.name)+' <span class="device-type-label">'+deviceTypeLabel(item.type)+'</span></div></summary><div class="unified-device-body"><div class="unified-device-grid"><div><label>Name</label><input data-u="name" value="'+esc(x.name||item.name)+'"></div><div><label>Type</label><select data-u="type">'+typeOptions+'</select></div>'+reviewDeviceHeaderFields(item)+'</div>'+unifiedAddressFields(item)+'</div>';
      d.querySelector('.unified-device-body').insertAdjacentHTML('beforeend','<div class="unified-device-remove"><button type="button" class="btn danger">Remove</button></div>');d.querySelector('.btn.danger').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();removeUnifiedDevice(item);});
      d.querySelectorAll('[data-u]').forEach(el=>el.addEventListener('change',()=>updateUnifiedDevice(item,el)));
      d.querySelectorAll('[data-addr]').forEach(el=>el.addEventListener('change',()=>updateUnifiedAddress(item,el)));
@@ -793,25 +866,40 @@ function updateUnifiedDevice(item,el){ window.deviceRoomOpen=window.deviceRoomOp
 function updateUnifiedAddress(item,el){
  const key=el.dataset.addr;
  if(item.source==='lighting'){
-   const a=sliders(),x=a.find(z=>z.id===item.sourceId);if(!x)return;x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};
-   if(key.startsWith('rgbw-')){const [kind,idx]=key.split('-').slice(1); if(el.value && !gaOK(el.value)){toast('Use for example 1/1/69');return}x.rgbw[kind][Number(idx)]=el.value.trim();}
-   else x[key]=el.value.trim(); saveSliders(a);
+   const a=sliders(),x=a.find(z=>z.id===item.sourceId);if(!x)return;
+   const existingRgbw=x.rgbw||{};
+   x.rgbw={write:Array.isArray(existingRgbw.write)?existingRgbw.write:['','','',''],feedback:Array.isArray(existingRgbw.feedback)?existingRgbw.feedback:['','','','']};
+   if(key.startsWith('rgbw-')){
+     const [kind,idx]=key.split('-').slice(1);
+     if(el.value && !gaOK(el.value)){toast('Use for example 1/1/69');return;}
+     const channel=kind==='w'?'write':'feedback';
+     x.rgbw[channel][Number(idx)]=el.value.trim();
+   } else x[key]=el.value.trim();
+   saveSliders(a);
  } else if(item.source==='security'){
    const a=securityDevices(),x=a.find(z=>z.id===item.sourceId);if(!x)return;
    if(key==='securityType'){x.securityType=el.value==='motion'?'motion':'lock';x.type='security';saveSecurityDevices(a);renderDeviceConfigs();renderSecurity();return;}
-   if(['controllable','motionInvert','enableInvert','statusInvert','controlInvert'].includes(key)) x[key]=el.value==='true';
+   if(['controllable','motionInvert','enableInvert','statusInvert','controlInvert','colorInvert','knxInvert'].includes(key)) x[key]=el.value==='true';
    else x[key]=el.value.trim();
-   saveSecurityDevices(a); renderSecurity();
+   saveSecurityDevices(a); if(key==='controllable')renderDeviceConfigs(); renderSecurity();renderOverview();if(key==='knxInvert')refreshKNXFeedbackSubscriptions();
  } else {const a=genericDevices(),x=a.find(z=>z.id===item.sourceId);if(!x)return;x[key]=el.value.trim();saveGenericDevices(a)}
 }
 function convertLightingToGeneric(x,type){
+ if(type==='security'){
+   const devices=securityDevices();
+   devices.push({...x,id:x.id,type:'security',securityType:'lock',controllable:true,physicalStatusGa:x.physicalStatusGa||'',enableWriteGa:'',enableFeedbackGa:'',motionStatusGa:''});
+   saveSliders(sliders().filter(z=>z.id!==x.id));
+   saveSecurityDevices(devices);
+   renderDeviceConfigs();renderLightingSliders();renderSecurity();return;
+ }
+
  const a=sliders().filter(z=>z.id!==x.id);saveSliders(a);const g=genericDevices();g.push({id:'g'+Date.now(),type,name:x.name,room:x.room,writeGa:x.writeGa||'',feedbackGa:x.feedbackGa||'',url:''});saveGenericDevices(g);renderDeviceConfigs();renderLightingSliders();renderConfiguredCameras();renderConfiguredScenes();toast('Device type changed');
 }
 function convertSecurityToGeneric(x,type){
  const a=securityDevices().filter(z=>z.id!==x.id);saveSecurityDevices(a);const g=genericDevices();g.push({id:'g'+Date.now(),type,name:x.name,room:x.room,writeGa:x.writeGa||'',feedbackGa:x.feedbackGa||'',url:''});saveGenericDevices(g);renderDeviceConfigs();renderSecurity();renderConfiguredCameras();renderConfiguredScenes();toast('Device type changed');
 }
 function addUnifiedDevice(roomName){
- const room=roomName||rooms()[0];if(!room){toast('Add a room first');return;}const a=sliders(),n=a.length+1;a.push({id:'s'+Date.now(),name:'New device '+n,room,mode:'dim',writeGa:'',feedbackGa:'',value:0,feedbackValue:null,rgbw:{write:['','','','']}});saveSliders(a);renderDeviceConfigs();renderLightingSliders();toast('New device added to '+room+' — choose its type');
+ const room=roomName||rooms()[0];if(!room){toast('Add a room first');return;}const a=sliders(),n=a.length+1;a.push({id:'s'+Date.now(),name:'New device '+n,room,mode:'dim',writeGa:'',feedbackGa:'',value:0,feedbackValue:null,rgbw:{write:['','','',''],feedback:['','','','']}});saveSliders(a);renderDeviceConfigs();renderLightingSliders();toast('New device added to '+room+' — choose its type');
 }
 function removeUnifiedDevice(item){
  if(item.source==='lighting')removeSlider(item.sourceId);
@@ -822,7 +910,7 @@ function renderSliderConfigs(){renderDeviceConfigs()}
 function renderSecurityConfigs(){renderDeviceConfigs()}
 function addSlider(roomName){ addUnifiedDevice(roomName); }
 function removeSlider(id){saveSliders(sliders().filter(x=>x.id!==id));renderSliderConfigs();renderLightingSliders();toast('Slider removed')}
-function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){x.value=Number(v);saveSliders(a)}}
+function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){x.value=Number(v);saveSliders(a,{shared:false})}}
 function sendSlider(id,v){
  const x=sliders().find(z=>z.id===id);if(!x||x.mode==='rgbw')return;
  updateSliderValue(id,v);const sl=document.getElementById('light-slider-'+id);if(sl)sl.style.setProperty('--fill',Number(v)+'%');
@@ -859,7 +947,7 @@ function renderLightingSliders(){
 }
 function addSlider(){ addUnifiedDevice(rooms()[0]||''); }
 function removeSlider(id){saveSliders(sliders().filter(x=>x.id!==id));renderSliderConfigs();renderLightingSliders();toast('Slider removed')}
-function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){x.value=Number(v);saveSliders(a)}}
+function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){x.value=Number(v);saveSliders(a,{shared:false})}}
 function sendSlider(id,v){
  const x=sliders().find(z=>z.id===id);if(!x||x.mode==='rgbw')return;
  updateSliderValue(id,v); const sl=document.getElementById('light-slider-'+id);if(sl)sl.style.setProperty('--fill',Number(v)+'%');
@@ -870,7 +958,7 @@ function hueToRgb(h){const s=1,l=.5;const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.ab
 function rgbwFromPosition(pos){pos=Math.max(0,Math.min(100,Number(pos)||0));if(pos<=8||pos>=92)return [0,0,0,100];const hue=((pos-8)/84)*300;return [...hueToRgb(hue),0]}
 function rgbwPositionFromValues(vals){const a=(vals||[]).map(v=>Number(v??0));const r=Math.max(0,a[0]||0),g=Math.max(0,a[1]||0),b=Math.max(0,a[2]||0);const mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx<=0)return 0;const d=mx-mn;let h=0;if(d===0)h=0;else if(mx===r)h=60*(((g-b)/d)%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4);if(h<0)h+=360;h=Math.min(300,h);return Math.round(8+(h/300)*84)}
 function rgbwColorFromValues(vals){const a=(vals||[]).map(v=>Number(v??0));const w=a[3]||0;const r=Math.min(255,Math.round((Math.max(0,a[0]-w)/100)*255+(w/100)*255));const g=Math.min(255,Math.round((Math.max(0,a[1]-w)/100)*255+(w/100)*255));const b=Math.min(255,Math.round((Math.max(0,a[2]-w)/100)*255+(w/100)*255));return 'rgb('+r+','+g+','+b+')'}
-function rgbwBrightnessFromValues(vals){const a=(vals||[]).map(v=>Number(v??0));return Math.round(Math.max(a[0]||0,a[1]||0,a[2]||0));}
+function rgbwBrightnessFromValues(vals){const a=(vals||[]).map(v=>Number(v??0));return Math.round(Math.max(a[0]||0,a[1]||0,a[2]||0,a[3]||0));}
 function rgbwCurrentValues(id){const x=sliders().find(z=>z.id===id);if(!x)return [0,0,0,0];const fb=x.feedbackRGBW||[0,0,0,0];const posEl=document.getElementById('rgbw-slider-'+id);const bEl=document.getElementById('rgbw-bright-slider-'+id);const wEl=document.getElementById('rgbw-warm-slider-'+id);const pos=Number(posEl?.value ?? rgbwPositionFromValues(fb));const b=Number(bEl?.value ?? rgbwBrightnessFromValues(fb));const w=Number(wEl?.value ?? Number(fb[3]??0));const base=rgbwFromPosition(pos);return [Math.round(base[0]*b/100),Math.round(base[1]*b/100),Math.round(base[2]*b/100),Math.round(w)];}
 function updateRGBWPreview(id,values){const sw=document.getElementById('rgbw-status-'+id);if(sw)sw.style.background=rgbwColorFromValues(values);const b=rgbwBrightnessFromValues(values),w=Number(values[3]||0);const bv=document.getElementById('rgbw-bval-'+id),wv=document.getElementById('rgbw-wval-'+id);if(bv)bv.textContent=b+'%';if(wv)wv.textContent=w+'%';}
 function sendRGBWValues(id,values){const x=sliders().find(z=>z.id===id);if(!x||x.mode!=='rgbw')return;x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};const channels=values.map((v,i)=>({ga:String(x.rgbw.write[i]||'').trim(),value:Math.max(0,Math.min(100,Math.round(Number(v))))})).filter(c=>c.ga&&gaOK(c.ga));if(channels.length)send({type:'knx-write-rgbw',channels});x.value=Number(document.getElementById('rgbw-slider-'+id)?.value||0);}
@@ -966,7 +1054,7 @@ async function syncSharedState(){
   // Pas na het inladen van de serverconfiguratie mogen lokale wijzigingen terug naar de server.
   // Zo kan een nieuwe pagina nooit met standaardwaarden een bestaande configuratie overschrijven.
   sharedStateHydrated=true;
-  renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();renderConfiguredCameras();renderConfiguredScenes();renderConfiguredAv();if(currentPageId==='home')renderOverview();if(currentPageId==='security')renderSecurity();if(currentPageId==='settings')renderSecurityConfigs();loadConnection();
+  renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();renderConfiguredCameras();renderConfiguredScenes();renderConfiguredAv();if(currentPageId==='home')renderOverview();if(currentPageId==='security')renderSecurity();if(currentPageId==='settings')renderSecurityConfigs();loadConnection();refreshKNXFeedbackSubscriptions();
  }catch(e){
   // Keep the current UI intact on a temporary network error.
  }
@@ -986,7 +1074,30 @@ const _secMigrated=securityDevices().map(x=>{x.type='security';x.securityType=x.
 syncSharedState();
 
 function savedKnxConnection(){try{return JSON.parse(localStorage.getItem('knxConnection')||'{}')||{}}catch(e){return {}}}
-function currentKnxConnection(){const saved=savedKnxConnection(),field=id=>document.getElementById(id);const ipField=field('ip'),portField=field('port'),modeField=field('mode'),physField=field('phys');return {ip:String(ipField?ipField.value:(saved.ip||'')).trim(),port:Number(portField?portField.value:(saved.port||3671)),mode:String(modeField?modeField.value:(saved.mode||'TunnelUDP')),physAddr:String(physField?physField.value:(saved.phys||'')).trim()}}function connectKnx(){
+function currentKnxConnection(){const saved=savedKnxConnection(),field=id=>document.getElementById(id);const ipField=field('ip'),portField=field('port'),modeField=field('mode'),physField=field('phys');return {ip:String(ipField?ipField.value:(saved.ip||'')).trim(),port:Number(portField?portField.value:(saved.port||3671)),mode:String(modeField?modeField.value:(saved.mode||'TunnelUDP')),physAddr:String(physField?physField.value:(saved.phys||'')).trim()}}function currentFeedbackSubscriptions(){
+  const feedbackGAs=[];
+  const securityFeedbackGAs=[];
+  const cameraFeedbackGAs=[];
+  sliders().forEach(item=>{
+    if(item.mode==='rgbw')(item.rgbw?.feedback||[]).forEach(address=>{if(address)feedbackGAs.push(String(address).trim());});
+    else if(item.feedbackGa)feedbackGAs.push(String(item.feedbackGa).trim());
+  });
+  securityDevices().forEach(item=>{
+    if(item.securityType==='motion'){
+      if(item.enableFeedbackGa)securityFeedbackGAs.push(String(item.enableFeedbackGa).trim());
+      if(item.motionStatusGa)securityFeedbackGAs.push(String(item.motionStatusGa).trim());
+    }else{
+      if(item.feedbackGa)securityFeedbackGAs.push(String(item.feedbackGa).trim());
+      if(item.physicalStatusGa)securityFeedbackGAs.push(String(item.physicalStatusGa).trim());
+    }
+  });
+  genericDevices().filter(item=>item.type==='camera'&&item.feedbackGa).forEach(item=>cameraFeedbackGAs.push(String(item.feedbackGa).trim()));
+  return {feedbackGAs:[...new Set(feedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]};
+}
+function refreshKNXFeedbackSubscriptions(){
+  if(!socket||socket.readyState!==1)return;
+  send({type:'knx-update-feedback',config:currentFeedbackSubscriptions()});
+}function connectKnx(){
  const connection=currentKnxConnection();if(!connection.ip){toast('Enter KNX/IP connection first');return;}localStorage.setItem('knxConnection',JSON.stringify({ip:connection.ip,port:connection.port,mode:connection.mode,phys:connection.physAddr}));
  const ss=sliders(),security=securityDevices(),feedbackGAs=[],securityFeedbackGAs=[],cameraFeedbackGAs=[];ss.forEach(x=>{if(x.mode==='rgbw'){(x.rgbw?.feedback||[]).forEach(g=>{if(g)feedbackGAs.push(String(g).trim())})}else if(x.feedbackGa)feedbackGAs.push(String(x.feedbackGa).trim())});security.forEach(x=>{if(x.securityType==='motion'){if(x.enableFeedbackGa)securityFeedbackGAs.push(String(x.enableFeedbackGa).trim());if(x.motionStatusGa)securityFeedbackGAs.push(String(x.motionStatusGa).trim());}else{if(x.feedbackGa)securityFeedbackGAs.push(String(x.feedbackGa).trim());if(x.physicalStatusGa)securityFeedbackGAs.push(String(x.physicalStatusGa).trim());}});genericDevices().filter(x=>x.type==='camera'&&x.feedbackGa).forEach(x=>cameraFeedbackGAs.push(String(x.feedbackGa).trim()));
  send({type:'knx-connect',config:{...connection,writeGa:ss[0]?.writeGa||'',feedbackGa:feedbackGAs[0]||'',feedbackGAs:[...new Set(feedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]}})
@@ -997,4 +1108,151 @@ window.addEventListener('DOMContentLoaded',()=>{
   initPageTemplates();
   showPage('home');renderOverview();
 });
-</script></body></html>
+
+/* Clean local review behavior */
+let sharedConfigRevision=0;
+function reviewRevision(state){const value=Number(state&&state.configRevision);return Number.isInteger(value)&&value>=0?value:0;}
+function securityKnxValue(device,value){return device.knxInvert===true?!Boolean(value):Boolean(value);}
+function reviewColorInvert(device){const motion=device&&device.securityType==='motion';return device&&device.colorInvert!==undefined?!!device.colorInvert:(motion?!!(device&&device.motionInvert):!!(device&&device.statusInvert));}
+let reviewPendingAddressPatches=[];
+function reviewQueueAddressPatch(item,key,value){
+  if(!item||!key)return;
+  reviewPendingAddressPatches.push({source:item.source,id:item.sourceId,key,value});
+}
+function reviewReplayAddressPatch(patch){
+  if(!patch)return;
+  const update=(items,save)=>{
+    const item=items.find(value=>value.id===patch.id);
+    if(!item)return;
+    if(patch.source==='lighting'&&String(patch.key).startsWith('rgbw-')){
+      const existing=item.rgbw||{};
+      item.rgbw={write:Array.isArray(existing.write)?existing.write:['','','',''],feedback:Array.isArray(existing.feedback)?existing.feedback:['','','','']};
+      const parts=String(patch.key).split('-'),channel=parts[1]==='w'?'write':'feedback';
+      item.rgbw[channel][Number(parts[2])]=String(patch.value||'').trim();
+    }else if(['controllable','motionInvert','enableInvert','statusInvert','controlInvert','colorInvert','knxInvert'].includes(patch.key)){
+      item[patch.key]=String(patch.value)==='true';
+    }else item[patch.key]=String(patch.value||'').trim();
+    save(items,{shared:false});
+  };
+  if(patch.source==='lighting')update(sliders(),saveSliders);
+  else if(patch.source==='security')update(securityDevices(),saveSecurityDevices);
+  else if(patch.source==='generic')update(genericDevices(),saveGenericDevices);
+}
+function reviewCurrentPayload(){return {rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),presets:rgbwPresets(),securityMode:securityState.mode,baseRevision:sharedConfigRevision};}function reviewShortLightName(name){const text=String(name||'Lighting').trim();return text.length>18?text.slice(0,17)+'…':text;}
+function reviewDeviceHeaderFields(item){
+  const x=item.data||{};
+  if(item.type==='security'){
+    const control=x.controllable!==false;
+    return '<div><label>Security device</label><select data-addr="securityType"><option value="lock" '+(x.securityType!=='motion'?'selected':'')+'>Electric lock</option><option value="motion" '+(x.securityType==='motion'?'selected':'')+'>Motion sensor</option></select></div><div><label>Control</label><select data-addr="controllable"><option value="true" '+(control?'selected':'')+'>Enabled</option><option value="false" '+(!control?'selected':'')+'>Status only</option></select></div>';
+  }
+  if(item.type==='lighting')return '<div><label>Lighting mode</label><select data-u="mode"><option value="dim" '+(x.mode!=='rgbw'?'selected':'')+'>Dim</option><option value="rgbw" '+(x.mode==='rgbw'?'selected':'')+'>RGBW</option></select></div><div></div>';
+  return '<div></div><div></div>';
+}const reviewApplySharedState=applySharedState;
+applySharedState=function(state){sharedConfigRevision=reviewRevision(state);return reviewApplySharedState(state);};
+postSharedState=async function(){
+  if(!sharedStateHydrated)return;
+  const sentPatches=reviewPendingAddressPatches.slice();
+  const sendState=async payload=>{
+    const response=await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},cache:'no-store',body:JSON.stringify(payload)});
+    return {response,result:await response.json().catch(()=>null)};
+  };
+  try{
+    let attempt=await sendState(reviewCurrentPayload());
+    if(!attempt.response.ok&&attempt.response.status===409&&attempt.result&&attempt.result.state){
+      applySharedState(attempt.result.state);
+      sentPatches.forEach(reviewReplayAddressPatch);
+      attempt=await sendState(reviewCurrentPayload());
+    }
+    if(!attempt.response.ok)return;
+    const saved=attempt.result&&attempt.result.state?attempt.result.state:reviewCurrentPayload();
+    sharedConfigRevision=reviewRevision(saved);
+    lastSharedSignature=sharedSignature(saved);
+    refreshKNXFeedbackSubscriptions();
+    reviewPendingAddressPatches=reviewPendingAddressPatches.slice(sentPatches.length);
+  }catch(error){}
+};syncSharedState=async function(){
+  try{
+    const response=await fetch('/api/state',{cache:'no-store'});
+    if(!response.ok)throw new Error('state unavailable');
+    const state=await response.json();
+    const active=document.activeElement;
+    const editing=!!(active&&active.matches&&active.matches('.unified-device input,.unified-device select,.unified-device textarea'));
+    if(editing){window.reviewDeferredSharedState=state;return;}
+    lastSharedSignature=sharedSignature(state);
+    applySharedState(state);
+    sharedStateHydrated=true;
+    renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();renderConfiguredCameras();renderConfiguredScenes();renderConfiguredAv();
+    if(currentPageId==='home')renderOverview();
+    if(currentPageId==='security')renderSecurity();
+    if(currentPageId==='settings')renderDeviceConfigs();
+    loadConnection();refreshKNXFeedbackSubscriptions();
+  }catch(error){}
+};const reviewAddressFields=unifiedAddressFields;
+unifiedAddressFields=function(item){
+  const x=item.data||{};
+  if(item.type!=='security')return reviewAddressFields(item);
+  const motion=x.securityType==='motion';
+  const control=x.controllable!==false;
+  const inverted=reviewColorInvert(x);
+  const addresses=motion
+    ?'<div><label>Motion status group address</label><input class="knx" data-addr="motionStatusGa" value="'+esc(x.motionStatusGa||'')+'"></div>'+(control?'<div><label>Enable control group address</label><input class="knx" data-addr="enableWriteGa" value="'+esc(x.enableWriteGa||'')+'"></div><div><label>Enable status group address</label><input class="knx" data-addr="enableFeedbackGa" value="'+esc(x.enableFeedbackGa||'')+'"></div>':'')
+    :'<div><label>Physical status group address</label><input class="knx" data-addr="physicalStatusGa" value="'+esc(x.physicalStatusGa||'')+'"></div>'+(control?'<div><label>Lock control group address</label><input class="knx" data-addr="writeGa" value="'+esc(x.writeGa||'')+'"></div><div><label>Lock control status group address</label><input class="knx" data-addr="feedbackGa" value="'+esc(x.feedbackGa||'')+'"></div>':'');
+  const normal=motion?'Motion red / Standby green':'Locked green / Unlocked red';
+  const swapped=motion?'Motion green / Standby red':'Locked red / Unlocked green';
+  return '<div class="security-settings-row security-settings-addresses">'+addresses+'</div><div class="security-settings-row security-settings-extra"><label class="security-option"><input type="checkbox" data-addr="colorInvert" '+(inverted?'checked':'')+'> Reverse colors</label><label class="security-option"><input type="checkbox" data-addr="knxInvert" '+(x.knxInvert===true?'checked':'')+'> Reverse KNX (0 / 1)</label></div>';
+};const reviewUpdateUnifiedAddress=updateUnifiedAddress;
+updateUnifiedAddress=function(item,el){
+  if(el&&el.type==='checkbox')el.value=el.checked?'true':'false';
+  const key=el&&el.dataset?el.dataset.addr:'';
+  const value=el&&el.value!==undefined?el.value:'';
+  if(key&&(!el.classList.contains('knx')||!value||gaOK(value)))reviewQueueAddressPatch(item,key,value);
+  return reviewUpdateUnifiedAddress(item,el);
+};addRoom=function(){const input=document.getElementById('newRoomName'),name=(input?.value||'').trim();if(!name){toast('Vul een naam in');return;}const list=rooms();if(list.some(room=>room.toLowerCase()===name.toLowerCase())){toast('Deze ruimte bestaat al');return;}list.push(name);window.deviceRoomOpen=window.deviceRoomOpen||{};saveRooms(list);if(input)input.value='';renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();renderSecurity();toast('Ruimte toegevoegd');};
+const reviewSecurityRenderer=renderSecurity;
+renderSecurity=function(){
+  const locksBox=document.getElementById('securityLocks');
+  const motionBox=document.getElementById('securityMotion');
+  if(!locksBox||!motionBox)return reviewSecurityRenderer();
+  const allowedRooms=new Set(rooms());
+  const raw=securityDevices();
+  const items=raw.filter(item=>allowedRooms.has(item.room));
+  const draw=(box,isMotion)=>{
+    box.innerHTML='';
+    const matching=items.filter(item=>(item.securityType==='motion')===isMotion);
+    if(!matching.length){box.innerHTML='<div class="muted" style="padding:10px 0">No '+(isMotion?'motion sensors':'locks')+' configured.</div>';return;}
+    const grouped={};
+    matching.forEach(item=>(grouped[item.room]??=[]).push(item));
+    Object.entries(grouped).forEach(([room,entries])=>{
+      const card=document.createElement('div');
+      card.className='security-page-room';
+      const rows=entries.map(item=>{
+        const index=raw.findIndex(value=>value.id===item.id);
+        const inverted=reviewColorInvert(item);
+        if(isMotion){
+          const active=item.motion===true;
+          const red=active?!inverted:inverted;
+          return '<div class="security-motion-row"><div class="security-motion-icon">'+motionIconSvg(active?'motion':'standby')+'</div><div><div class="security-motion-name">'+esc(item.name)+'</div><div class="security-motion-status '+(active?'detected':'standby')+' '+(red?'red-led':'green-led')+'"><span class="security-dot '+(red?'red':'')+'"></span>'+(active?'Motion':'Standby')+'</div></div></div>';
+        }
+        const locked=item.locked!==false;
+        const red=locked?inverted:!inverted;
+        const statusClass=red?'red-led':'green-led';
+        const lockClass=inverted?'red-led':'green-led';
+        const unlockClass=inverted?'green-led':'red-led';
+        return '<div class="security-item"><div class="security-icon">'+securityLockIcon(locked)+'</div><div><div class="security-name">'+esc(item.name)+'</div><div class="security-state '+(locked?'locked':'unlocked')+' '+statusClass+'"><span class="security-dot '+(red?'red':'')+'"></span>'+(locked?'Locked':'Unlocked')+'</div></div>'+(item.controllable?'<div class="security-actions"><button class="security-btn lock '+lockClass+'" onclick="toggleSecurityLock('+index+',true)">Lock</button><button class="security-btn unlock '+unlockClass+'" onclick="toggleSecurityLock('+index+',false)">Unlock</button></div>':'')+'</div>';
+      }).join('');
+      card.innerHTML='<div class="security-page-room-head"><span class="security-page-room-title">'+esc(room)+'</span><span class="security-page-room-count">'+entries.length+' device'+(entries.length===1?'':'s')+'</span></div>'+rows;
+      box.appendChild(card);
+    });
+  };
+  draw(locksBox,false);
+  draw(motionBox,true);
+  const lockHeading=document.querySelector('#security .security-heading-lock-icon');
+  const motionHeading=document.querySelector('#security .motion-heading-icon');
+  if(lockHeading)lockHeading.innerHTML=securityLockIcon(true);
+  if(motionHeading)motionHeading.innerHTML=motionIconSvg('motion');
+  document.querySelectorAll('.security-mode .security-pill').forEach(button=>button.classList.toggle('active',button.dataset.mode===securityState.mode));
+};const reviewOverviewRenderer=renderOverview;
+renderOverview=function(){reviewOverviewRenderer();const box=document.getElementById('overviewSecuritySummary'),alertCard=document.getElementById('overviewSecurityAlert'),alert=document.getElementById('overviewSecurityAlertContent'),items=securityDevices().filter(item=>rooms().includes(item.room)),openLocks=items.filter(item=>item.securityType!=='motion'&&item.locked===false),motions=items.filter(item=>item.securityType==='motion'&&item.motion===true),mode=securityState.mode||'Home';if(alertCard&&alert){if(openLocks.length||motions.length){const text=openLocks.length&&motions.length?'Doors are open and motion was detected.':openLocks.length?'Doors are open.':'Motion was detected.';alert.innerHTML='<div class="overview-security-alert-content"><span class="overview-security-alert-icon">!</span><div class="overview-security-alert-copy"><b>Check your system</b><span>'+text+'</span></div></div>';alertCard.style.display='';alertCard.classList.add('is-visible');}else{alert.replaceChildren();alertCard.style.display='none';alertCard.classList.remove('is-visible');}}if(box){let html='<div class="overview-security-mode">'+['Home','Night','Away'].map(candidate=>'<button class="security-pill '+(mode===candidate?'active':'')+'" data-mode="'+candidate+'" onclick="setSecurityMode(this,\''+candidate+'\')"><span class="security-mode-icon">'+(candidate==='Home'?'🏠':candidate==='Night'?'🌙':'🚪')+'</span><span>'+candidate+'</span></button>').join('')+'</div>';const alerts=[];openLocks.forEach(item=>alerts.push('<div class="overview-security-row alert"><span class="overview-security-row-icon">'+securityLockIcon(false)+'</span><span class="overview-security-row-main"><b>'+esc(item.name||'Lock')+'</b><small>'+esc(item.room)+'</small></span><span class="overview-security-row-state alert">Open</span></div>'));motions.forEach(item=>alerts.push('<div class="overview-security-row alert"><span class="overview-security-row-icon motion-icon">'+motionIconSvg('motion')+'</span><span class="overview-security-row-main"><b>'+esc(item.name||'Motion sensor')+'</b><small>'+esc(item.room)+'</small></span><span class="overview-security-row-state alert">Motion</span></div>'));if(alerts.length)html+='<div class="overview-security-list">'+alerts.join('')+'</div>';box.innerHTML=html;}};
+const reviewShowPage=showPage;
+showPage=function(id,button){reviewShowPage(id,button);if(id==='settings')syncSharedState();};
+syncSharedState();</script></body></html>

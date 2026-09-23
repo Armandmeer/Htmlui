@@ -30,6 +30,21 @@ if (typeof KNXClient !== "function") {
 const PORT = Number(process.env.HTML_UI_PORT || process.env.PORT || 3010);
 const STATE_FILE = path.join(__dirname, "smarthome_state.json");
 const GITHUB_CONFIG_FILE = path.join(__dirname, "github_update.json");
+function normalizeSecurityPlacement(state) {
+ const generic=Array.isArray(state.genericDevices)?state.genericDevices:[];
+ const misplaced=generic.filter(x=>x&&['security','lock','motion'].includes(x.type));
+ if(!misplaced.length)return false;
+ const security=Array.isArray(state.securityDevices)?state.securityDevices:[];
+ const ids=new Set(security.map(x=>x.id));
+ for(const x of misplaced){
+   if(ids.has(x.id))continue;
+   security.push({...x,type:'security',securityType:x.securityType==='motion'||x.type==='motion'?'motion':'lock',controllable:x.controllable!==false&&x.controllable!=='false'});
+   ids.add(x.id);
+ }
+ state.securityDevices=security;
+ state.genericDevices=generic.filter(x=>!x||!['security','lock','motion'].includes(x.type));
+ return true;
+}
 function readDashboardState() {
   try {
     const value = fs.existsSync(STATE_FILE) ? JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) : {};
@@ -39,6 +54,14 @@ function readDashboardState() {
 
 function writeDashboardState(state) {
   fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+}
+
+
+const placementState=readDashboardState();
+if(normalizeSecurityPlacement(placementState)){
+ fs.copyFileSync(STATE_FILE,STATE_FILE+'.before-security-placement');
+ placementState.configRevision=(Number(placementState.configRevision)||0)+1;
+ writeDashboardState(placementState);
 }
 
 function persistKNXConnection(connection, reconnect) {
@@ -426,6 +449,29 @@ function status(ok, message) {
   broadcast({ type: "knx-status", connected: ok, message });
 }
 
+function feedbackAddresses(connection) {
+  const values = [
+    ...(Array.isArray(connection.feedbackGAs) ? connection.feedbackGAs : []),
+    connection.feedbackGa,
+    ...(Array.isArray(connection.securityFeedbackGAs) ? connection.securityFeedbackGAs : []),
+    ...(Array.isArray(connection.cameraFeedbackGAs) ? connection.cameraFeedbackGAs : [])
+  ];
+  return Array.from(new Set(values.map(value => String(value || '').trim()).filter(Boolean)));
+}
+
+function refreshKNXFeedbackSubscriptions(nextConfig) {
+  config = {
+    ...config,
+    feedbackGAs: Array.isArray(nextConfig.feedbackGAs) ? nextConfig.feedbackGAs : [],
+    securityFeedbackGAs: Array.isArray(nextConfig.securityFeedbackGAs) ? nextConfig.securityFeedbackGAs : [],
+    cameraFeedbackGAs: Array.isArray(nextConfig.cameraFeedbackGAs) ? nextConfig.cameraFeedbackGAs : []
+  };
+  persistKNXConnection(config, true);
+  if (!knx || !connected) return;
+  for (const ga of feedbackAddresses(config)) {
+    try { knx.read(ga); } catch (_) {}
+  }
+}
 function connectKNX(newConfig) {
   if (knx) {
     try { knx.Disconnect(); } catch (_) {}
@@ -688,6 +734,12 @@ const server = http.createServer((req, res) => {
         const state = JSON.parse(body);
         let savedState = {};
         try { if (fs.existsSync(STATE_FILE)) savedState = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch (_) {}
+        const currentRevision = Number.isInteger(Number(savedState.configRevision)) ? Number(savedState.configRevision) : 0;
+        const requestedRevision = Number(state && state.baseRevision);
+        if (!Number.isInteger(requestedRevision) || requestedRevision !== currentRevision) {
+          res.writeHead(409, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+          return res.end(JSON.stringify({ ok: false, error: "Configuration changed on another screen", state: savedState }));
+        }
         const validSecurityModes = new Set(["Home", "Night", "Away"]);
         const securityMode = validSecurityModes.has(String(state.securityMode || "")) ? String(state.securityMode) : (validSecurityModes.has(String(savedState.securityMode || "")) ? String(savedState.securityMode) : "Home");
         const sampleSecurityIds = new Set(["lock1", "lock2", "motion1", "motion2"]);
@@ -698,11 +750,13 @@ const server = http.createServer((req, res) => {
           securityDevices: Array.isArray(state.securityDevices) ? state.securityDevices.filter(x => !sampleSecurityIds.has(String(x && x.id || ""))).slice(0, 200) : [],
           genericDevices: Array.isArray(state.genericDevices) ? state.genericDevices.slice(0, 300) : [],
           presets: state.presets && typeof state.presets === "object" ? state.presets : {},
-          securityMode
+          securityMode,
+          configRevision: currentRevision + 1
         };
         const sampleRoomNames = new Set(["Woonkamer", "Keuken", "Eetkamer", "Slaapkamer", "Kantoor", "Badkamer", "Hal", "Overig"]);
         const usedRoomNames = new Set([...clean.sliders, ...clean.securityDevices, ...clean.genericDevices].map(x => String(x && x.room || "").trim()).filter(Boolean));
         clean.rooms = clean.rooms.filter(room => !sampleRoomNames.has(room) || usedRoomNames.has(room));
+        normalizeSecurityPlacement(clean);
         fs.writeFileSync(STATE_FILE, JSON.stringify(clean, null, 2));
         // Informeer alle geopende dashboards direct, zodat laptop en iPhone
         // dezelfde configuratie tonen zonder handmatig te verversen.
@@ -764,7 +818,8 @@ wss.on("connection", ws => {
         }
         setKNXReconnectEnabled(false);
         status(false, "KNX manually disconnected");
-      } else if (msg.type === "knx-write") {
+      } else if (msg.type === "knx-update-feedback") {
+        refreshKNXFeedbackSubscriptions(msg.config || {});} else if (msg.type === "knx-write") {
         writeKNX(msg.ga, msg.dpt, msg.value);
       } else if (msg.type === "knx-write-rgbw") {
         writeRGBW(msg.channels);
