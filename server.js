@@ -30,6 +30,7 @@ if (typeof KNXClient !== "function") {
 const PORT = Number(process.env.HTML_UI_PORT || process.env.PORT || 3010);
 const STATE_FILE = path.join(__dirname, "smarthome_state.json");
 const GITHUB_CONFIG_FILE = path.join(__dirname, "github_update.json");
+const UPDATE_STATUS_FILE = path.join(__dirname, "github-update-status.json");
 function normalizeSecurityPlacement(state) {
  const generic=Array.isArray(state.genericDevices)?state.genericDevices:[];
  const misplaced=generic.filter(x=>x&&['security','lock','motion'].includes(x.type));
@@ -232,7 +233,7 @@ async function updateFromGithub() {
   const roots = fs.readdirSync(extractDir, { withFileTypes: true }).filter(x => x.isDirectory());
   if (!roots.length) throw new Error("GitHub archive is empty");
   const sourceRoot = path.join(extractDir, roots[0].name);
-  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "smarthome_state.before-update.json", "github_update.json", "restart-after-update.js", "apply-update.js", "START_WINDOWS.bat"]);
+  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "smarthome_state.before-update.json", "github_update.json", "github-update-status.json"]);
   const copyTree = (src, dest) => {
     for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
       if (protectedNames.has(ent.name)) continue;
@@ -247,6 +248,7 @@ async function updateFromGithub() {
   const stagedPackage = path.join(stageDir, "package.json");
   if (!fs.existsSync(stagedServer)) throw new Error("GitHub update does not contain server.js; update cancelled.");
   if (!fs.existsSync(stagedPackage)) throw new Error("GitHub update does not contain package.json; update cancelled.");
+  if (!fs.existsSync(path.join(stageDir, "apply-update.js"))) throw new Error("GitHub update does not contain apply-update.js; update cancelled.");
 
   // Syntax-check the candidate before stopping the live server.
   await runCommand(process.execPath, ["--check", stagedServer], { cwd: stageDir });
@@ -669,56 +671,56 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (requestPath === "/api/github/update-status" && req.method === "GET") {
+    let status = { state: "idle" };
+    try { if (fs.existsSync(UPDATE_STATUS_FILE)) status = JSON.parse(fs.readFileSync(UPDATE_STATUS_FILE, "utf8")); } catch (_) {}
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    return res.end(JSON.stringify(status));
+  }
+
   if (requestPath === "/api/github/update" && req.method === "POST") {
     if (githubUpdateInProgress) {
       res.writeHead(409, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
       return res.end(JSON.stringify({ ok: false, error: "An update is already in progress." }));
     }
     githubUpdateInProgress = true;
-    try { if (fs.existsSync(STATE_FILE)) fs.copyFileSync(STATE_FILE, STATE_BACKUP_FILE); } catch (e) { console.error('[GITHUB] Could not back up dashboard state:', e.message); }
+    try { if (fs.existsSync(STATE_FILE)) fs.copyFileSync(STATE_FILE, STATE_BACKUP_FILE); } catch (e) { console.error("[GITHUB] Could not back up dashboard state:", e.message); }
+    try { fs.writeFileSync(UPDATE_STATUS_FILE, JSON.stringify({ state: "downloading", startedAt: new Date().toISOString() }, null, 2)); } catch (_) {}
     updateFromGithub().then(result => {
-      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Connection": "close" });
-      res.end(JSON.stringify({ ok: true, result, restarting: true }));
-      res.once("finish", () => {
+      try { fs.writeFileSync(UPDATE_STATUS_FILE, JSON.stringify({ state: "staged", startedAt: new Date().toISOString(), branch: result.branch }, null, 2)); } catch (_) {}
+      const launchUpdate = () => {
         try {
-          const helper = path.join(__dirname, "apply-update.js");
+          const helper = path.join(result.stageDir, "apply-update.js");
+          const helperArgs = [helper, result.stageDir, __dirname, String(PORT), result.packageChanged ? "1" : "0"];
           if (process.platform === "win32") {
-            // WScript is independent from the console/job that owns Node. This
-            // is considerably more reliable on Windows than spawning cmd/start
-            // from the process that is about to terminate.
             const vbs = path.join(result.tmpRoot, "launch-update.vbs");
             const q = v => String(v).replace(/"/g, '""');
-            const script = [
-              'Set shell = CreateObject("WScript.Shell")',
-              `shell.Run """${q(process.execPath)}"" ""${q(helper)}"" ""${q(result.stageDir)}"" ""${q(__dirname)}"" ""${q(String(PORT))}""", 0, False`
-            ].join("\r\n");
-            fs.writeFileSync(vbs, script, "utf8");
-            const wscript = process.env.SystemRoot
-              ? path.join(process.env.SystemRoot, "System32", "wscript.exe")
-              : "wscript.exe";
-            const child = spawn(wscript, ["//nologo", vbs], {
-              cwd: __dirname, detached: true, stdio: "ignore", windowsHide: true
-            });
+            const command = 'shell.Run """' + q(process.execPath) + '"" ""' + q(helperArgs[0]) + '"" ""' + q(helperArgs[1]) + '"" ""' + q(helperArgs[2]) + '"" ""' + q(helperArgs[3]) + '"" ""' + q(helperArgs[4]) + '""", 0, False';
+            fs.writeFileSync(vbs, ['Set shell = CreateObject("WScript.Shell")', command].join("\r\n"), "utf8");
+            const wscript = process.env.SystemRoot ? path.join(process.env.SystemRoot, "System32", "wscript.exe") : "wscript.exe";
+            const child = spawn(wscript, ["//nologo", vbs], { cwd: __dirname, detached: true, stdio: "ignore", windowsHide: true });
             child.unref();
           } else {
-            const child = spawn(process.execPath, [helper, result.stageDir, __dirname, String(PORT)], {
-              cwd: __dirname, detached: true, stdio: "ignore"
-            });
+            const child = spawn(process.execPath, helperArgs, { cwd: __dirname, detached: true, stdio: "ignore" });
             child.unref();
           }
         } catch (e) {
+          try { fs.writeFileSync(UPDATE_STATUS_FILE, JSON.stringify({ state: "failed", error: e.message, finishedAt: new Date().toISOString() }, null, 2)); } catch (_) {}
           console.error("[GITHUB] Could not start update helper:", e.message);
         }
         setTimeout(() => process.exit(0), 500);
-      });
+      };
+      res.once("finish", launchUpdate);
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Connection": "close" });
+      res.end(JSON.stringify({ ok: true, result: { owner: result.owner, repo: result.repo, branch: result.branch, updatedAt: result.updatedAt, packageChanged: result.packageChanged }, restarting: true }));
     }).catch(e => {
       githubUpdateInProgress = false;
+      try { fs.writeFileSync(UPDATE_STATUS_FILE, JSON.stringify({ state: "failed", error: e.message, finishedAt: new Date().toISOString() }, null, 2)); } catch (_) {}
       res.writeHead(400, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
       res.end(JSON.stringify({ ok: false, error: e.message }));
     });
     return;
   }
-
   if (requestPath === "/api/state" && req.method === "GET") {
     let state = { rooms: [], sliders: [], securityDevices: [], genericDevices: [], presets: {}, securityMode: "Home" };
     try { if (fs.existsSync(STATE_FILE)) state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch (_) {}
@@ -861,3 +863,4 @@ server.listen(PORT, "0.0.0.0", () => {
   }
   console.log("");
 });
+

@@ -300,7 +300,7 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 .security-lock-icon{display:block}.security-lock-icon .lock-body{fill:#f5c857;stroke:#c78a1d;stroke-width:1.2}.security-lock-icon .lock-shackle{fill:none;stroke:#dfe7eb;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round}.security-lock-icon .lock-keyhole{fill:#754d1e}.security-lock-icon .lock-keyline{fill:none;stroke:#754d1e;stroke-width:1.35;stroke-linecap:round}
 
 /* Match the Security lock symbols to the menu's native emoji family. */
-.security-lock-emoji{display:block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1}.security-icon .security-lock-emoji{font-size:46px}.overview-security-row-icon .security-lock-emoji{font-size:30px}
+.security-lock-emoji{display:block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1}.security-lock-emoji svg{display:block;width:100%;height:100%;overflow:visible}.security-icon .security-lock-emoji{width:42px;height:46px}.overview-security-row-icon .security-lock-emoji{width:30px;height:30px}
 
 /* Clean local review changes */
 .overview-security-alert{display:none;background:rgba(23,33,41,.34);border-color:rgba(116,145,157,.24);backdrop-filter:blur(10px)}.overview-security-alert.is-visible{display:block}.overview-security-alert-content{display:flex;align-items:center;gap:13px;min-height:54px}.overview-security-alert-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;background:rgba(255,190,99,.13);border:1px solid rgba(255,190,99,.34);color:#ffd391;font-size:20px;font-weight:900}.overview-security-alert-copy{display:flex;flex-direction:column;gap:3px;min-width:0}.overview-security-alert-copy b{font-size:15px;color:#f6fbff}.overview-security-alert-copy span{font-size:13px;color:#c5d2dc}.device-room-group:not([open]) .device-room-actions{display:flex!important}.device-room-availability{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 16px;margin:0 0 12px;border:1px solid rgba(116,145,157,.28);border-radius:13px;background:rgba(23,33,41,.45)}.device-room-availability .actions{display:flex;gap:8px;align-items:center}.device-room-availability select{min-width:170px}.security-settings-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}.security-settings-row>div{min-width:0}.security-settings-row label{margin-top:0}@media(max-width:700px){.device-room-availability{align-items:stretch;flex-direction:column}.device-room-availability .actions{width:100%}.device-room-availability select{flex:1;min-width:0}.security-settings-row{grid-template-columns:1fr}}
@@ -995,7 +995,7 @@ async function updateFromGithub(){
    setStatus('Restarting server… Please wait.');
    for(let i=0;i<40;i++){
      await new Promise(r=>setTimeout(r,1000));
-     try{const r=await fetch('/api/github/config?probe='+Date.now(),{cache:'no-store'});if(r.ok){setStatus('Update complete. Reloading Html ui…');setTimeout(()=>location.reload(),400);return true;}}catch(e){}
+     try{const r=await fetch('/api/github/update-status?probe='+Date.now(),{cache:'no-store'});if(r.ok){const s=await r.json();if(s.state==='failed')throw new Error(s.error||'Update failed and the previous version was restored.');if(s.state==='success'){setStatus('Update complete. Reloading Html ui…');setTimeout(()=>location.reload(),400);return true;}}}catch(e){if(e&&e.message&&e.message!=='Failed to fetch')throw e;}
    }
    return false;
  };
@@ -1006,7 +1006,7 @@ async function updateFromGithub(){
    const r=await fetch('/api/github/update',{method:'POST',headers:{'Content-Type':'application/json'}});
    const j=await r.json();
    if(!r.ok)throw new Error(j.error||'GitHub update failed');
-   setStatus('2/4  Files downloaded and installed.');
+   setStatus('2/4  Files downloaded and validated.');
    await new Promise(r=>setTimeout(r,300));
    setStatus('3/4  Restarting Html ui server…');
    const back=await waitForServer();
@@ -1256,3 +1256,4 @@ renderOverview=function(){reviewOverviewRenderer();const box=document.getElement
 const reviewShowPage=showPage;
 showPage=function(id,button){reviewShowPage(id,button);if(id==='settings')syncSharedState();};
 syncSharedState();</script></body></html>
+

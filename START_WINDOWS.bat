@@ -1,41 +1,26 @@
 @echo off
-title Smart Home KNX Dashboard
+setlocal
 cd /d "%~dp0"
-echo ========================================
-echo       KNX DASHBOARD - Html ui
-echo ========================================
-echo.
-where node >nul 2>nul
-if errorlevel 1 (
- echo Node.js is niet geinstalleerd.
- echo Installeer Node.js 18 of nieuwer.
- pause
- exit /b 1
+set "NODE_EXE=%~dp0runtime\node.exe"
+if not exist "%NODE_EXE%" (
+  where node >nul 2>nul
+  if errorlevel 1 (
+    echo Node.js is niet gevonden. Gebruik de volledige HTMLUI3.1 zip of installeer Node.js.
+    pause
+    exit /b 1
+  )
+  set "NODE_EXE=node"
 )
-if not exist node_modules (
- echo Dependencies installeren...
- call npm install
- if errorlevel 1 (
-  echo npm install mislukt.
+if not exist "%~dp0node_modules" (
+  echo Benodigde modules ontbreken.
+  echo Installeer Node.js met npm en voer daarna in deze map uit: npm install --omit=dev
   pause
   exit /b 1
- )
-) else if not exist node_modules\ffmpeg-static (
- echo ffmpeg-static ontbreekt. Dependencies opnieuw installeren...
- call npm install
- if errorlevel 1 (
-  echo npm install mislukt.
-  pause
-  exit /b 1
- )
 )
+echo HTML UI start op http://localhost:3010/
+echo Laat dit venster open. Stop de server met Ctrl+C.
+start "" "http://localhost:3010/"
+"%NODE_EXE%" server.js
 echo.
-echo Backend starten...
-echo Laat dit venster open.
-echo Dashboard: http://smarthome.local:3010
-echo Fallback : http://^<server-ip^>:3010
-echo.
-echo mDNS hostname: smarthome.local
-echo.
-node server.js
+echo De HTML UI-server is gestopt.
 pause
