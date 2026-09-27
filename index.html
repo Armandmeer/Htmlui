@@ -522,8 +522,8 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <div style="grid-column:span 2"><label>GitHub repository URL</label><input id="githubUrl" placeholder="https://github.com/owner/repository" autocomplete="off"/></div>
 <div style="grid-column:span 2"><label>GitHub token</label><input id="githubToken" type="password" placeholder="ghp_… or fine-grained token" autocomplete="new-password"/></div>
 </div>
-<div class="actions" style="margin-top:16px"><button class="btn" onclick="saveGithubSettings()">Save GitHub settings</button><button class="btn primary" onclick="updateFromGithub()">↻ Update from GitHub</button></div>
-<div class="github-note">The server uses the repository's default branch. The token is stored on the Html ui server and is not shown again in the browser.</div>
+<div class="actions" style="margin-top:16px"><button class="btn" onclick="saveGithubSettings()">Save GitHub settings</button><button class="btn primary" onclick="updateFromGithub()">↻ Update from GitHub</button><button class="btn" onclick="restoreConfigFromGithub()">Restore configuration from GitHub</button></div>
+<div class="github-note">The server uses the repository's default branch. Normal updates preserve local devices. Restore configuration replaces rooms and devices after creating a local backup. The token is never shown again.</div>
 <div class="github-update-status" id="githubUpdateStatus"></div>
 </div></details>
 <div class="card s12"><div class="settings-heading"><div><h2>Rooms</h2><div class="muted">Manage the rooms that can be assigned to devices.</div></div><div class="actions"><input id="newRoomName" placeholder="New room" style="max-width:220px"/><button class="btn primary" onclick="addRoom()">＋ Add room</button></div></div>
@@ -1253,6 +1253,24 @@ async function updateFromGithub(){
    toast('GitHub update failed');
    setBusy(false);
  }
+}
+
+async function restoreConfigFromGithub(){
+ const status=document.getElementById('githubUpdateStatus');
+ const btn=[...document.querySelectorAll('button')].find(b=>(b.getAttribute('onclick')||'').includes('restoreConfigFromGithub()'));
+ if(!confirm('Restore all rooms and devices from GitHub? The current local configuration will be backed up first.'))return;
+ if(btn)btn.disabled=true;if(status)status.textContent='Downloading configuration from GitHub…';
+ try{
+   const response=await fetch('/api/github/restore-config',{method:'POST',headers:settingsRequestHeaders({'Content-Type':'application/json'})});
+   const payload=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(payload.error||'Configuration restore failed');
+   await syncSharedState();
+   refreshKNXFeedbackSubscriptions();
+   const result=payload.result||{};
+   if(status)status.textContent='Configuration restored: '+Number(result.sliders||0)+' lighting, '+Number(result.securityDevices||0)+' security and '+Number(result.genericDevices||0)+' other devices.';
+   toast('Configuration restored from GitHub');
+ }catch(error){if(status)status.textContent='Restore failed: '+error.message;toast('Configuration restore failed');}
+ finally{if(btn)btn.disabled=false;}
 }
 
 function loadConnection(){try{const x=JSON.parse(localStorage.getItem('knxConnection')||'{}');if(x.ip)ip.value=x.ip;if(x.port)port.value=x.port;if(x.mode)mode.value=x.mode;if(x.phys)phys.value=x.phys}catch(e){}}

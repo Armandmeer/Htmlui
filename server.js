@@ -165,6 +165,7 @@ function savedKNXConnection() {
   return saved;
 }
 const STATE_BACKUP_FILE = path.join(__dirname, "smarthome_state.before-update.json");
+const STATE_RESTORE_BACKUP_FILE = path.join(__dirname, "smarthome_state.before-github-restore.json");
 
 function readGithubConfig() {
   try {
@@ -326,6 +327,43 @@ async function updateFromGithub() {
   } catch (_) {}
 
   return { owner, repo, branch, updatedAt: new Date().toISOString(), packageChanged, stageDir, tmpRoot };
+}
+
+async function restoreConfigurationFromGithub() {
+  const cfg = readGithubConfig();
+  const { owner, repo } = parseGithubRepoUrl(cfg.url);
+  if (!cfg.token) throw new Error("GitHub token is required");
+  const auth = {
+    Authorization: `Bearer ${cfg.token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28"
+  };
+  const repoInfo = JSON.parse((await httpGetBuffer(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, auth)).toString("utf8"));
+  const branch = repoInfo.default_branch || "main";
+  const rawHeaders = { ...auth, Accept: "application/vnd.github.raw+json" };
+  let raw;
+  try {
+    raw = await httpGetBuffer(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/smarthome_state.json?ref=${encodeURIComponent(branch)}`, rawHeaders);
+  } catch (error) {
+    if (/HTTP 404/.test(String(error.message || ""))) throw new Error("GitHub does not contain smarthome_state.json");
+    throw error;
+  }
+  let restored;
+  try {
+    restored = JSON.parse(raw.toString("utf8"));
+    if (restored && restored.encoding === "base64" && restored.content) restored = JSON.parse(Buffer.from(restored.content, "base64").toString("utf8"));
+  } catch (_) { throw new Error("The GitHub configuration is not valid JSON"); }
+  if (!restored || typeof restored !== "object" || !Array.isArray(restored.rooms) || !Array.isArray(restored.sliders) || !Array.isArray(restored.securityDevices) || !Array.isArray(restored.genericDevices)) {
+    throw new Error("The GitHub configuration is incomplete");
+  }
+  const current = readDashboardState();
+  restored.configRevision = Math.max(Number(current.configRevision) || 0, Number(restored.configRevision) || 0) + 1;
+  if (fs.existsSync(STATE_FILE)) fs.copyFileSync(STATE_FILE, STATE_RESTORE_BACKUP_FILE);
+  const tempFile = STATE_FILE + ".github-restore.tmp";
+  fs.writeFileSync(tempFile, JSON.stringify(restored, null, 2));
+  fs.renameSync(tempFile, STATE_FILE);
+  broadcast({ type: "state-update", state: restored });
+  return { owner, repo, branch, rooms: restored.rooms.length, sliders: restored.sliders.length, securityDevices: restored.securityDevices.length, genericDevices: restored.genericDevices.length };
 }
 
 const DEFAULT = {
@@ -1653,6 +1691,25 @@ const server = http.createServer((req, res) => {
         res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
         res.end(JSON.stringify({ ok: false, error: e.message }));
       }
+    });
+    return;
+  }
+
+  if (requestPath === "/api/github/restore-config" && req.method === "POST") {
+    if (!extendSettingsAccess(settingsTokenFromRequest(req))) {
+      res.writeHead(403, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      return res.end(JSON.stringify({ ok: false, error: "Open and unlock Settings first" }));
+    }
+    if (githubUpdateInProgress) {
+      res.writeHead(409, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      return res.end(JSON.stringify({ ok: false, error: "An update is already in progress." }));
+    }
+    restoreConfigurationFromGithub().then(result => {
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ ok: true, result }));
+    }).catch(error => {
+      res.writeHead(400, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ ok: false, error: error.message }));
     });
     return;
   }
