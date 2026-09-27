@@ -1,0 +1,477 @@
+{
+  "rooms": [
+    "Woonkamer",
+    "Entree",
+    "Keuken",
+    "Badkamer",
+    "Slaapkamer"
+  ],
+  "sliders": [
+    {
+      "id": "s1790117783300",
+      "name": "Led Koof",
+      "room": "Entree",
+      "mode": "rgbw",
+      "writeGa": "",
+      "feedbackGa": "",
+      "value": 0,
+      "feedbackValue": null,
+      "rgbw": {
+        "write": [
+          "1/0/6",
+          "1/0/9",
+          "1/0/12",
+          "1/0/15"
+        ],
+        "feedback": [
+          "2/0/6",
+          "2/0/9",
+          "2/0/12",
+          "2/0/15"
+        ]
+      },
+      "feedbackRGBW": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "s1790120874314",
+      "name": "Spots Tv",
+      "room": "Woonkamer",
+      "mode": "dim",
+      "writeGa": "1/0/21",
+      "feedbackGa": "2/0/21",
+      "value": 0,
+      "feedbackValue": 0,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "s1790120902506",
+      "name": "Spots Raam",
+      "room": "Woonkamer",
+      "mode": "dim",
+      "writeGa": "1/0/27",
+      "feedbackGa": "2/0/27",
+      "value": 0,
+      "feedbackValue": 0,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "s1790120940717",
+      "name": "Hanglamp",
+      "room": "Woonkamer",
+      "mode": "dim",
+      "writeGa": "1/0/33",
+      "feedbackGa": "2/0/33",
+      "value": 0,
+      "feedbackValue": 0,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "s1790126113091",
+      "name": "Spots",
+      "room": "Entree",
+      "mode": "dim",
+      "writeGa": "1/0/3",
+      "feedbackGa": "2/0/3",
+      "value": 0,
+      "feedbackValue": 0,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ],
+        "feedback": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "s1790126207144",
+      "name": "Spots",
+      "room": "Badkamer",
+      "mode": "dim",
+      "writeGa": "1/1/15",
+      "feedbackGa": "2/1/15",
+      "value": 0,
+      "feedbackValue": 0,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ],
+        "feedback": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "s1790126268482",
+      "name": "Spots Douch",
+      "room": "Badkamer",
+      "mode": "dim",
+      "writeGa": "1/1/21",
+      "feedbackGa": "2/1/21",
+      "value": 0,
+      "feedbackValue": 0,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ],
+        "feedback": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "s1790127252558",
+      "name": "Spots",
+      "room": "Slaapkamer",
+      "mode": "dim",
+      "writeGa": "1/2/3",
+      "feedbackGa": "2/2/3",
+      "value": 0,
+      "feedbackValue": 0,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ],
+        "feedback": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "id": "s1790127332579",
+      "name": "Spots 2e",
+      "room": "Entree",
+      "mode": "dim",
+      "writeGa": "1/2/3",
+      "feedbackGa": "2/2/3",
+      "value": 0,
+      "feedbackValue": null,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ],
+        "feedback": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "securityDevices": [
+    {
+      "id": "sec1790085966710",
+      "type": "security",
+      "name": "Pir Keuken",
+      "room": "Keuken",
+      "writeGa": "1/0/31",
+      "feedbackGa": "2/0/31",
+      "enabled": true,
+      "locked": true,
+      "motion": false,
+      "lastTime": "12:08",
+      "securityType": "motion",
+      "enableWriteGa": "",
+      "enableFeedbackGa": "",
+      "controllable": false,
+      "physicalStatusGa": "2/0/31",
+      "motionStatusGa": "7/0/8",
+      "controlInvert": false,
+      "statusInvert": true,
+      "enableInvert": false,
+      "motionInvert": false,
+      "controlLocked": true,
+      "colorInvert": false
+    },
+    {
+      "id": "sec1790114951889",
+      "type": "security",
+      "securityType": "motion",
+      "name": "Pir",
+      "room": "Woonkamer",
+      "controllable": false,
+      "writeGa": "1/1/72",
+      "feedbackGa": "2/1/72",
+      "physicalStatusGa": "",
+      "enableWriteGa": "",
+      "enableFeedbackGa": "",
+      "motionStatusGa": "7/0/2",
+      "controlInvert": false,
+      "statusInvert": false,
+      "enableInvert": false,
+      "motionInvert": false,
+      "enabled": true,
+      "locked": true,
+      "motion": false,
+      "lastTime": "12:08",
+      "colorInvert": false,
+      "knxInvert": false
+    },
+    {
+      "id": "g1790126342297",
+      "type": "security",
+      "name": "Schuifpui",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "",
+      "controllable": false,
+      "physicalStatusGa": "7/0/3",
+      "securityType": "lock",
+      "enableWriteGa": "",
+      "enableFeedbackGa": "",
+      "colorInvert": true,
+      "knxInvert": false,
+      "locked": true
+    },
+    {
+      "id": "g1790126426699",
+      "type": "security",
+      "name": "Voordeur",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "",
+      "controllable": true,
+      "physicalStatusGa": "7/0/11",
+      "securityType": "lock",
+      "enableWriteGa": "",
+      "enableFeedbackGa": "",
+      "locked": true,
+      "knxInvert": true,
+      "colorInvert": true
+    },
+    {
+      "id": "g1790126479550",
+      "type": "security",
+      "name": "Pir Bg",
+      "room": "Entree",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "",
+      "controllable": false,
+      "physicalStatusGa": "7/0/31",
+      "securityType": "motion",
+      "motionStatusGa": "7/0/31",
+      "enableWriteGa": "",
+      "enableFeedbackGa": "",
+      "motion": false
+    },
+    {
+      "id": "g1790126537754",
+      "type": "security",
+      "name": "Pir Overloop",
+      "room": "Entree",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "",
+      "securityType": "motion",
+      "controllable": true,
+      "motionStatusGa": "7/0/32",
+      "enableWriteGa": "",
+      "enableFeedbackGa": "",
+      "motion": false
+    }
+  ],
+  "genericDevices": [
+    {
+      "id": "g1790106088104",
+      "type": "camera",
+      "name": "Cam 1",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "rtsp://admin:Eigen4dm1n2025@192.168.200.83:554/cam/realmonitor?channel=1&subtype=1"
+    },
+    {
+      "id": "g1790106144102",
+      "type": "camera",
+      "name": "Cam 2",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "0/0/71",
+      "url": "rtsp://192.168.200.1:7447/gtWQd9KSBjNCZg60",
+      "fullscreen": false
+    },
+    {
+      "id": "g1790108065203",
+      "type": "camera",
+      "name": "Cam 3",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "rtsp://admin:Eigen4dm1n2025@192.168.200.84:554/cam/realmonitor?channel=1&subtype=1"
+    },
+    {
+      "id": "g1790124453719",
+      "type": "thermostat",
+      "name": "Woonkamer",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": ""
+    },
+    {
+      "id": "g1790202517525",
+      "type": "av",
+      "name": "Lg Tv",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "",
+      "ipAddress": "192.168.200.91",
+      "macAddress": "7C:64:6C:22:01:40"
+    },
+    {
+      "id": "g1790349868621",
+      "type": "av",
+      "name": "Radio",
+      "room": "Woonkamer",
+      "writeGa": "",
+      "feedbackGa": "",
+      "url": "",
+      "avType": "nax",
+      "naxPlayer": "5",
+      "naxHost": "192.168.200.73",
+      "naxClientId": "dc59a6fa-1a55-437e-8e78-73e137042738",
+      "naxClientSecret": "ysJBQRsv5dExiL89KPMr31u9Qp2l/Z63E8MVlEK+oaw=",
+      "naxRestUsername": "Admin",
+      "naxRestPassword": "Eigen4dm1n2024!",
+      "naxRoom5": "Woonkamer",
+      "naxOutput5": "Zone5",
+      "naxRoom2": "Badkamer",
+      "naxOutput2": "Zone2",
+      "naxRoom1": "Slaapkamer",
+      "naxOutput1": "Zone1",
+      "naxName1": "Media",
+      "naxName2": "Media",
+      "naxName3": "Media",
+      "naxName4": "Media",
+      "naxName5": "Media"
+    }
+  ],
+  "presets": {
+    "s1790117783300": [
+      {
+        "pos": 90,
+        "brightness": 53,
+        "warm": 0,
+        "color": "rgb(120,0,135)"
+      },
+      {
+        "pos": 90,
+        "brightness": 70,
+        "warm": 0,
+        "color": "rgb(158,0,179)"
+      },
+      {
+        "pos": 60,
+        "brightness": 95,
+        "warm": 0,
+        "color": "rgb(0,219,242)"
+      },
+      {
+        "pos": 89,
+        "brightness": 59,
+        "warm": 0,
+        "color": "rgb(122,0,150)"
+      },
+      {
+        "pos": 78,
+        "brightness": 73,
+        "warm": 0,
+        "color": "rgb(31,0,186)"
+      }
+    ]
+  },
+  "securityMode": "Home",
+  "knxConnection": {
+    "ip": "192.168.200.50",
+    "port": 3671,
+    "mode": "TunnelUDP",
+    "physAddr": "1.1.253",
+    "writeGa": "",
+    "feedbackGa": "2/0/6",
+    "feedbackGAs": [
+      "2/0/6",
+      "2/0/9",
+      "2/0/12",
+      "2/0/15",
+      "2/0/21",
+      "2/0/27",
+      "2/0/33",
+      "2/0/3",
+      "2/1/15",
+      "2/1/21",
+      "2/2/3"
+    ],
+    "switchFeedbackGAs": [],
+    "securityFeedbackGAs": [
+      "7/0/8",
+      "7/0/2",
+      "7/0/3",
+      "7/0/11",
+      "7/0/31",
+      "7/0/32"
+    ],
+    "cameraFeedbackGAs": [
+      "0/0/71"
+    ],
+    "reconnect": true
+  },
+  "configRevision": 994
+}
