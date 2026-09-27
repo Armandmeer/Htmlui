@@ -369,17 +369,138 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 .security-settings-row.security-settings-extra{display:flex;flex-wrap:wrap;gap:10px 20px;max-width:none}
 .security-settings-extra .security-option{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;cursor:pointer}
 .security-settings-extra .security-option input[type=checkbox]{width:18px;height:18px;min-height:0;margin:0;padding:0;flex:0 0 18px;accent-color:var(--green)}
+</style><style>
+.av-room-card{margin-top:14px}
+.av-device-item{min-height:72px}
+.av-tv-icon{width:48px;height:44px;display:grid;place-items:center;flex:0 0 48px;font-size:32px;color:#93a5b1}
+.tv-status-icon{display:block;width:46px;height:40px;color:#7f919d}
+.tv-status-icon.is-on{color:#d5e2e9}.tv-status-icon.is-off{color:#71818b}
+.av-status-text{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:13px;font-weight:700}
+.av-status-text.is-on{color:#cbd7de}.av-status-text.is-off{color:#8e9ba4}
+.av-power-actions{margin-left:auto;gap:10px}
+.security-btn.av-power-btn{min-width:72px;background:rgba(117,135,146,.12);border-color:rgba(156,173,184,.28);color:#dce5ea;box-shadow:none}
+.security-btn.av-power-btn:hover,.security-btn.av-power-btn.active{background:rgba(151,168,179,.22);border-color:rgba(194,207,215,.48);color:#fff;box-shadow:none}
+@media(max-width:700px){.av-device-item{min-height:58px;padding:8px 10px}.av-tv-icon{width:40px;height:36px;flex-basis:40px}.tv-status-icon{width:38px;height:34px}.security-btn.av-power-btn{min-width:58px;padding:7px 10px}.av-power-actions{gap:6px}}
+</style><style>
+.security-btn.av-power-btn::before{content:none!important;display:none!important}
+@media(max-width:700px){
+  .av-room-card{padding:8px 11px;border-radius:10px}
+  .av-device-item{grid-template-columns:50px minmax(0,1fr) auto!important;gap:7px!important;padding:6px 0!important;min-height:0!important}
+  .av-device-item .av-tv-icon{width:50px;height:46px;flex-basis:50px}
+  .av-device-item .tv-status-icon{width:48px;height:42px}
+  .av-device-item .security-name{font-size:14px}
+  .av-device-item .av-status-text{font-size:13px;margin-top:3px}
+  .av-device-item .av-power-actions{grid-column:auto!important;gap:8px!important;margin:0!important;white-space:nowrap}
+  .av-device-item .security-btn.av-power-btn{min-width:48px;padding:7px 5px;font-size:11px}
+}
+.av-device-item{cursor:pointer;transition:background .18s ease}
+.av-device-item:hover{background:rgba(255,255,255,.025)}
+.av-device-item.is-expanded{background:rgba(255,255,255,.025)}
+.av-apps-panel{grid-column:1/-1;width:100%;padding:10px 0 2px;border-top:1px solid rgba(148,163,184,.15)}
+.av-volume-panel{grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:10px 0;border-top:1px solid rgba(148,163,184,.15)}
+.av-volume-label{margin-right:4px;color:#93a2ac;font-size:12px;font-weight:700}
+.av-volume-button{width:38px;height:34px;padding:0;border:1px solid rgba(156,173,184,.28);border-radius:9px;background:rgba(117,135,146,.12);color:#e5edf1;font-size:20px;font-weight:700;line-height:1;cursor:pointer}
+.av-volume-button:hover,.av-volume-button:focus-visible{border-color:rgba(194,207,215,.55);background:rgba(151,168,179,.2);outline:none}
+.av-volume-button:disabled{cursor:default;opacity:.38}
+.av-volume-value{display:grid;place-items:center;min-width:46px;height:34px;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:rgba(13,23,30,.42);color:#e5edf1;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}
+.av-apps-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.av-app-tile{display:block;width:100%;min-width:0;padding:9px 6px;border:1px solid rgba(148,163,184,.16);border-radius:10px;background:rgba(13,23,30,.42);color:inherit;text-align:center;cursor:pointer}
+.av-app-tile:hover,.av-app-tile:focus-visible{border-color:rgba(194,207,215,.48);background:rgba(151,168,179,.14);outline:none}
+.av-app-icon{display:block;width:38px;height:38px;margin:0 auto 6px;object-fit:contain;border-radius:8px}
+.av-app-placeholder{display:grid;place-items:center;width:38px;height:38px;margin:0 auto 6px;border-radius:8px;background:rgba(148,163,184,.12);font-size:18px}
+.av-app-name{display:block;overflow:hidden;color:#dce5ea;font-size:11px;font-weight:700;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}
+.av-apps-message{padding:4px 2px;color:#93a2ac;font-size:12px}
+@media(max-width:700px){
+  .av-volume-panel{gap:8px;padding:8px 0}
+  .av-volume-label{font-size:11px}
+  .av-volume-button{width:36px;height:32px;font-size:18px}
+  .av-volume-value{min-width:43px;height:32px;font-size:12px}
+  .av-apps-panel{padding-top:8px}
+  .av-apps-grid{gap:5px}
+  .av-app-tile{padding:7px 3px;border-radius:8px}
+  .av-app-icon,.av-app-placeholder{width:32px;height:32px;margin-bottom:4px}
+  .av-app-name{font-size:9px}
+}
+.settings-lock-overlay{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,8,12,.68);backdrop-filter:blur(7px)}
+.settings-lock-overlay.open{display:flex}
+.settings-lock-panel{width:min(390px,100%);padding:24px;border:1px solid rgba(116,145,157,.35);border-radius:17px;background:linear-gradient(180deg,rgba(26,35,43,.98),rgba(15,23,30,.98));box-shadow:0 22px 70px rgba(0,0,0,.48);text-align:center}
+.settings-lock-icon{display:grid;place-items:center;width:52px;height:52px;margin:0 auto 12px;border-radius:14px;background:rgba(105,221,160,.1);border:1px solid rgba(105,221,160,.22);font-size:26px}
+.settings-lock-panel h2{margin:0 0 7px}
+.settings-lock-panel input{width:100%;margin-top:18px;text-align:center;font-size:20px;letter-spacing:.18em;box-sizing:border-box}
+.settings-lock-error{min-height:20px;margin-top:8px;color:#ff9696;font-size:12px}
+.settings-lock-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:10px}
+.settings-code-card input{max-width:260px}
+.lighting-root .lighting-control:not(.lighting-switch-control) .topline{margin-bottom:20px}
+.lighting-root .rgbw-top{margin-bottom:20px}
+.lighting-switch-button{display:block;width:100%;min-height:40px;border:1px solid rgba(156,173,184,.28);border-radius:10px;background:rgba(117,135,146,.12);color:#dce5ea;font-size:14px;font-weight:750;cursor:pointer}
+.lighting-switch-button.on{background:rgba(105,221,160,.18);border-color:rgba(105,221,160,.5);color:#e4fff0}
+.lighting-switch-control .switch-value{font-size:16px!important;color:#9baab3!important}
+.lighting-switch-control .switch-value.on{color:var(--green)!important}
+.overview-av-device{display:flex!important;align-items:center;gap:7px}
+.overview-av-icon{display:inline-grid;width:27px;height:23px;place-items:center;flex:0 0 27px}
+.overview-av-icon .tv-status-icon{width:27px;height:23px}
+#security .security-actions .security-btn.lock,
+#security .security-actions .security-btn.unlock,
+.av-power-actions .security-btn.av-power-btn{flex:0 0 96px;width:96px;min-width:96px}
+@media(max-width:600px){
+ .lighting-root .lighting-control:not(.lighting-switch-control) .topline,.lighting-root .rgbw-top{margin-bottom:12px}
+ .lighting-switch-button{min-height:34px;font-size:12px}
+ #security .security-actions .security-btn.lock,
+ #security .security-actions .security-btn.unlock,
+ .av-power-actions .security-btn.av-power-btn{flex:0 0 64px;width:64px;min-width:64px;white-space:nowrap}
+}
+
+.av-room-filter{display:flex;justify-content:flex-start;margin:12px 0 4px}.av-room-filter select{width:min(280px,100%)}
+.nax-device-item{grid-template-columns:70px minmax(0,1fr) auto!important}
+.nax-art{width:62px;height:62px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,.055);display:grid;place-items:center;color:#9fadb5;font-size:28px}
+.nax-art img{display:block!important;width:62px!important;height:62px!important;max-width:62px!important;max-height:62px!important;object-fit:cover!important}.nax-preset-icon{position:relative;display:grid;place-items:center;width:42px;height:42px;border-radius:9px;background:rgba(148,163,184,.12);font-size:20px;overflow:hidden}.nax-preset-icon img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover}.nax-media-title{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nax-media-sub{color:#93a2ac;font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.nax-transport{display:flex;gap:6px}.nax-transport button{width:38px;height:34px;padding:0;border:1px solid rgba(156,173,184,.28);border-radius:9px;background:rgba(117,135,146,.12);color:#e5edf1;font-size:16px;cursor:pointer}.nax-transport button:hover{background:rgba(151,168,179,.2)}
+.nax-presets{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;width:100%;padding-top:9px;border-top:1px solid rgba(148,163,184,.15)}.nax-preset{min-width:0;padding:8px;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:rgba(13,23,30,.42);color:#dce5ea;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}.nax-preset:hover{background:rgba(151,168,179,.14)}
+@media(max-width:700px){.nax-device-item{grid-template-columns:52px minmax(0,1fr) auto!important}.nax-art{width:46px;height:46px;border-radius:9px}.nax-media-title{font-size:13px}.nax-media-sub{font-size:10px}.nax-transport{grid-column:1/-1;justify-content:center}.nax-presets{gap:4px}.nax-preset{padding:7px 4px;font-size:9px}}
+
+#av .lighting-filter{margin:12px 0 16px}#av .lighting-filter select{width:auto;min-width:250px}
+#avDeviceList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}.av-device-card{min-width:0}.av-device-card .security-page-room-head{margin-bottom:0}.nax-device-item{border-bottom:0!important}.nax-transport .security-btn.av-power-btn{width:64px;min-width:64px;flex:0 0 64px;padding:7px 8px}.nax-preset{display:flex;min-width:0;flex-direction:column;align-items:center;gap:6px;padding:9px 5px}.nax-preset img{width:38px;height:38px;border-radius:8px;object-fit:cover}.nax-preset span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nax-rest-warning{grid-column:1/-1;color:#ffb0a8;font-size:11px;text-align:center;padding-top:3px}
+@media(max-width:900px){#avDeviceList{grid-template-columns:1fr}}@media(max-width:700px){#av .lighting-filter select{min-width:0;width:auto;max-width:70%}.nax-preset img{width:32px;height:32px}.nax-transport .security-btn.av-power-btn{width:58px;min-width:58px;flex-basis:58px}}
+
+.nax-art{width:78px;height:78px}.nax-art img{width:78px!important;height:78px!important;max-width:78px!important;max-height:78px!important}.nax-device-item{grid-template-columns:86px minmax(0,1fr)!important}.nax-transport{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:center;gap:7px;padding-top:8px;border-top:1px solid rgba(148,163,184,.15)}.nax-transport button{display:grid;place-items:center;width:42px;height:38px;border-radius:11px;font-size:16px}.nax-transport button.nax-menu-toggle{width:auto;padding:0 13px;font-size:12px}.nax-transport button.is-active{border-color:rgba(103,232,176,.5);background:rgba(61,133,101,.25)}.nax-menu-panel{grid-column:1/-1;border-top:1px solid rgba(148,163,184,.15);padding-top:9px}.nax-menu-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.nax-menu-head strong{font-size:13px}.nax-menu-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.nax-menu-item{min-width:0;display:flex;align-items:center;gap:7px;padding:7px;border:1px solid rgba(148,163,184,.16);border-radius:9px;background:rgba(13,23,30,.42);color:#dce5ea;text-align:left;cursor:pointer}.nax-menu-item img{width:32px;height:32px;border-radius:7px;object-fit:cover}.nax-menu-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:700}.nax-player-settings{display:grid;gap:8px;margin-top:10px}.nax-player-setting{display:grid;grid-template-columns:130px minmax(160px,1fr) minmax(190px,1fr);gap:10px;align-items:end;padding:10px;border:1px solid rgba(148,163,184,.15);border-radius:10px;background:rgba(13,23,30,.28)}.nax-player-setting strong{align-self:center}.nax-player-setting label{display:block;margin-bottom:5px}
+@media(max-width:700px){.nax-art{width:56px;height:56px}.nax-art img{width:56px!important;height:56px!important;max-width:56px!important;max-height:56px!important}.nax-device-item{grid-template-columns:64px minmax(0,1fr)!important}.nax-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nax-player-setting{grid-template-columns:1fr}.nax-transport button{width:38px;height:35px}.nax-transport button.nax-menu-toggle{padding:0 10px}}
+
+/* refined AV controls and NAX media browser */
+.av-volume-panel{gap:8px;padding:13px 0}.av-volume-label{margin-right:8px;letter-spacing:.02em}.av-volume-button{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;border:1px solid rgba(177,195,205,.34);background:linear-gradient(180deg,rgba(86,102,113,.34),rgba(38,49,58,.48));box-shadow:inset 0 1px rgba(255,255,255,.09),0 5px 14px rgba(0,0,0,.2);font-family:Arial,sans-serif;font-size:24px;font-weight:500}.av-volume-button:hover,.av-volume-button:focus-visible{border-color:rgba(121,225,177,.62);background:linear-gradient(180deg,rgba(78,122,103,.45),rgba(34,64,52,.52));transform:translateY(-1px)}.av-volume-button:active{transform:translateY(1px)}.av-volume-value{min-width:58px;height:38px;border-radius:999px;border-color:rgba(127,154,168,.28);background:rgba(7,15,21,.58);font-size:14px}.nax-transport{display:grid;grid-template-columns:minmax(82px,1.3fr) repeat(8,minmax(42px,1fr));align-items:center}.nax-transport button,.nax-transport .security-btn.av-power-btn{width:100%;min-width:0;max-width:68px;height:42px;margin:auto;border-radius:12px;background:linear-gradient(180deg,rgba(77,90,101,.3),rgba(35,45,54,.45));border:1px solid rgba(166,184,195,.25);box-shadow:inset 0 1px rgba(255,255,255,.07);font-family:Arial,sans-serif;color:#dce6eb;font-size:17px}.nax-transport button:hover{border-color:rgba(121,225,177,.48);background:rgba(71,105,89,.32)}.nax-transport button.nax-menu-toggle{max-width:96px;padding:0 12px;font-size:12px;line-height:1.05}.nax-menu-panel{padding-top:14px}.nax-menu-head{align-items:center}.nax-menu-actions{display:flex;align-items:center;gap:8px}.nax-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-bottom:10px}.nax-search input{min-width:0;height:38px;padding:0 12px;border:1px solid rgba(148,163,184,.22);border-radius:10px;background:rgba(7,15,21,.58);color:#edf3f5}.nax-search button,.nax-menu-head button{height:38px;padding:0 13px;border:1px solid rgba(148,163,184,.25);border-radius:10px;background:rgba(92,111,122,.18);color:#e2ebef;font-weight:700;cursor:pointer}.nax-menu-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.nax-menu-tile{position:relative;min-width:0}.nax-menu-item{width:100%;min-height:54px;padding-right:38px}.nax-menu-item img{width:38px;height:38px}.nax-menu-favorite{position:absolute;right:7px;top:50%;translate:0 -50%;display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid rgba(219,189,92,.35);border-radius:50%;background:rgba(68,57,23,.55);color:#f1cf62;font-size:18px;cursor:pointer}.nax-menu-favorite:hover{background:rgba(111,91,27,.7)}.nax-menu-empty{grid-column:1/-1;padding:14px 4px;color:#93a2ac;text-align:center}.nax-menu-spinner{display:inline-block;width:15px;height:15px;margin-right:7px;border:2px solid rgba(151,168,179,.25);border-top-color:#77d7a7;border-radius:50%;vertical-align:-3px;animation:nax-spin .8s linear infinite}@keyframes nax-spin{to{rotate:360deg}}
+@media(max-width:700px){.av-volume-button{width:38px;height:38px}.av-volume-value{height:36px;min-width:54px}.nax-transport{grid-template-columns:repeat(5,minmax(42px,1fr));gap:6px}.nax-transport button,.nax-transport .security-btn.av-power-btn{height:39px}.nax-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.nax-preset-wrap{position:relative;min-width:0}.nax-preset-wrap>.nax-preset{width:100%;height:100%}.nax-preset-delete{position:absolute;right:5px;top:5px;z-index:2;display:grid;place-items:center;width:23px;height:23px;padding:0;border:1px solid rgba(255,135,135,.38);border-radius:50%;background:rgba(72,24,27,.86);color:#ffb1b1;font-size:14px;line-height:1;cursor:pointer}.nax-preset-delete:hover{background:rgba(127,38,43,.95);color:#fff}
+
+.nax-transport{grid-template-columns:repeat(6,minmax(42px,1fr))}.nax-menu-open-row{grid-column:1/-1;display:flex;justify-content:center;padding-top:8px}.nax-menu-open-row .nax-menu-toggle{min-width:112px;height:39px;border:1px solid rgba(166,184,195,.28);border-radius:11px;background:linear-gradient(180deg,rgba(77,90,101,.3),rgba(35,45,54,.45));color:#e3ebef;font-weight:750;cursor:pointer}.nax-menu-open-row .nax-menu-toggle.is-active{border-color:rgba(103,232,176,.5);background:rgba(61,133,101,.25)}.nax-menu-advanced{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 10px;padding:9px;border:1px solid rgba(148,163,184,.13);border-radius:11px;background:rgba(10,18,24,.28)}.nax-menu-advanced-label{margin-right:4px;color:#93a2ac;font-size:11px;font-weight:700}.nax-menu-advanced button{min-width:86px;height:36px;border:1px solid rgba(166,184,195,.25);border-radius:10px;background:rgba(72,86,96,.22);color:#dfe8ec;font-family:Arial,sans-serif;font-weight:700;cursor:pointer}.nax-menu-advanced button.is-active{border-color:rgba(103,232,176,.52);background:rgba(61,133,101,.28)}
+@media(max-width:700px){.nax-transport{grid-template-columns:repeat(3,minmax(42px,1fr))}}
+
+/* NAX radio power/status alignment and grouped AV ordering */
+.nax-device-item{grid-template-columns:86px minmax(0,1fr) auto!important}
+.nax-device-item>.av-power-actions{grid-column:3;grid-row:1;align-self:center}
+.nax-transport{grid-template-columns:repeat(5,minmax(42px,68px));justify-content:center;max-width:430px;margin-left:auto;margin-right:auto}
+.overview-av-icon.radio{font-size:20px;line-height:1}
+@media(max-width:700px){.nax-device-item{grid-template-columns:64px minmax(0,1fr) auto!important}.nax-device-item>.av-power-actions{grid-column:3;grid-row:1}.nax-transport{grid-template-columns:repeat(5,minmax(38px,58px));max-width:330px}}
+
+/* Compact NAX media identity and centered volume */
+.nax-device-item>.av-power-actions{justify-self:end}
+.av-device-item>.av-volume-panel{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto minmax(0,1fr);align-items:center;justify-content:stretch}.av-device-item>.av-volume-panel .av-volume-label{justify-self:end;margin-right:4px}
+.av-device-item>.av-volume-panel .av-volume-label{min-width:auto}
+.nax-media-copy{min-width:0;align-self:center}
+.nax-media-copy .av-status-text{margin-bottom:4px}
+.overview-av-art{width:27px;height:27px;border-radius:6px;object-fit:cover;display:block}
+.overview-av-media{display:block;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nax-player-setting{grid-template-columns:105px repeat(3,minmax(140px,1fr))}
+@media(max-width:700px){.overview-av-media{max-width:132px}.nax-player-setting{grid-template-columns:1fr}.nax-device-item>.av-power-actions .security-btn{min-width:76px}}
 </style></head>
 <body><button aria-label="Menu" class="menu-toggle" onclick="toggleSidebar()">☰</button><div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div><div class="app">
 <aside><div class="label">Dashboard</div><nav>
 <button class="active" onclick="page('home',this)">🏠 Overview</button>
 </nav><div class="label">Control</div><nav>
-<button onclick="page('lighting',this)">💡 Lighting</button><button onclick="page('av',this)">🎬 Audio &amp; Video</button><button onclick="page('cameras',this)">📷 Cameras</button><button onclick="page('climate',this)">🌡️ Climate</button><button onclick="page('security',this)">🔐 Security</button>
+<button onclick="page('lighting',this)">💡 Lighting</button><button onclick="page('shading',this)">🪟 Curtains &amp; Screens</button><button onclick="page('av',this)">🎬 Audio &amp; Video</button><button onclick="page('cameras',this)">📷 Cameras</button><button onclick="page('climate',this)">🌡️ Climate</button><button onclick="page('security',this)">🔐 Security</button>
 </nav><div class="label">Home</div><nav>
 <button onclick="page('rooms',this)">🛋️ Rooms</button><button onclick="page('scenes',this)">✨ Scenes</button><button onclick="page('energy',this)">⚡ Energy</button>
 </nav><div class="label">System</div><nav><button onclick="page('settings',this)">⚙ Settings</button></nav></aside>
 <main><div class="top"><div><h1 id="title">Overview</h1><div class="muted" id="sub"></div></div></div>
-<div id="pageHost"></div><div hidden="True" id="pageCache"><template data-page-id="home"><section class="page" id="home"><div class="grid"><div class="card s12 overview-security-alert" id="overviewSecurityAlert" style="display:none"><div id="overviewSecurityAlertContent"></div></div><div class="card s12 security-overview-card"><div class="settings-heading"><div><h2>Security</h2><div class="muted">Security mode, locks and motion sensors.</div></div></div><div id="overviewSecuritySummary" class="overview-summary"></div></div><div class="card s12" id="overviewLightingCard"><div class="settings-heading"><div><h2>Lighting</h2><div class="muted">Active lighting by room.</div></div></div><div id="overviewLightingSummary" class="overview-summary"></div></div><div class="card s12" id="overviewAvCard"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Active AV devices by room.</div></div></div><div id="overviewAvSummary" class="overview-summary"></div></div><div class="card s12" id="overviewErrorsCard" style="display:none"><div class="settings-heading"><div><h2>Errors</h2><div class="muted">Connections that need attention.</div></div></div><div id="overviewErrors"></div></div></div></section></template><template data-page-id="lighting"><section class="page" id="lighting"><div class="lighting-root" id="lightingRoot"><div class="lighting-filter"><select aria-label="Room" id="lightingRoomFilter" onchange="setLightingRoom(this.value)"></select><span class="muted" id="roomCount"></span></div><div class="devices" id="lightingSliders"></div></div></section></template><template data-page-id="av"><section class="page" id="av"><div class="card"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Configured AV devices, grouped by room.</div></div><span class="badge" id="avDeviceStatus">0 devices</span></div><div id="avDeviceList" class="devices"></div></div></section></template><template data-page-id="cameras"><section class="page" id="cameras"><div class="card camera-card"><div class="settings-heading"><div><h2>Cameras</h2><div class="muted">Cameras configured in Devices are shown here.</div></div><span class="badge" id="cameraStatus">0 cameras</span></div><div id="cameraDeviceGrid" class="camera-grid"></div></div></section></template><template data-page-id="climate"><section class="page" id="climate"><div class="climate-card"><div class="climate-head"><div class="climate-title-row"><button class="climate-back" aria-label="Back" onclick="page('home')">←</button><div><div class="climate-room">Thermostat</div><h2 style="margin:4px 0 0">Living Room</h2></div></div><div class="climate-readings"><div class="climate-reading"><span class="reading-icon">🌡️</span><span id="climateOutdoor">25 °C</span></div><div class="climate-reading"><span class="reading-icon">☁</span><span id="climateAmbient">21.5 °C</span></div></div></div><div class="climate-dial-wrap"><div class="climate-dial"><div class="climate-dial-content"><div class="climate-current-label">Target</div><div class="climate-temp-main"><span id="climateTargetBig">21.0</span><small>°C</small></div><div class="climate-mode-indicator" id="climateModeIndicator">❄ Cooling</div><div class="climate-target">Current room temperature <span id="climateCurrentSmall">21.5 °C</span></div></div></div></div><div class="climate-adjust"><button class="minus" onclick="adjustClimate(-0.5)" aria-label="Decrease target temperature">−</button><div></div><button class="plus" onclick="adjustClimate(0.5)" aria-label="Increase target temperature">+</button></div><div class="climate-actions"><div class="climate-control"><button id="climatePower" class="active" onclick="toggleClimatePower()"><span class="control-icon">⏻</span><span id="climatePowerText">On</span><span class="control-sub" id="climatePowerSub">System active</span></button></div><div class="climate-control"><button id="climateModeButton" onclick="toggleClimateModeMenu()"><span class="control-icon" id="climateModeIcon">❄️</span><span id="climateModeText">Cooling</span><span class="control-sub">Heat / Cool</span></button><div class="climate-menu" id="climateModeMenu"><button onclick="setClimateMode('heat')">🔥 Heating <span>Heat</span></button><button onclick="setClimateMode('cool')">❄️ Cooling <span>Cool</span></button></div></div><div class="climate-control"><button id="climateFanButton" onclick="toggleClimateFanMenu()"><span class="control-icon">🌀</span><span id="climateFanText">50%</span><span class="control-sub">Ventilation</span></button><div class="climate-menu" id="climateFanMenu"><button onclick="setClimateFan(25)">25%</button><button onclick="setClimateFan(50)">50%</button><button onclick="setClimateFan(75)">75%</button><button onclick="setClimateFan(100)">100%</button></div></div></div><div class="climate-status"><span>System status:</span><span class="state" id="climateState">Cooling · Fan 50%</span></div></div></section></template><template data-page-id="security"><section class="page" id="security">
+<div id="pageHost"></div><div hidden="True" id="pageCache"><template data-page-id="home"><section class="page" id="home"><div class="grid"><div class="card s12 overview-security-alert" id="overviewSecurityAlert" style="display:none"><div id="overviewSecurityAlertContent"></div></div><div class="card s12 security-overview-card"><div class="settings-heading"><div><h2>Security</h2><div class="muted">Security mode, locks and motion sensors.</div></div></div><div id="overviewSecuritySummary" class="overview-summary"></div></div><div class="card s12" id="overviewLightingCard"><div class="settings-heading"><div><h2>Lighting</h2><div class="muted">Active lighting by room.</div></div></div><div id="overviewLightingSummary" class="overview-summary"></div></div><div class="card s12" id="overviewAvCard"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Active AV devices by room.</div></div></div><div id="overviewAvSummary" class="overview-summary"></div></div><div class="card s12" id="overviewErrorsCard" style="display:none"><div class="settings-heading"><div><h2>Errors</h2><div class="muted">Connections that need attention.</div></div></div><div id="overviewErrors"></div></div></div></section></template><template data-page-id="lighting"><section class="page" id="lighting"><div class="lighting-root" id="lightingRoot"><div class="lighting-filter"><select aria-label="Room" id="lightingRoomFilter" onchange="setLightingRoom(this.value)"></select><span class="muted" id="roomCount"></span></div><div class="devices" id="lightingSliders"></div></div></section></template><template data-page-id="shading"><section class="page" id="shading"><div class="card"><div class="settings-heading"><div><h2>Curtains &amp; Screens</h2><div class="muted">Configured curtains and screens, grouped by room.</div></div><span class="badge" id="shadingDeviceStatus">0 devices</span></div><div id="shadingDeviceList" class="devices"></div></div></section></template><template data-page-id="av"><section class="page" id="av"><div class="card"><div class="settings-heading"><div><h2>Audio &amp; Video</h2><div class="muted">Configured AV devices, grouped by room.</div></div><span class="badge" id="avDeviceStatus">0 devices</span></div><div class="lighting-filter"><select id="avRoomFilter" aria-label="Room" onchange="setAvRoomFilter(this.value)"></select><span class="muted" id="avRoomCount"></span></div><div id="avDeviceList" class="devices"></div></div></section></template><template data-page-id="cameras"><section class="page" id="cameras"><div class="card camera-card"><div class="settings-heading"><div><h2>Cameras</h2><div class="muted">Cameras configured in Devices are shown here.</div></div><span class="badge" id="cameraStatus">0 cameras</span></div><div id="cameraDeviceGrid" class="camera-grid"></div></div></section></template><template data-page-id="climate"><section class="page" id="climate"><div class="climate-card"><div class="climate-head"><div class="climate-title-row"><button class="climate-back" aria-label="Back" onclick="page('home')">←</button><div><div class="climate-room">Thermostat</div><h2 style="margin:4px 0 0">Living Room</h2></div></div><div class="climate-readings"><div class="climate-reading"><span class="reading-icon">🌡️</span><span id="climateOutdoor">25 °C</span></div><div class="climate-reading"><span class="reading-icon">☁</span><span id="climateAmbient">21.5 °C</span></div></div></div><div class="climate-dial-wrap"><div class="climate-dial"><div class="climate-dial-content"><div class="climate-current-label">Target</div><div class="climate-temp-main"><span id="climateTargetBig">21.0</span><small>°C</small></div><div class="climate-mode-indicator" id="climateModeIndicator">❄ Cooling</div><div class="climate-target">Current room temperature <span id="climateCurrentSmall">21.5 °C</span></div></div></div></div><div class="climate-adjust"><button class="minus" onclick="adjustClimate(-0.5)" aria-label="Decrease target temperature">−</button><div></div><button class="plus" onclick="adjustClimate(0.5)" aria-label="Increase target temperature">+</button></div><div class="climate-actions"><div class="climate-control"><button id="climatePower" class="active" onclick="toggleClimatePower()"><span class="control-icon">⏻</span><span id="climatePowerText">On</span><span class="control-sub" id="climatePowerSub">System active</span></button></div><div class="climate-control"><button id="climateModeButton" onclick="toggleClimateModeMenu()"><span class="control-icon" id="climateModeIcon">❄️</span><span id="climateModeText">Cooling</span><span class="control-sub">Heat / Cool</span></button><div class="climate-menu" id="climateModeMenu"><button onclick="setClimateMode('heat')">🔥 Heating <span>Heat</span></button><button onclick="setClimateMode('cool')">❄️ Cooling <span>Cool</span></button></div></div><div class="climate-control"><button id="climateFanButton" onclick="toggleClimateFanMenu()"><span class="control-icon">🌀</span><span id="climateFanText">50%</span><span class="control-sub">Ventilation</span></button><div class="climate-menu" id="climateFanMenu"><button onclick="setClimateFan(25)">25%</button><button onclick="setClimateFan(50)">50%</button><button onclick="setClimateFan(75)">75%</button><button onclick="setClimateFan(100)">100%</button></div></div></div><div class="climate-status"><span>System status:</span><span class="state" id="climateState">Cooling · Fan 50%</span></div></div></section></template><template data-page-id="security"><section class="page" id="security">
 <div class="security-card security-mode-card"><div class="security-panel-head"><div><h2>Security mode</h2><div class="security-sub">Select the active security mode.</div></div></div><div class="security-mode"><button class="security-pill active" data-mode="Home" onclick="setSecurityMode(this,'Home')"><span class="security-mode-icon">🏠</span><span>Home</span></button><button class="security-pill" data-mode="Night" onclick="setSecurityMode(this,'Night')"><span class="security-mode-icon">🌙</span><span>Night</span></button><button class="security-pill" data-mode="Away" onclick="setSecurityMode(this,'Away')"><span class="security-mode-icon">🚪</span><span>Away</span></button></div></div>
 <div class="security-grid security-page-grid"><div class="security-card"><div class="security-panel-head"><div><h2><span class="security-heading-lock-icon"></span><span>Locks</span></h2></div></div><div id="securityLocks" class="security-page-room-grid"></div></div>
 <div class="security-card"><div class="security-panel-head"><div><h2><span class="motion-heading-icon"></span><span>Motion sensors</span></h2></div></div><div id="securityMotion" class="security-page-room-grid"></div></div></div>
@@ -409,10 +530,22 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <div class="devices" id="roomConfigList"></div></div>
 <div class="card s12"><div class="settings-heading"><div><h2>Devices</h2><div class="muted">All devices are grouped by room. Open a room and use the single Add device button, then choose the device type inside the device.</div></div></div>
 <div id="deviceConfigList"></div></div>
-</div></section></template></div></main></div><div class="camera-fullscreen" id="cameraFullscreen" role="dialog" aria-modal="true" aria-label="Fullscreen camera"><div class="camera-fs-top"><span class="camera-fs-title" id="cameraFsTitle">Camera 1</span><button class="camera-fs-back" onclick="closeCameraFullscreen()">← Back</button></div><img id="cameraFullscreenStream" src="" alt="Fullscreen camera"></div><div id="toast" style="position:fixed;right:25px;bottom:25px;background:#1b282f;border:1px solid #3a4c58;padding:13px 17px;border-radius:11px;display:none"></div>
+<div class="card s12 settings-code-card"><div class="settings-heading"><div><h2>Settings access code</h2><div class="muted">Change the code required to open Settings.</div></div></div><div class="settings-grid"><div><label>Current code</label><input id="settingsCurrentCode" type="password" inputmode="numeric" autocomplete="current-password"></div><div><label>New code</label><input id="settingsNewCode" type="password" inputmode="numeric" autocomplete="new-password"></div><div><label>Confirm new code</label><input id="settingsConfirmCode" type="password" inputmode="numeric" autocomplete="new-password"></div><div class="actions" style="align-items:end"><button type="button" class="btn primary" onclick="changeSettingsCode()">Change code</button></div></div></div>
+</div></section></template></div></main></div><div class="camera-fullscreen" id="cameraFullscreen" role="dialog" aria-modal="true" aria-label="Fullscreen camera"><div class="camera-fs-top"><span class="camera-fs-title" id="cameraFsTitle">Camera 1</span><button class="camera-fs-back" onclick="closeCameraFullscreen()">← Back</button></div><img id="cameraFullscreenStream" src="" alt="Fullscreen camera"></div><div class="settings-lock-overlay" id="settingsLockOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsLockTitle" onclick="settingsOverlayClick(event)">
+ <div class="settings-lock-panel">
+  <div class="settings-lock-icon">⚙</div>
+  <h2 id="settingsLockTitle">Settings locked</h2>
+  <div class="muted">Enter the access code to continue.</div>
+  <input id="settingsUnlockCode" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="Access code" onkeydown="if(event.key==='Enter')submitSettingsUnlock()">
+  <div class="settings-lock-error" id="settingsLockError"></div>
+  <div class="settings-lock-actions"><button type="button" class="btn" onclick="cancelSettingsUnlock()">Back</button><button type="button" class="btn primary" onclick="submitSettingsUnlock()">Unlock</button></div>
+ </div>
+</div>
+<div id="toast" style="position:fixed;right:25px;bottom:25px;background:#1b282f;border:1px solid #3a4c58;padding:13px 17px;border-radius:11px;display:none"></div>
 <script>
 let socket=null, timer=null;
-const meta={home:['Overview',''],lighting:['Lighting',''],av:['Audio & Video','Entertainment'],climate:['Climate','Temperature and ventilation'],rooms:['Rooms','Room control'],scenes:['Scenes','Favorites and automation'],energy:['Energy','Consumption and production'],security:['Security','Electric locks and motion sensors'],settings:['Settings','KNX/IP connection and group addresses']};
+let settingsAccessToken='',settingsHeartbeatTimer=null,settingsUnlockPromise=null,settingsUnlockResolve=null;
+const meta={home:['Overview',''],lighting:['Lighting',''],shading:['Curtains & Screens','Curtains and sun protection'],av:['Audio & Video','Entertainment'],climate:['Climate','Temperature and ventilation'],rooms:['Rooms','Room control'],scenes:['Scenes','Favorites and automation'],energy:['Energy','Consumption and production'],security:['Security','Electric locks and motion sensors'],settings:['Settings','KNX/IP connection and group addresses']};
 function resetLightingPage(){
   const page=document.getElementById('lighting');
   if(!page)return;
@@ -459,7 +592,8 @@ function showPage(id,b){
   if(id==='settings'){renderRoomConfigs();renderDeviceConfigs();renderCommunicationLog();loadGithubSettings();}
   if(id==='rooms')renderConfiguredRooms();
   if(id==='cameras')renderConfiguredCameras();
-  if(id==='av')renderConfiguredAv();
+  if(id==='shading')renderConfiguredShading();
+  if(id==='av'){renderConfiguredAv();fetchAvStatuses();}
   if(id==='scenes')renderConfiguredScenes();
   if(id==='lighting'){resetLightingPage();renderLightingSliders();}
   if(id==='climate'){renderClimate();}
@@ -596,12 +730,93 @@ function renderOverview(){
    if(document.getElementById('overviewLightCount'))document.getElementById('overviewLightCount').textContent=activeCount+' active'; if(lightCard)lightCard.style.display=activeCount?'':'none';
  }
  const avBox=document.getElementById('overviewAvSummary'),avCard=document.getElementById('overviewAvCard');
- if(avBox){avBox.innerHTML='';const av=genericDevices().filter(x=>x.type==='av');const active=av.filter(x=>x.active!==false);const byRoom={};active.forEach(x=>(byRoom[x.room||'Other']??=[]).push(x));Object.keys(byRoom).forEach(room=>{const card=document.createElement('div');card.className='overview-room';card.innerHTML='<div class="overview-room-head"><b>'+esc(room)+'</b><span class="muted">'+byRoom[room].length+' active</span></div><div class="overview-lights">'+byRoom[room].map(x=>'<span class="overview-light">'+esc(x.name||'AV device')+'</span>').join('')+'</div>';avBox.appendChild(card)});if(document.getElementById('overviewAvCount'))document.getElementById('overviewAvCount').textContent=active.length+' active';if(avCard)avCard.style.display=active.length?'':'none';}
+ if(avBox){
+   avBox.innerHTML='';
+   const liveStatuses=window.avLiveStatus||{};
+   const naxStatuses=window.naxLiveStatus||{},av=naxConfiguredCards();
+   const active=av.filter(x=>{if(x.avType==='nax'){const state=naxStatuses[String(x.id)]||{};if(!naxIsPlaying(state))return false;const now=naxPlayerNowPlaying(state),artist=naxFirst(now,['ArtistName','Artist','Subtitle'],''),title=naxFirst(now,['TrackTitle','Title','TrackName','Name','MediaTitle'],''),station=naxFirst(now,['StationName'],'');x.overviewName=[artist,title].filter(Boolean).join(' · ')||station||x.name||'Media';x.overviewArt=naxFirst(now,['AlbumArtUrl','ArtworkUrl','ImageUrl','ArtworkURL'],'');return true;}if(x.avType==='radio')return x.active!==false;return liveStatuses[String(x.id)]&&liveStatuses[String(x.id)].online===true;});
+   const byRoom={};
+   active.forEach(x=>(byRoom[x.room||'Other']??=[]).push(x));
+   Object.keys(byRoom).forEach(room=>{
+     const card=document.createElement('div');card.className='overview-room';
+     card.innerHTML='<div class="overview-room-head"><b>'+esc(room)+'</b><span class="muted">'+byRoom[room].length+' active</span></div><div class="overview-lights">'+byRoom[room].map(x=>{const isNax=x.avType==='nax',icon=isNax&&x.overviewArt?'<img class="overview-av-art" src="'+esc(naxArtworkUrl(String(x.id),x.overviewArt))+'" alt="" onerror="this.replaceWith(document.createTextNode(\'📻\'))">':(x.avType==='radio'||isNax)?'📻':tvStatusIcon(true);return '<span class="overview-light overview-av-device" title="'+esc(x.overviewName||x.name||'AV device')+'"><span class="overview-av-icon '+((x.avType==='radio'||isNax)?'radio':'')+'">'+icon+'</span><span class="overview-av-media">'+esc(x.overviewName||x.name||'AV device')+'</span></span>';}).join('')+'</div>';
+     avBox.appendChild(card);
+   });
+   if(document.getElementById('overviewAvCount'))document.getElementById('overviewAvCount').textContent=active.length+' active';
+   if(avCard)avCard.style.display=active.length?'':'none';
+ }
  renderOverviewErrors();
 }
 function renderOverviewErrors(){const card=document.getElementById('overviewErrorsCard'),box=document.getElementById('overviewErrors');if(!card||!box)return;const errors=[];if(knxUiState!=='connected'){let c={};try{c=JSON.parse(localStorage.getItem('knxConnection')||'{}')}catch(e){}const last=logBuffer.length?logBuffer[logBuffer.length-1].text:'No log entry available';errors.push('<div class="overview-room"><div class="overview-room-head"><b>KNX</b><span class="muted">Disconnected</span></div><div class="overview-lights"><span class="overview-light">IP <b>'+esc(c.ip||'—')+'</b></span><span class="overview-light">Port <b>'+esc(c.port||'3671')+'</b></span><span class="overview-light">Last log <b>'+esc(last)+'</b></span></div></div>');}box.innerHTML=errors.join('');card.style.display=errors.length?'':'none';}
 
-function page(id,b){closeSidebar();showPage(id,b)}
+function settingsRequestHeaders(extra={}){
+ return {...extra,...(settingsAccessToken?{'X-Settings-Token':settingsAccessToken}:{})};
+}
+function finishSettingsUnlock(result){
+ const overlay=document.getElementById('settingsLockOverlay');
+ if(overlay)overlay.classList.remove('open');
+ const resolve=settingsUnlockResolve;settingsUnlockResolve=null;settingsUnlockPromise=null;
+ if(resolve)resolve(!!result);
+}
+function requestSettingsAccess(){
+ if(settingsAccessToken)return Promise.resolve(true);
+ if(settingsUnlockPromise)return settingsUnlockPromise;
+ const overlay=document.getElementById('settingsLockOverlay'),input=document.getElementById('settingsUnlockCode'),error=document.getElementById('settingsLockError');
+ if(error)error.textContent='';if(input)input.value='';if(overlay)overlay.classList.add('open');
+ settingsUnlockPromise=new Promise(resolve=>{settingsUnlockResolve=resolve});
+ setTimeout(()=>input&&input.focus(),40);
+ return settingsUnlockPromise;
+}
+async function submitSettingsUnlock(){
+ const input=document.getElementById('settingsUnlockCode'),error=document.getElementById('settingsLockError');
+ const code=String(input?.value||'');
+ if(error)error.textContent='';
+ try{
+  const response=await fetch('/api/settings/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||'Could not unlock Settings');
+  settingsAccessToken=String(result.token||'');
+  startSettingsHeartbeat();
+  finishSettingsUnlock(true);
+ }catch(exception){if(error)error.textContent=exception.message;if(input){input.select();input.focus()}}
+}
+function cancelSettingsUnlock(){finishSettingsUnlock(false)}
+function settingsOverlayClick(event){if(event.target===document.getElementById('settingsLockOverlay'))cancelSettingsUnlock()}
+function startSettingsHeartbeat(){
+ clearInterval(settingsHeartbeatTimer);
+ settingsHeartbeatTimer=setInterval(async()=>{
+  if(!settingsAccessToken||currentPageId!=='settings')return;
+  try{
+   const response=await fetch('/api/settings/heartbeat',{method:'POST',headers:settingsRequestHeaders()});
+   if(!response.ok)throw new Error('expired');
+  }catch(_){
+   settingsAccessToken='';clearInterval(settingsHeartbeatTimer);settingsHeartbeatTimer=null;
+   if(currentPageId==='settings'){toast('Settings session expired');showPage('home')}
+  }
+ },10000);
+}
+function endSettingsSession(){
+ const token=settingsAccessToken;settingsAccessToken='';clearInterval(settingsHeartbeatTimer);settingsHeartbeatTimer=null;
+ if(token)fetch('/api/settings/lock',{method:'POST',headers:{'X-Settings-Token':token},keepalive:true}).catch(()=>{});
+}
+async function changeSettingsCode(){
+ const current=document.getElementById('settingsCurrentCode'),next=document.getElementById('settingsNewCode'),confirm=document.getElementById('settingsConfirmCode');
+ const currentCode=String(current?.value||''),newCode=String(next?.value||''),confirmation=String(confirm?.value||'');
+ if(newCode!==confirmation){toast('New codes do not match');return}
+ try{
+  const response=await fetch('/api/settings/code',{method:'POST',headers:settingsRequestHeaders({'Content-Type':'application/json'}),body:JSON.stringify({currentCode,newCode})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||'Could not change code');
+  if(current)current.value='';if(next)next.value='';if(confirm)confirm.value='';
+  toast('Settings code changed');
+ }catch(error){toast(error.message)}
+}
+async function page(id,b){
+ closeSidebar();
+ if(id==='settings'&&!settingsAccessToken){if(!await requestSettingsAccess())return}
+ if(currentPageId==='settings'&&id!=='settings')endSettingsSession();
+ showPage(id,b);
+}
 
 let knxUiState='offline';
 const logBuffer=[];
@@ -656,7 +871,7 @@ function connectSocket(){
  socket.onopen=()=>{log('Dashboard connection established','ok');setTimeout(refreshKNXFeedbackSubscriptions,500);if(sessionStorage.getItem('knxReconnectAfterUpdate')==='1'){sessionStorage.removeItem('knxReconnectAfterUpdate');setTimeout(()=>connectKnx(),350);}};
  socket.onclose=()=>{log('Dashboard connection lost — reconnecting…','err');clearTimeout(window.wsRetry);window.wsRetry=setTimeout(connectSocket,3000)};
  socket.onerror=()=>{log('Dashboard connection unavailable. Check that the server is running.','err')};
- socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='knx-status'){updateKnxUi(!!m.connected,m.message|| (m.connected?'KNX connected':'KNX offline'));}
+ socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='knx-status'){updateKnxUi(!!m.connected,m.message|| (m.connected?'KNX connected':'KNX offline'));}else if(m.type==='server-error'){log(m.message||'Server action failed','err');toast(m.message||'Server action failed');}
  if(m.type==='state-update'){
    const state=m.state||{},sig=sharedSignature(state);
    const active=document.activeElement;
@@ -699,6 +914,12 @@ function connectSocket(){
        if(bs)bs.value=bright;if(ws)ws.value=warm;
        updateRGBWPreview(sx.id,sx.feedbackRGBW);
        const sw=document.getElementById('rgbw-swatch-'+sx.id); if(sw)sw.style.background=rgbwColorFromValues(sx.feedbackRGBW);
+     }else if(sx.mode==='switch'){
+       const on=Number(v)>0;
+       sx.feedbackValue=on?1:0;sx.value=on?1:0;
+       const button=document.getElementById('light-switch-'+sx.id),state=document.getElementById('light-switch-state-'+sx.id);
+       if(button){button.classList.toggle('on',on);button.textContent=on?'On':'Off';button.setAttribute('aria-pressed',on?'true':'false')}
+       if(state){state.textContent=on?'On':'Off';state.classList.toggle('on',on)}
      }else{
        sx.feedbackValue=v;
        const lb=document.getElementById('cfgval-'+sx.id);const lv=document.getElementById('light-val-'+sx.id);const sl=document.getElementById('light-slider-'+sx.id);const prev=document.getElementById('preview-slider-'+sx.id);
@@ -714,7 +935,7 @@ function connectSocket(){
 function send(o){if(socket&&socket.readyState===1)socket.send(JSON.stringify(o));else toast('No server connection')}
 function sliders(){try{const a=JSON.parse(localStorage.getItem('knxSliders')||'null');return Array.isArray(a)?a:[]}catch(e){return []}}
 function saveSliders(a,options={}){localStorage.setItem('knxSliders',JSON.stringify(a));if(options.shared!==false)syncSharedStateDebounced()}
-function normalizeSliders(){const a=sliders().map(x=>({...x,room:x.room||'',mode:x.mode==='rgbw'?'rgbw':'dim',rgbw:x.rgbw||{write:['','','',''],feedback:['','','','']}}));saveSliders(a);return a}
+function normalizeSliders(){const a=sliders().map(x=>({...x,room:x.room||'',mode:['dim','switch','rgbw'].includes(x.mode)?x.mode:'dim',rgbw:x.rgbw||{write:['','','',''],feedback:['','','','']}}));saveSliders(a);return a}
 function gaOK(v){return /^\d{1,3}\/\d{1,3}\/\d{1,3}$/.test(v)}
 function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 
@@ -845,6 +1066,7 @@ function updateUnifiedDevice(item,el){ window.deviceRoomOpen=window.deviceRoomOp
    if(el.dataset.u==='room')x.room=el.value;
    if(el.dataset.u==='mode'){x.mode=el.value;x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};}
    saveSliders(a);
+   if(el.dataset.u==='mode')refreshKNXFeedbackSubscriptions();
  } else if(item.source==='security'){
    const a=securityDevices(),x=a.find(z=>z.id===item.sourceId);if(!x)return;
    if(el.dataset.u==='type' && el.value!=='security'){convertSecurityToGeneric(x,el.value);return}
@@ -876,6 +1098,7 @@ function updateUnifiedAddress(item,el){
      x.rgbw[channel][Number(idx)]=el.value.trim();
    } else x[key]=el.value.trim();
    saveSliders(a);
+   refreshKNXFeedbackSubscriptions();
  } else if(item.source==='security'){
    const a=securityDevices(),x=a.find(z=>z.id===item.sourceId);if(!x)return;
    if(key==='securityType'){x.securityType=el.value==='motion'?'motion':'lock';x.type='security';saveSecurityDevices(a);renderDeviceConfigs();renderSecurity();return;}
@@ -912,9 +1135,16 @@ function addSlider(roomName){ addUnifiedDevice(roomName); }
 function removeSlider(id){saveSliders(sliders().filter(x=>x.id!==id));renderSliderConfigs();renderLightingSliders();toast('Slider removed')}
 function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){x.value=Number(v);saveSliders(a,{shared:false})}}
 function sendSlider(id,v){
- const x=sliders().find(z=>z.id===id);if(!x||x.mode==='rgbw')return;
+ const x=sliders().find(z=>z.id===id);if(!x||x.mode!=='dim')return;
  updateSliderValue(id,v);const sl=document.getElementById('light-slider-'+id);if(sl)sl.style.setProperty('--fill',Number(v)+'%');
  send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:'5.001',value:Number(v)});
+}
+function toggleLightingSwitch(id){
+ const a=sliders(),x=a.find(item=>item.id===id);if(!x||x.mode!=='switch')return;
+ const current=Number(x.feedbackValue??x.value??0)>0,next=!current;
+ x.value=next?1:0;x.feedbackValue=next?1:0;saveSliders(a,{shared:false});
+ renderLightingSliders();if(currentPageId==='home')renderOverview();
+ const ga=String(x.writeGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:next?1:0});
 }
 function renderLightingSliders(){
  const box=document.getElementById('lightingSliders');if(!box)return;
@@ -937,6 +1167,11 @@ function renderLightingSliders(){
      '<div class="rgbw-presets" id="rgbw-presets-'+x.id+'"></div>';
    box.appendChild(d);
    renderRGBWPresets(x.id);
+  }else if(x.mode==='switch'){
+   const on=Number(x.feedbackValue??x.value??0)>0;
+   const d=document.createElement('div');d.className='lighting-control lighting-switch-control';
+   d.innerHTML='<div class="topline"><b>'+esc(x.name)+'</b><b class="switch-value '+(on?'on':' ')+'" id="light-switch-state-'+x.id+'">'+(on?'On':'Off')+'</b></div><button type="button" class="lighting-switch-button '+(on?'on':'')+'" id="light-switch-'+x.id+'" aria-pressed="'+(on?'true':'false')+'" onclick="toggleLightingSwitch(\''+x.id+'\')">'+(on?'On':'Off')+'</button>';
+   box.appendChild(d);
   }else{
    const fb=(x.feedbackValue===undefined||x.feedbackValue===null)?'—':Number(x.feedbackValue)+'%';
    const d=document.createElement('div');d.className='lighting-control';
@@ -949,7 +1184,7 @@ function addSlider(){ addUnifiedDevice(rooms()[0]||''); }
 function removeSlider(id){saveSliders(sliders().filter(x=>x.id!==id));renderSliderConfigs();renderLightingSliders();toast('Slider removed')}
 function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){x.value=Number(v);saveSliders(a,{shared:false})}}
 function sendSlider(id,v){
- const x=sliders().find(z=>z.id===id);if(!x||x.mode==='rgbw')return;
+ const x=sliders().find(z=>z.id===id);if(!x||x.mode!=='dim')return;
  updateSliderValue(id,v); const sl=document.getElementById('light-slider-'+id);if(sl)sl.style.setProperty('--fill',Number(v)+'%');
  if(currentPageId==='home')renderOverview();
  send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:'5.001',value:Number(v)});
@@ -984,7 +1219,7 @@ async function loadGithubSettings(){
 async function saveGithubSettings(){
  const u=document.getElementById('githubUrl'),t=document.getElementById('githubToken');if(!u)return;
  const body={url:u.value.trim()};if(t&&t.value)body.token=t.value;
- try{const r=await fetch('/api/github/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||'Could not save GitHub settings');if(t)t.value='';loadGithubSettings();toast('GitHub settings saved');}catch(e){toast(e.message)}
+ try{const r=await fetch('/api/github/config',{method:'POST',headers:settingsRequestHeaders({'Content-Type':'application/json'}),body:JSON.stringify(body)});const j=await r.json();if(!r.ok)throw new Error(j.error||'Could not save GitHub settings');if(t)t.value='';loadGithubSettings();toast('GitHub settings saved');}catch(e){toast(e.message)}
 }
 async function updateFromGithub(){
  const status=document.getElementById('githubUpdateStatus');
@@ -1003,7 +1238,7 @@ async function updateFromGithub(){
  setBusy(true);
  setStatus('1/4  Downloading latest files from GitHub…');
  try{
-   const r=await fetch('/api/github/update',{method:'POST',headers:{'Content-Type':'application/json'}});
+   const r=await fetch('/api/github/update',{method:'POST',headers:settingsRequestHeaders({'Content-Type':'application/json'})});
    const j=await r.json();
    if(!r.ok)throw new Error(j.error||'GitHub update failed');
    setStatus('2/4  Files downloaded and validated.');
@@ -1021,7 +1256,7 @@ async function updateFromGithub(){
 }
 
 function loadConnection(){try{const x=JSON.parse(localStorage.getItem('knxConnection')||'{}');if(x.ip)ip.value=x.ip;if(x.port)port.value=x.port;if(x.mode)mode.value=x.mode;if(x.phys)phys.value=x.phys}catch(e){}}
-function pageById(id){showPage(id);const b=[...document.querySelectorAll('nav button')].find(x=>(x.getAttribute('onclick')||'').includes("page('"+id+"'"));if(b)b.classList.add('active')}
+function pageById(id){const b=[...document.querySelectorAll('nav button')].find(x=>(x.getAttribute('onclick')||'').includes("page('"+id+"'"));page(id,b)}
 function applySharedState(state){
  if(!state)return;
  if(Array.isArray(state.rooms)) localStorage.setItem('knxRooms',JSON.stringify(state.rooms));
@@ -1065,7 +1300,7 @@ async function postSharedState(){
  if(!sharedStateHydrated)return;
  try{
   const payload={rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),presets:rgbwPresets(),securityMode:securityState.mode};
-  const r=await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},cache:'no-store',body:JSON.stringify(payload)});
+  const r=await fetch('/api/state',{method:'POST',headers:settingsRequestHeaders({'Content-Type':'application/json','Cache-Control':'no-cache'}),cache:'no-store',body:JSON.stringify(payload)});
   if(!r.ok)throw new Error('save '+r.status);
   lastSharedSignature=sharedSignature(payload);
  }catch(e){}
@@ -1076,11 +1311,15 @@ syncSharedState();
 function savedKnxConnection(){try{return JSON.parse(localStorage.getItem('knxConnection')||'{}')||{}}catch(e){return {}}}
 function currentKnxConnection(){const saved=savedKnxConnection(),field=id=>document.getElementById(id);const ipField=field('ip'),portField=field('port'),modeField=field('mode'),physField=field('phys');return {ip:String(ipField?ipField.value:(saved.ip||'')).trim(),port:Number(portField?portField.value:(saved.port||3671)),mode:String(modeField?modeField.value:(saved.mode||'TunnelUDP')),physAddr:String(physField?physField.value:(saved.phys||'')).trim()}}function currentFeedbackSubscriptions(){
   const feedbackGAs=[];
+  const switchFeedbackGAs=[];
   const securityFeedbackGAs=[];
   const cameraFeedbackGAs=[];
   sliders().forEach(item=>{
     if(item.mode==='rgbw')(item.rgbw?.feedback||[]).forEach(address=>{if(address)feedbackGAs.push(String(address).trim());});
-    else if(item.feedbackGa)feedbackGAs.push(String(item.feedbackGa).trim());
+    else if(item.feedbackGa){
+      const address=String(item.feedbackGa).trim();feedbackGAs.push(address);
+      if(item.mode==='switch')switchFeedbackGAs.push(address);
+    }
   });
   securityDevices().forEach(item=>{
     if(item.securityType==='motion'){
@@ -1092,18 +1331,20 @@ function currentKnxConnection(){const saved=savedKnxConnection(),field=id=>docum
     }
   });
   genericDevices().filter(item=>item.type==='camera'&&item.feedbackGa).forEach(item=>cameraFeedbackGAs.push(String(item.feedbackGa).trim()));
-  return {feedbackGAs:[...new Set(feedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]};
+  return {feedbackGAs:[...new Set(feedbackGAs)],switchFeedbackGAs:[...new Set(switchFeedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]};
 }
 function refreshKNXFeedbackSubscriptions(){
-  if(!socket||socket.readyState!==1)return;
-  send({type:'knx-update-feedback',config:currentFeedbackSubscriptions()});
+  if(!settingsAccessToken||!socket||socket.readyState!==1)return;
+  send({type:'knx-update-feedback',config:currentFeedbackSubscriptions(),settingsToken:settingsAccessToken});
 }function connectKnx(){
  const connection=currentKnxConnection();if(!connection.ip){toast('Enter KNX/IP connection first');return;}localStorage.setItem('knxConnection',JSON.stringify({ip:connection.ip,port:connection.port,mode:connection.mode,phys:connection.physAddr}));
- const ss=sliders(),security=securityDevices(),feedbackGAs=[],securityFeedbackGAs=[],cameraFeedbackGAs=[];ss.forEach(x=>{if(x.mode==='rgbw'){(x.rgbw?.feedback||[]).forEach(g=>{if(g)feedbackGAs.push(String(g).trim())})}else if(x.feedbackGa)feedbackGAs.push(String(x.feedbackGa).trim())});security.forEach(x=>{if(x.securityType==='motion'){if(x.enableFeedbackGa)securityFeedbackGAs.push(String(x.enableFeedbackGa).trim());if(x.motionStatusGa)securityFeedbackGAs.push(String(x.motionStatusGa).trim());}else{if(x.feedbackGa)securityFeedbackGAs.push(String(x.feedbackGa).trim());if(x.physicalStatusGa)securityFeedbackGAs.push(String(x.physicalStatusGa).trim());}});genericDevices().filter(x=>x.type==='camera'&&x.feedbackGa).forEach(x=>cameraFeedbackGAs.push(String(x.feedbackGa).trim()));
- send({type:'knx-connect',config:{...connection,writeGa:ss[0]?.writeGa||'',feedbackGa:feedbackGAs[0]||'',feedbackGAs:[...new Set(feedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]}})
-}function disconnectKnx(){send({type:'knx-disconnect'})}
+ const ss=sliders(),security=securityDevices(),feedbackGAs=[],switchFeedbackGAs=[],securityFeedbackGAs=[],cameraFeedbackGAs=[];ss.forEach(x=>{if(x.mode==='rgbw'){(x.rgbw?.feedback||[]).forEach(g=>{if(g)feedbackGAs.push(String(g).trim())})}else if(x.feedbackGa){const address=String(x.feedbackGa).trim();feedbackGAs.push(address);if(x.mode==='switch')switchFeedbackGAs.push(address)}});security.forEach(x=>{if(x.securityType==='motion'){if(x.enableFeedbackGa)securityFeedbackGAs.push(String(x.enableFeedbackGa).trim());if(x.motionStatusGa)securityFeedbackGAs.push(String(x.motionStatusGa).trim());}else{if(x.feedbackGa)securityFeedbackGAs.push(String(x.feedbackGa).trim());if(x.physicalStatusGa)securityFeedbackGAs.push(String(x.physicalStatusGa).trim());}});genericDevices().filter(x=>x.type==='camera'&&x.feedbackGa).forEach(x=>cameraFeedbackGAs.push(String(x.feedbackGa).trim()));
+ send({type:'knx-connect',settingsToken:settingsAccessToken,config:{...connection,writeGa:ss[0]?.writeGa||'',feedbackGa:feedbackGAs[0]||'',feedbackGAs:[...new Set(feedbackGAs)],switchFeedbackGAs:[...new Set(switchFeedbackGAs)],securityFeedbackGAs:[...new Set(securityFeedbackGAs)],cameraFeedbackGAs:[...new Set(cameraFeedbackGAs)]}})
+}function disconnectKnx(){send({type:'knx-disconnect',settingsToken:settingsAccessToken})}
 connectSocket();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCameraFullscreen()});
+window.addEventListener('pagehide',()=>endSettingsSession());
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&document.getElementById('settingsLockOverlay')?.classList.contains('open'))cancelSettingsUnlock()});
 window.addEventListener('DOMContentLoaded',()=>{
   initPageTemplates();
   showPage('home');renderOverview();
@@ -1145,7 +1386,8 @@ function reviewDeviceHeaderFields(item){
     const control=x.controllable!==false;
     return '<div><label>Security device</label><select data-addr="securityType"><option value="lock" '+(x.securityType!=='motion'?'selected':'')+'>Electric lock</option><option value="motion" '+(x.securityType==='motion'?'selected':'')+'>Motion sensor</option></select></div><div><label>Control</label><select data-addr="controllable"><option value="true" '+(control?'selected':'')+'>Enabled</option><option value="false" '+(!control?'selected':'')+'>Status only</option></select></div>';
   }
-  if(item.type==='lighting')return '<div><label>Lighting mode</label><select data-u="mode"><option value="dim" '+(x.mode!=='rgbw'?'selected':'')+'>Dim</option><option value="rgbw" '+(x.mode==='rgbw'?'selected':'')+'>RGBW</option></select></div><div></div>';
+  if(item.type==='av'){const avType=['tv','radio','nax'].includes(x.avType)?x.avType:'tv';return '<div><label>Audio / Video device</label><select data-addr="avType"><option value="tv" '+(avType==='tv'?'selected':'')+'>TV</option><option value="radio" '+(avType==='radio'?'selected':'')+'>Radio</option><option value="nax" '+(avType==='nax'?'selected':'')+'>DM-NAX-4ZSA-50</option></select></div><div></div>';}
+  if(item.type==='lighting'){const mode=['dim','switch','rgbw'].includes(x.mode)?x.mode:'dim';return '<div><label>Lighting mode</label><select data-u="mode"><option value="dim" '+(mode==='dim'?'selected':'')+'>Dim</option><option value="switch" '+(mode==='switch'?'selected':'')+'>Switch</option><option value="rgbw" '+(mode==='rgbw'?'selected':'')+'>RGBW</option></select></div><div></div>';}
   return '<div></div><div></div>';
 }const reviewApplySharedState=applySharedState;
 applySharedState=function(state){sharedConfigRevision=reviewRevision(state);return reviewApplySharedState(state);};
@@ -1153,7 +1395,7 @@ postSharedState=async function(){
   if(!sharedStateHydrated)return;
   const sentPatches=reviewPendingAddressPatches.slice();
   const sendState=async payload=>{
-    const response=await fetch('/api/state',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},cache:'no-store',body:JSON.stringify(payload)});
+    const response=await fetch('/api/state',{method:'POST',headers:settingsRequestHeaders({'Content-Type':'application/json','Cache-Control':'no-cache'}),cache:'no-store',body:JSON.stringify(payload)});
     return {response,result:await response.json().catch(()=>null)};
   };
   try{
@@ -1190,6 +1432,23 @@ postSharedState=async function(){
 };const reviewAddressFields=unifiedAddressFields;
 unifiedAddressFields=function(item){
   const x=item.data||{};
+  if(item.type==='av'){
+    const avType=['tv','radio','nax'].includes(x.avType)?x.avType:'tv';
+    if(avType==='nax'){
+      const roomList=rooms(),legacyPlayer=Math.max(1,Math.min(5,Number(x.naxPlayer)||1)),hasRooms=[1,2,3,4,5].some(number=>String(x['naxRoom'+number]||'').trim());
+      const roomOptions=value=>'<option value="">Not assigned</option>'+roomList.map(room=>'<option value="'+esc(room)+'" '+(room===value?'selected':'')+'>'+esc(room)+'</option>').join('');
+      const status=naxLiveStatus[String(x.id)+'::1']||Object.values(naxLiveStatus).find(item=>item&&Array.isArray(item.outputs))||{},outputs=Array.isArray(status.outputs)?status.outputs:[];
+      const knownOutputs=outputs.length?outputs:[1,2,3,4].map(number=>({id:'Zone'+number,name:'Zone '+number}));const outputOptions=value=>'<option value="">Automatic (match room)</option>'+knownOutputs.map(output=>'<option value="'+esc(output.id)+'" '+(output.id===value?'selected':'')+'>'+esc(output.name||output.id)+'</option>').join('');
+      const mappings=[1,2,3,4,5].map(number=>{const room=String(x['naxRoom'+number]||(!hasRooms&&number===legacyPlayer?x.room||'':'')),playerName=String(x['naxName'+number]||'Media player '+number);return '<div class="nax-player-setting"><strong>Player '+number+'</strong><div><label>Name</label><input data-addr="naxName'+number+'" value="'+esc(playerName)+'" placeholder="Media player '+number+'"></div><div><label>Room</label><select data-addr="naxRoom'+number+'">'+roomOptions(room)+'</select></div><div><label>Output channel</label><select data-addr="naxOutput'+number+'">'+outputOptions(String(x['naxOutput'+number]||''))+'</select></div></div>';}).join('');
+      return '<div class="unified-device-addresses"><div><label>NAX IP address</label><input data-addr="naxHost" value="'+esc(x.naxHost||'')+'" placeholder="192.168.200.73"></div><div><label>Client UUID</label><input data-addr="naxClientId" value="'+esc(x.naxClientId||'')+'" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></div><div><label>Client secret</label><input type="password" autocomplete="new-password" data-addr="naxClientSecret" value="'+esc(x.naxClientSecret||'')+'"></div><div><label>REST username</label><input autocomplete="username" data-addr="naxRestUsername" value="'+esc(x.naxRestUsername||'')+'"></div><div><label>REST password</label><input type="password" autocomplete="new-password" data-addr="naxRestPassword" value="'+esc(x.naxRestPassword||'')+'"></div></div><div class="nax-player-settings">'+mappings+'</div><div class="unified-device-note">Assign each built-in player to a room. Output is matched by room name or can be selected explicitly.</div>';
+    }
+    if(avType==='tv'){
+      const seconds=Math.max(1,Number(x.pingIntervalSec)||3);
+      const status=avLiveStatus[String(x.id)]||{},checked=status.checkedAt?new Date(status.checkedAt).toLocaleString():'Not checked yet';
+      return '<div class="unified-device-addresses"><div><label>TV type</label><select data-addr="tvModelType"><option value="lg-webos" selected>LG webOS TV</option></select></div><div><label>TV IP address</label><input data-addr="ipAddress" value="'+esc(x.ipAddress||'')+'" placeholder="192.168.1.50"></div><div><label>TV MAC address</label><input data-addr="macAddress" value="'+esc(x.macAddress||'')+'" placeholder="AA:BB:CC:DD:EE:FF"></div><div><label>Ping interval (seconds)</label><input type="number" min="1" max="300" step="1" data-addr="pingIntervalSec" value="'+seconds+'"></div></div><div class="unified-device-addresses"><div><label>Last status check</label><input data-tv-status-id="'+esc(x.id)+'" value="'+esc(checked)+'" readonly></div></div><div class="unified-device-note">LG webOS: On uses Wake-on-LAN. Off uses the paired LG webOS control protocol. The TV may ask for permission on first use.</div>';
+    }
+    return reviewAddressFields(item);
+  }
   if(item.type!=='security')return reviewAddressFields(item);
   const motion=x.securityType==='motion';
   const control=x.controllable!==false;
@@ -1206,7 +1465,9 @@ updateUnifiedAddress=function(item,el){
   const key=el&&el.dataset?el.dataset.addr:'';
   const value=el&&el.value!==undefined?el.value:'';
   if(key&&(!el.classList.contains('knx')||!value||gaOK(value)))reviewQueueAddressPatch(item,key,value);
-  return reviewUpdateUnifiedAddress(item,el);
+  const result=reviewUpdateUnifiedAddress(item,el);
+  if(item&&item.type==='av'&&(key==='avType'||key.startsWith('naxRoom')||key.startsWith('naxOutput'))){renderDeviceConfigs();renderConfiguredAv();fetchAvStatuses();fetchNaxStatuses();}
+  return result;
 };addRoom=function(){const input=document.getElementById('newRoomName'),name=(input?.value||'').trim();if(!name){toast('Vul een naam in');return;}const list=rooms();if(list.some(room=>room.toLowerCase()===name.toLowerCase())){toast('Deze ruimte bestaat al');return;}list.push(name);window.deviceRoomOpen=window.deviceRoomOpen||{};saveRooms(list);if(input)input.value='';renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();renderSecurity();toast('Ruimte toegevoegd');};
 const reviewSecurityRenderer=renderSecurity;
 renderSecurity=function(){
@@ -1253,7 +1514,148 @@ renderSecurity=function(){
   document.querySelectorAll('.security-mode .security-pill').forEach(button=>button.classList.toggle('active',button.dataset.mode===securityState.mode));
 };const reviewOverviewRenderer=renderOverview;
 renderOverview=function(){reviewOverviewRenderer();const box=document.getElementById('overviewSecuritySummary'),alertCard=document.getElementById('overviewSecurityAlert'),alert=document.getElementById('overviewSecurityAlertContent'),items=securityDevices().filter(item=>rooms().includes(item.room)),openLocks=items.filter(item=>item.securityType!=='motion'&&item.locked===false),motions=items.filter(item=>item.securityType==='motion'&&item.motion===true),mode=securityState.mode||'Home';if(alertCard&&alert){if(openLocks.length||motions.length){const text=openLocks.length&&motions.length?'Doors are open and motion was detected.':openLocks.length?'Doors are open.':'Motion was detected.';alert.innerHTML='<div class="overview-security-alert-content"><span class="overview-security-alert-icon">!</span><div class="overview-security-alert-copy"><b>Check your system</b><span>'+text+'</span></div></div>';alertCard.style.display='';alertCard.classList.add('is-visible');}else{alert.replaceChildren();alertCard.style.display='none';alertCard.classList.remove('is-visible');}}if(box){let html='<div class="overview-security-mode">'+['Home','Night','Away'].map(candidate=>'<button class="security-pill '+(mode===candidate?'active':'')+'" data-mode="'+candidate+'" onclick="setSecurityMode(this,\''+candidate+'\')"><span class="security-mode-icon">'+(candidate==='Home'?'🏠':candidate==='Night'?'🌙':'🚪')+'</span><span>'+candidate+'</span></button>').join('')+'</div>';const alerts=[];openLocks.forEach(item=>alerts.push('<div class="overview-security-row alert"><span class="overview-security-row-icon">'+securityLockIcon(false)+'</span><span class="overview-security-row-main"><b>'+esc(item.name||'Lock')+'</b><small>'+esc(item.room)+'</small></span><span class="overview-security-row-state alert">Open</span></div>'));motions.forEach(item=>alerts.push('<div class="overview-security-row alert"><span class="overview-security-row-icon motion-icon">'+motionIconSvg('motion')+'</span><span class="overview-security-row-main"><b>'+esc(item.name||'Motion sensor')+'</b><small>'+esc(item.room)+'</small></span><span class="overview-security-row-state alert">Motion</span></div>'));if(alerts.length)html+='<div class="overview-security-list">'+alerts.join('')+'</div>';box.innerHTML=html;}};
-const reviewShowPage=showPage;
+const avLiveStatus=window.avLiveStatus||(window.avLiveStatus={});
+const avAppsByDevice={};
+const avAppsLoading=new Set();
+async function fetchAvApps(id,options={}){
+  const key=String(id),silent=options.silent===true,previous=avAppsByDevice[key];
+  if(avAppsLoading.has(key))return;
+  avAppsLoading.add(key);
+  if(!silent){
+    avAppsByDevice[key]={apps:previous&&Array.isArray(previous.apps)?previous.apps:[],error:''};
+    renderConfiguredAv();
+  }
+  try{
+    const suffix=options.cached===true?'?cached=1&ts=':'?ts=';
+    const response=await fetch('/api/av/'+encodeURIComponent(key)+'/apps'+suffix+Date.now(),{cache:'no-store'});
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload.error||'Apps could not be loaded');
+    avAppsByDevice[key]={apps:Array.isArray(payload.apps)?payload.apps.slice(0,4):[],error:''};
+  }catch(error){
+    if(!previous)avAppsByDevice[key]={apps:[],error:error.message||'Apps could not be loaded'};
+  }finally{
+    avAppsLoading.delete(key);
+    if(!silent)renderConfiguredAv();
+  }
+}
+function renderAvApps(id){
+  const key=String(id),state=avAppsByDevice[key];
+  if(avAppsLoading.has(key))return '<div class="av-apps-panel"><div class="av-apps-message">Loading apps from TV…</div></div>';
+  if(state&&state.error)return '<div class="av-apps-panel"><div class="av-apps-message">'+esc(state.error)+'</div></div>';
+  const apps=state&&Array.isArray(state.apps)?state.apps:[];
+  if(!apps.length)return '<div class="av-apps-panel"><div class="av-apps-message">No launcher apps received from the TV.</div></div>';
+  return '<div class="av-apps-panel"><div class="av-apps-grid">'+apps.map(app=>'<button type="button" class="av-app-tile" data-av-app-id="'+esc(app.id||'')+'" data-av-device-id="'+esc(key)+'" title="Open '+esc(app.title||'App')+'">'+(app.iconUrl?'<img class="av-app-icon" src="'+esc(app.iconUrl)+'" alt="">':'<span class="av-app-placeholder">▣</span>')+'<span class="av-app-name">'+esc(app.title||'App')+'</span></button>').join('')+'</div></div>';
+}
+function renderAvVolume(id,online){
+  const key=String(id),live=avLiveStatus[key]||{},hasVolume=live.volume!==null&&live.volume!==undefined&&live.volume!=='',raw=Number(live.volume),value=hasVolume&&Number.isFinite(raw)?Math.max(0,Math.min(100,Math.round(raw))):null;
+  return '<div class="av-volume-panel"><span class="av-volume-label">Volume</span><button type="button" class="av-volume-button" data-av-volume="down" data-av-id="'+esc(key)+'" aria-label="Volume down" '+(online?'':'disabled')+'>−</button><span class="av-volume-value" data-av-volume-value="'+esc(key)+'">'+(value===null?'--':value+'%')+'</span><button type="button" class="av-volume-button" data-av-volume="up" data-av-id="'+esc(key)+'" aria-label="Volume up" '+(online?'':'disabled')+'>+</button></div>';
+}
+function updateAvVolumeDisplay(id,volume){
+  const hasVolume=volume!==null&&volume!==undefined&&volume!=='',raw=Number(volume),text=hasVolume&&Number.isFinite(raw)?Math.max(0,Math.min(100,Math.round(raw)))+'%':'--';
+  document.querySelectorAll('[data-av-volume-value]').forEach(node=>{if(node.dataset.avVolumeValue===String(id))node.textContent=text;});
+}
+const avVolumeIntent={},avVolumeTimers={},avVolumePendingUntil={};
+function changeAvVolume(id,direction){const key=String(id),live=avLiveStatus[key]||{},base=Number.isFinite(Number(avVolumeIntent[key]))?Number(avVolumeIntent[key]):Number(live.volume);if(!Number.isFinite(base))return toast('TV volume is not available');const target=Math.max(0,Math.min(100,Math.round(base+(direction==='down'?-1:1))));avVolumeIntent[key]=target;avVolumePendingUntil[key]=Date.now()+2200;live.volume=target;avLiveStatus[key]=live;updateAvVolumeDisplay(key,target);clearTimeout(avVolumeTimers[key]);avVolumeTimers[key]=setTimeout(()=>sendAvVolume(key),120);}
+async function sendAvVolume(id){const target=avVolumeIntent[id];try{const response=await fetch('/api/av/'+encodeURIComponent(id)+'/volume',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({volume:target})}),result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'Volume command failed');avLiveStatus[id]={...(avLiveStatus[id]||{}),online:true,volume:target};updateAvVolumeDisplay(id,target);avVolumePendingUntil[id]=Date.now()+1200;setTimeout(()=>{if(Date.now()>=Number(avVolumePendingUntil[id]||0)){delete avVolumeIntent[id];fetchAvStatuses()}},1300);}catch(error){delete avVolumeIntent[id];delete avVolumePendingUntil[id];toast(error.message);fetchAvStatuses()}}
+async function launchAvApp(deviceId,appId,title){
+  try{
+    const live=avLiveStatus[String(deviceId)]||{};
+    toast(live.online===true?'Opening '+(title||'app')+'…':'TV is waking; '+(title||'the app')+' will open automatically…');
+    const response=await fetch('/api/av/'+encodeURIComponent(deviceId)+'/apps/launch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({appId})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result.error||'App could not be opened');
+    toast(result.message||((title||'App')+' opened'));
+    setTimeout(fetchAvStatuses,800);
+  }catch(error){toast(error.message)}
+}
+async function fetchAvStatuses(){
+  try{
+    const previous={...avLiveStatus};
+    const previousSignature=Object.keys(previous).sort().map(key=>key+':'+(previous[key]&&previous[key].online===true?'1':'0')).join('|');
+    const response=await fetch('/api/av/status?ts='+Date.now(),{cache:'no-store'});
+    if(!response.ok)return;
+    const payload=await response.json();
+    Object.keys(avLiveStatus).forEach(key=>delete avLiveStatus[key]);
+    Object.assign(avLiveStatus,payload.statuses||{});
+    Object.keys(avVolumeIntent).forEach(key=>{if(Date.now()<Number(avVolumePendingUntil[key]||0)){avLiveStatus[key]={...(avLiveStatus[key]||{}),volume:avVolumeIntent[key]};}else{delete avVolumeIntent[key];delete avVolumePendingUntil[key];}});
+    const appRefreshes=[];
+    Object.entries(avLiveStatus).forEach(([key,status])=>{
+      const wasOnline=previous[key]&&previous[key].online===true;
+      const isOnline=status&&status.online===true;
+      if(isOnline&&!wasOnline)appRefreshes.push(fetchAvApps(key,{silent:true}));
+      else if(!isOnline&&!avAppsByDevice[key])appRefreshes.push(fetchAvApps(key,{silent:true,cached:true}));
+    });
+    if(appRefreshes.length)await Promise.allSettled(appRefreshes);
+    document.querySelectorAll('[data-tv-status-id]').forEach(input=>{const value=avLiveStatus[input.dataset.tvStatusId];input.value=value&&value.checkedAt?new Date(value.checkedAt).toLocaleString():'Not checked yet';});
+    Object.entries(avLiveStatus).forEach(([key,status])=>updateAvVolumeDisplay(key,status&&status.volume));
+    const currentSignature=Object.keys(avLiveStatus).sort().map(key=>key+':'+(avLiveStatus[key]&&avLiveStatus[key].online===true?'1':'0')).join('|');
+    if(currentPageId==='av'&&(previousSignature!==currentSignature||appRefreshes.length||!document.querySelector('#avDeviceList .av-device-item')))renderConfiguredAv();
+    if(currentPageId==='home'&&previousSignature!==currentSignature)renderOverview();
+  }catch(error){}
+}
+async function setAvPower(id,action){
+  try{
+    const response=await fetch('/api/av/'+encodeURIComponent(id)+'/power',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(result.error||'TV command failed');
+    toast(result.message||('TV '+action+' command sent'));
+    setTimeout(fetchAvStatuses,800);
+  }catch(error){toast(error.message)}
+}
+function tvStatusIcon(online){
+  return '<svg class="tv-status-icon '+(online?'is-on':'is-off')+'" viewBox="0 0 64 52" aria-hidden="true"><rect x="5" y="5" width="54" height="36" rx="5" fill="currentColor" opacity="'+(online?'.25':'.08')+'"/><rect x="7" y="7" width="50" height="32" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>'+(online?'<path d="M14 14h36v18H14z" fill="#75bde8" opacity=".7"/><circle cx="50" cy="35" r="2" fill="#7ed7ae"/>':'<path d="M17 17l30 12M47 17L17 29" stroke="currentColor" stroke-width="2" opacity=".28"/><circle cx="50" cy="35" r="2" fill="currentColor" opacity=".55"/>')+'<path d="M25 47h14M32 41v6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
+}
+let avSelectedRoom='all';
+function setAvRoomFilter(room){avSelectedRoom=room||'all';renderConfiguredAv();}
+function naxPlayerNowPlaying(state){const player=state&&state.player||{};return player.Player&&player.Player.NowPlayingData||player.NowPlayingData||{};}
+function naxIsPlaying(state){const player=state&&state.player||{},value=String(naxFirst(player,['PlayerState','StreamState'],naxFirst(player.Player||{},['PlayerState','StreamState'],'idle'))).toLowerCase();return value==='playing'||value==='streaming';}
+function naxFirst(object,keys,fallback=''){for(const key of keys)if(object&&object[key]!=null&&object[key]!=='')return object[key];return fallback;}
+const naxOpenMenus=new Set();
+function naxConfiguredCards(){const output=[];genericDevices().filter(x=>x.type==='av').forEach(x=>{if(x.avType!=='nax'){output.push(x);return;}const hasRooms=[1,2,3,4,5].some(number=>String(x['naxRoom'+number]||'').trim()),legacy=Math.max(1,Math.min(5,Number(x.naxPlayer)||1));for(let number=1;number<=5;number++){const room=String(x['naxRoom'+number]||(!hasRooms&&number===legacy?x.room||'':'')).trim();if(room)output.push({...x,id:String(x.id)+'::'+number,naxBaseId:String(x.id),naxPlayer:number,room,name:String(x['naxName'+number]||'Media player '+number).trim()||'Media player '+number});}});return output;}
+function naxArtworkUrl(id,art){let hash=0;for(let index=0;index<String(art||'').length;index++)hash=((hash<<5)-hash+String(art).charCodeAt(index))|0;return '/api/nax/'+encodeURIComponent(id)+'/artwork?v='+Math.abs(hash);}
+function renderNaxVolume(id,state){const value=Number(state&&state.volume),shown=Number.isFinite(value)?Math.max(0,Math.min(100,Math.round(value))):null;return '<div class="av-volume-panel"><span class="av-volume-label">Volume</span><button type="button" class="av-volume-button" data-nax-volume="down" data-nax-id="'+esc(id)+'" '+(state&&state.connected?'':'disabled')+'>−</button><span class="av-volume-value" data-nax-volume-value="'+esc(id)+'">'+(shown===null?'--':shown+'%')+'</span><button type="button" class="av-volume-button" data-nax-volume="up" data-nax-id="'+esc(id)+'" '+(state&&state.connected?'':'disabled')+'>+</button></div>';}
+function renderNaxPresets(id,state){const presets=state&&Array.isArray(state.presets)?state.presets.slice(0,4):[];return '<div class="nax-presets">'+(presets.length?presets.map(preset=>'<div class="nax-preset-wrap"><button type="button" class="nax-preset" data-nax-preset="'+esc(preset.id)+'" data-nax-id="'+esc(id)+'" data-nax-name="'+esc(preset.name||'Preset')+'" title="Tap to play · hold to delete"><span class="nax-preset-icon">♫'+(preset.icon?'<img src="/api/nax/'+encodeURIComponent(id)+'/preset-icon/'+encodeURIComponent(preset.id)+'" alt="" onerror="this.remove()">':'')+'</span><span>'+esc(preset.name||'Preset')+'</span></button></div>').join(''):'<span class="av-apps-message">No presets saved yet.</span>')+'</div>';}
+function renderNaxMenuToggle(id){return '<div class="nax-menu-open-row"><button type="button" class="nax-menu-toggle '+(naxOpenMenus.has(id)?'is-active':'')+'" data-nax-menu="toggle" data-nax-id="'+esc(id)+'">☰ Menu</button></div>';}function renderNaxMenu(id,state){if(!naxOpenMenus.has(id))return '';const menu=state&&state.menu||{},items=Array.isArray(menu.items)?menu.items:[],actions=Array.isArray(state&&state.availableActions)?state.availableActions:[],player=state&&state.player||{},inner=player.Player||{},shuffle=!!inner.Shuffle,repeat=Number(inner.Repeat||0),advanced='<div class="nax-menu-advanced"><span class="nax-menu-advanced-label">Playback options</span>'+naxActionButton(id,actions,'Shuffle','Shuffle','Shuffle',shuffle)+naxActionButton(id,actions,'Repeat','Repeat','Repeat',repeat>0)+'</div>',empty=menu.loading?'<div class="nax-menu-empty"><span class="nax-menu-spinner"></span>Loading media menu…</div>':menu.error?'<div class="nax-menu-empty">'+esc(menu.error)+'</div>':'<div class="nax-menu-empty">No media was returned. Try a station search.</div>';return '<div class="nax-menu-panel"><div class="nax-menu-head"><strong>'+esc(menu.title||'My Music')+'</strong><div class="nax-menu-actions">'+(menu.canBack?'<button type="button" data-nax-menu="back" data-nax-id="'+esc(id)+'">← Back</button>':'')+'</div></div>'+advanced+'<div class="nax-search"><input type="search" data-nax-search-input="'+esc(id)+'" placeholder="Search stations or artists" autocomplete="off"><button type="button" data-nax-search="'+esc(id)+'">Search</button></div><div class="nax-menu-grid">'+(items.length?items.slice(0,24).map(item=>'<div class="nax-menu-tile"><button type="button" class="nax-menu-item" data-nax-menu="select" data-nax-item="'+esc(item.id)+'" data-nax-id="'+esc(id)+'">'+(item.icon?'<img src="'+esc(item.icon)+'" alt="" onerror="this.remove()">':'<span>♫</span>')+'<span>'+esc(item.name||'Media')+'</span></button><button type="button" class="nax-menu-favorite" data-nax-favorite="'+esc(item.id)+'" data-nax-id="'+esc(id)+'" data-nax-name="'+esc(item.name||'Favorite')+'" title="Save as favorite" aria-label="Save as favorite">☆</button></div>').join(''):empty)+'</div></div>';}
+const naxPresetHoldTimers=new WeakMap(),naxPresetLongPressed=new WeakSet();function startNaxPresetHold(button){clearTimeout(naxPresetHoldTimers.get(button));naxPresetHoldTimers.set(button,setTimeout(()=>{naxPresetLongPressed.add(button);if(confirm('Delete favorite '+(button.dataset.naxName||'')+'?'))naxCommand(button.dataset.naxId,'favorite-delete',{presetId:button.dataset.naxPreset});},750));}function stopNaxPresetHold(button){clearTimeout(naxPresetHoldTimers.get(button));naxPresetHoldTimers.delete(button);}
+const naxVolumeIntent={},naxVolumeTimers={},naxVolumePendingUntil={};
+function changeNaxVolume(id,direction){const key=String(id),state=naxLiveStatus[key]||{},base=Number.isFinite(Number(naxVolumeIntent[key]))?Number(naxVolumeIntent[key]):Number(state.volume);if(!Number.isFinite(base))return toast('NAX volume is not available');const target=Math.max(0,Math.min(100,Math.round(base+(direction==='down'?-2:2))));naxVolumeIntent[key]=target;naxVolumePendingUntil[key]=Date.now()+15000;state.volume=target;naxLiveStatus[key]=state;document.querySelectorAll('[data-nax-volume-value]').forEach(node=>{if(node.dataset.naxVolumeValue===key)node.textContent=target+'%'});clearTimeout(naxVolumeTimers[key]);naxVolumeTimers[key]=setTimeout(()=>sendNaxVolume(key),120);}
+async function sendNaxVolume(id){const target=naxVolumeIntent[id];try{const response=await fetch('/api/nax/'+encodeURIComponent(id)+'/volume',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({volume:target})}),result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'NAX volume command failed');if(naxLiveStatus[id])naxLiveStatus[id].volume=target;naxVolumePendingUntil[id]=Date.now()+15000;}catch(error){delete naxVolumeIntent[id];delete naxVolumePendingUntil[id];toast(error.message);fetchNaxStatuses()}}
+async function naxCommand(id,endpoint,body){try{const response=await fetch('/api/nax/'+encodeURIComponent(id)+'/'+endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.error||'NAX command failed');if(result.volume!=null&&naxLiveStatus[id]){naxLiveStatus[id].volume=result.volume;document.querySelectorAll('[data-nax-volume-value]').forEach(node=>{if(node.dataset.naxVolumeValue===id)node.textContent=Math.round(result.volume)+'%';});}if(endpoint==='favorite')toast('Favorite request sent');if(endpoint==='favorite-delete')toast('Favorite deleted');setTimeout(fetchNaxStatuses,endpoint==='menu'?700:250);}catch(error){toast(error.message)}}
+function naxActionButton(id,actions,action,label,title,active){const supported=!actions.length||actions.includes(action);return '<button class="security-btn av-power-btn '+(active?'is-active':'')+'" data-nax-action="'+action+'" data-nax-id="'+esc(id)+'" title="'+title+'" aria-label="'+title+'" '+(supported?'':'disabled')+'>'+label+'</button>';}
+function renderNaxTransport(id,state){const actions=Array.isArray(state.availableActions)?state.availableActions:[],playing=naxIsPlaying(state);return '<div class="nax-transport">'+naxActionButton(id,actions,'PreviousTrack','|◀','Previous',false)+naxActionButton(id,actions,'Rewind','◀◀','Rewind',false)+naxActionButton(id,actions,playing?'Pause':'Play',playing?'Ⅱ':'▶',playing?'Pause':'Play',playing)+naxActionButton(id,actions,'Ffwd','▶▶','Fast forward',false)+naxActionButton(id,actions,'NextTrack','▶|','Next',false)+'</div>';}
+renderConfiguredAv=function(){
+ const box=document.getElementById('avDeviceList'),badge=document.getElementById('avDeviceStatus'),filter=document.getElementById('avRoomFilter'),count=document.getElementById('avRoomCount');if(!box)return;
+ const preferred=['woonkamer','slaapkamer','badkamer'],configured=rooms().map(room=>String(room).toLowerCase()),all=naxConfiguredCards().map((item,index)=>({...item,_avIndex:index}));all.sort((a,b)=>{const roomA=String(a.room||'Other').toLowerCase(),roomB=String(b.room||'Other').toLowerCase(),rank=room=>{const preferredIndex=preferred.indexOf(room);if(preferredIndex>=0)return preferredIndex;const configuredIndex=configured.indexOf(room);return configuredIndex>=0?preferred.length+configuredIndex:999};return rank(roomA)-rank(roomB)||roomA.localeCompare(roomB)||a._avIndex-b._avIndex});const availableRooms=[...new Set(all.map(x=>x.room||'Other'))];if(avSelectedRoom!=='all'&&!availableRooms.includes(avSelectedRoom))avSelectedRoom='all';
+ if(filter){filter.innerHTML='<option value="all">All rooms</option>'+availableRooms.map(room=>'<option value="'+esc(room)+'">'+esc(room)+'</option>').join('');filter.value=avSelectedRoom;}
+ const devices=avSelectedRoom==='all'?all:all.filter(x=>(x.room||'Other')===avSelectedRoom);box.innerHTML='';if(badge)badge.textContent=devices.length+' device'+(devices.length===1?'':'s');if(count)count.textContent=devices.length+' device'+(devices.length===1?'':'s');
+ if(!devices.length){box.innerHTML='<div class="muted" style="padding:20px 4px">No Audio & Video devices configured for this room.</div>';return;}
+ devices.forEach(x=>{const key=String(x.id),subtype=x.avType==='radio'?'radio':x.avType==='nax'?'nax':'tv',card=document.createElement('div');card.className='security-page-room av-room-card av-device-card';let content='';
+  if(subtype==='radio')content='<div class="security-item av-device-item"><div class="av-tv-icon">📻</div><div><div class="security-name">'+esc(x.name||'Radio')+'</div><div class="av-status-text is-on"><span class="security-dot"></span>Configured</div></div></div>';
+  else if(subtype==='nax'){const state=naxLiveStatus[key]||{},online=naxIsPlaying(state),now=naxPlayerNowPlaying(state),title=naxFirst(now,['TrackTitle','Title','TrackName','Name','MediaTitle'],''),artist=naxFirst(now,['ArtistName','Artist','Subtitle'],''),album=naxFirst(now,['AlbumName','Album'],''),art=naxFirst(now,['AlbumArtUrl','ArtworkUrl','ImageUrl','ArtworkURL'],'');content='<div class="security-item av-device-item nax-device-item"><div class="nax-art">'+(art?'<img src="'+esc(naxArtworkUrl(key,art))+'" alt="" onerror="this.replaceWith(document.createTextNode(\'📻\'))">':'📻')+'</div><div class="nax-media-copy"><div class="av-status-text '+(online?'is-on':'is-off')+'"><span class="security-dot '+(online?'':'red')+'"></span>'+(online?'On':'Off')+'</div>'+(title?'<div class="nax-media-title">'+esc(title)+'</div>':'')+(artist||album?'<div class="nax-media-sub">'+esc([artist,album].filter(Boolean).join(' · '))+'</div>':'')+'</div><div class="security-actions av-power-actions"><button class="security-btn av-power-btn '+(!online?'active':'')+'" data-nax-power="off" data-nax-id="'+esc(key)+'">Off</button></div>'+renderNaxTransport(key,state)+renderNaxVolume(key,state)+(state.error?'<div class="nax-rest-warning">'+esc(state.error)+'</div>':'')+renderNaxPresets(key,state)+renderNaxMenuToggle(key)+renderNaxMenu(key,state)+'</div>';
+  }else{const live=avLiveStatus[key]||{},online=live.online===true;content='<div class="security-item av-device-item"><div class="av-tv-icon">'+tvStatusIcon(online)+'</div><div><div class="security-name">'+esc(x.name||'TV')+'</div><div class="av-status-text '+(online?'is-on':'is-off')+'"><span class="security-dot '+(online?'':'red')+'"></span>'+(online?'On':'Off')+'</div></div><div class="security-actions av-power-actions"><button class="security-btn av-power-btn '+(online?'active':'')+'" data-av-power="on" data-av-id="'+esc(key)+'">On</button><button class="security-btn av-power-btn '+(!online?'active':'')+'" data-av-power="off" data-av-id="'+esc(key)+'">Off</button></div>'+renderAvVolume(key,online)+renderAvApps(key)+'</div>';}
+  card.innerHTML='<div class="security-page-room-head"><span class="security-page-room-title">'+esc(x.room||'Other')+'</span><span class="security-page-room-count">'+esc(x.name||'AV device')+'</span></div>'+content;
+  card.querySelectorAll('[data-av-power]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();setAvPower(button.dataset.avId,button.dataset.avPower)}));card.querySelectorAll('[data-av-volume]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();changeAvVolume(button.dataset.avId,button.dataset.avVolume)}));card.querySelectorAll('[data-av-app-id]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();launchAvApp(button.dataset.avDeviceId,button.dataset.avAppId,button.textContent.trim())}));card.querySelectorAll('[data-nax-power]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();naxCommand(button.dataset.naxId,'action',{action:button.dataset.naxPower==='off'?'Pause':'Play'})}));card.querySelectorAll('[data-nax-action]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const action=button.dataset.naxAction,state=naxLiveStatus[button.dataset.naxId]||{},player=state.player&&state.player.Player||{};naxCommand(button.dataset.naxId,'action',{action,enabled:action==='Shuffle'?!player.Shuffle:undefined,mode:action==='Repeat'?(Number(player.Repeat||0)+1)%3:undefined})}));card.querySelectorAll('[data-nax-volume]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();changeNaxVolume(button.dataset.naxId,button.dataset.naxVolume)}));card.querySelectorAll('[data-nax-preset]').forEach(button=>{button.addEventListener('pointerdown',event=>{if(event.button===0||event.pointerType==='touch'){event.stopPropagation();startNaxPresetHold(button)}});['pointerup','pointerleave','pointercancel'].forEach(type=>button.addEventListener(type,()=>stopNaxPresetHold(button)));button.addEventListener('contextmenu',event=>event.preventDefault());button.addEventListener('click',event=>{event.stopPropagation();stopNaxPresetHold(button);if(naxPresetLongPressed.has(button)){naxPresetLongPressed.delete(button);event.preventDefault();return}naxCommand(button.dataset.naxId,'preset',{presetId:button.dataset.naxPreset,presetName:button.dataset.naxName})})});card.querySelectorAll('[data-nax-menu]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const id=button.dataset.naxId,action=button.dataset.naxMenu;if(action==='toggle'){if(naxOpenMenus.has(id))naxOpenMenus.delete(id);else{naxOpenMenus.add(id);naxCommand(id,'menu',{action:'home'});}renderConfiguredAv();}else naxCommand(id,'menu',{action,itemId:button.dataset.naxItem});}));card.querySelectorAll('[data-nax-search]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const id=button.dataset.naxSearch,input=card.querySelector('[data-nax-search-input="'+CSS.escape(id)+'"]');naxCommand(id,'menu',{action:'search',query:input&&input.value||'',category:'station'});}));card.querySelectorAll('[data-nax-search-input]').forEach(input=>input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();naxCommand(input.dataset.naxSearchInput,'menu',{action:'search',query:input.value,category:'station'});}}));card.querySelectorAll('[data-nax-favorite]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const name=prompt('Favorite name',button.dataset.naxName||'Favorite');if(name!==null)naxCommand(button.dataset.naxId,'favorite',{itemId:button.dataset.naxFavorite,name});}));box.appendChild(card);
+ });
+};
+function renderConfiguredShading(){
+ const box=document.getElementById('shadingDeviceList'),badge=document.getElementById('shadingDeviceStatus');if(!box)return;
+ const devices=genericDevices().filter(x=>x.type==='screen');box.innerHTML='';
+ if(badge)badge.textContent=devices.length+' device'+(devices.length===1?'':'s');
+ if(!devices.length){box.innerHTML='<div class="muted" style="padding:20px 4px">No curtains or screens configured yet. Add a Screens device in Settings → Devices.</div>';return;}
+ const byRoom={};devices.forEach(x=>(byRoom[x.room||'Other']??=[]).push(x));
+ Object.entries(byRoom).forEach(([room,list])=>{const card=document.createElement('div');card.className='device';card.innerHTML='<div class="settings-heading"><div><b>🪟 '+esc(room)+'</b></div><span class="muted">'+list.length+' device'+(list.length===1?'':'s')+'</span></div>'+list.map(x=>'<div class="row" style="padding:12px 0"><span><b>'+esc(x.name||'Screen')+'</b><br><small class="muted">Curtain / screen'+(x.feedbackGa?' · Status linked':'')+'</small></span></div>').join('');box.appendChild(card);});
+}
+const naxLiveStatus=window.naxLiveStatus||(window.naxLiveStatus={});let lastNaxSignature='';
+async function fetchNaxStatuses(){try{const response=await fetch('/api/nax/status?ts='+Date.now(),{cache:'no-store'});if(!response.ok)return;const payload=await response.json();Object.keys(naxLiveStatus).forEach(key=>delete naxLiveStatus[key]);Object.assign(naxLiveStatus,payload.devices||{});Object.keys(naxVolumeIntent).forEach(key=>{const reported=Number(naxLiveStatus[key]&&naxLiveStatus[key].volume),target=Number(naxVolumeIntent[key]);if(Number.isFinite(reported)&&Math.abs(reported-target)<.1){delete naxVolumeIntent[key];delete naxVolumePendingUntil[key];}else if(Date.now()<Number(naxVolumePendingUntil[key]||0)){naxLiveStatus[key]={...(naxLiveStatus[key]||{}),volume:target};}else{delete naxVolumeIntent[key];delete naxVolumePendingUntil[key];}});const signature=JSON.stringify(Object.fromEntries(Object.entries(naxLiveStatus).map(([id,state])=>{const now=naxPlayerNowPlaying(state);return[id,{connected:state.connected,volume:state.volume,title:naxFirst(now,['TrackTitle','Title','TrackName','Name','MediaTitle'],''),artist:naxFirst(now,['ArtistName','Artist','Subtitle'],''),playerState:naxFirst(state.player,['PlayerState','StreamState'],''),actions:state.availableActions,menu:state.menu,presets:(state.presets||[]).map(p=>({id:p.id,name:p.name,icon:p.icon}))}]})));if(signature!==lastNaxSignature){lastNaxSignature=signature;if(currentPageId==='av')renderConfiguredAv();if(currentPageId==='home')renderOverview();}}catch(_){}}
+setInterval(fetchNaxStatuses,3000);fetchNaxStatuses();
+setInterval(fetchAvStatuses,3000);
+fetchAvStatuses();const reviewShowPage=showPage;
 showPage=function(id,button){reviewShowPage(id,button);if(id==='settings')syncSharedState();};
 syncSharedState();</script></body></html>
+
+
+
+
+
+
 
