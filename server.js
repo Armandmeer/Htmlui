@@ -377,6 +377,7 @@ const DEFAULT = {
 
 let knx = null;
 let connected = false;
+let lastKnxActivityAt = 0;
 let config = { ...DEFAULT };
 const sockets = new Set();
 let githubUpdateInProgress = false;
@@ -1154,6 +1155,7 @@ setInterval(naxMonitor, 2500); setTimeout(naxMonitor, 900);
 
 function status(ok, message) {
   connected = ok;
+  if (ok) lastKnxActivityAt = Date.now();
   console.log(`[KNX] ${message}`);
   broadcast({ type: "knx-status", connected: ok, message });
 }
@@ -1235,6 +1237,8 @@ function connectKNX(newConfig) {
 
   knx.on("indication", packet => {
     try {
+      lastKnxActivityAt = Date.now();
+      if (!connected) status(true, "KNX communication active");
       const cemi = packet?.cEMIMessage;
       if (!cemi?.npdu) return;
 
@@ -1547,7 +1551,7 @@ const server = http.createServer((req, res) => {
   const naxPresetMatch=requestPath.match(/^\/api\/nax\/([^/]+)\/preset$/);
   if(naxPresetMatch&&req.method==='POST'){
     let id='';try{id=decodeURIComponent(naxPresetMatch[1])}catch(_){} let body='';req.on('data',c=>{body+=c;if(body.length>20000)req.destroy()});req.on('end',async()=>{try{
-      const input=JSON.parse(body||'{}'),target=naxResolveTarget(id);if(!target)throw new Error('Configured NAX player not found');const unit=naxUnits.get(naxUnitKey(target.device)),favorites=naxFavoriteList(unit,false),favorite=favorites.find(item=>String(item.id)===String(input.presetId||''))||favorites.find(item=>String(item.name||'').toLowerCase()===String(input.presetName||'').toLowerCase());if(!favorite)throw new Error('NAX preset is no longer available');const signedData=await naxResolveFavoriteSignedData(unit,favorite),source=signedData.SourceData||{};naxPlayerAction(unit,naxPlayerIdForNumber(target.number),'LoadSource',{ProfileKey:source.ProfileKey||favorite.profile,ProviderKey:source.ProviderKey||favorite.provider||'',AutoPlay:true,SignedData:signedData});res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true}));
+      const input=JSON.parse(body||'{}'),target=naxResolveTarget(id);if(!target)throw new Error('Configured NAX player not found');const unit=naxUnits.get(naxUnitKey(target.device)),favorites=naxFavoriteList(unit,false),favorite=favorites.find(item=>String(item.id)===String(input.presetId||''))||favorites.find(item=>String(item.name||'').toLowerCase()===String(input.presetName||'').toLowerCase());if(!favorite)throw new Error('NAX preset is no longer available');const signedData=await naxResolveFavoriteSignedData(unit,favorite),source=signedData.SourceData||{};const playerId=naxPlayerIdForNumber(target.number);naxPlayerAction(unit,playerId,'LoadSource',{ProfileKey:source.ProfileKey||favorite.profile,ProviderKey:source.ProviderKey||favorite.provider||'',AutoPlay:true,SignedData:signedData});setTimeout(()=>{try{naxPlayerAction(unit,playerId,'Play')}catch(_){}},1200);res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true}));
     }catch(error){res.writeHead(400,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:false,error:error.message}))}});return;
   }
   const naxMenuMatch=requestPath.match(/^\/api\/nax\/([^/]+)\/menu$/);
@@ -1854,10 +1858,11 @@ server.on("upgrade", (req, socket, head) => {
 wss.on("connection", ws => {
   sockets.add(ws);
 
+  const knxRecentlyActive = connected || (lastKnxActivityAt > 0 && Date.now() - lastKnxActivityAt < 60000);
   ws.send(JSON.stringify({
     type: "knx-status",
-    connected,
-    message: connected ? "KNX connected" : "KNX offline"
+    connected: knxRecentlyActive,
+    message: knxRecentlyActive ? "KNX communication active" : "KNX offline"
   }));
 
   ws.on("message", data => {
