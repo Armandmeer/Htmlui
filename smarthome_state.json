@@ -4,7 +4,8 @@
     "Entree",
     "Keuken",
     "Badkamer",
-    "Slaapkamer"
+    "Slaapkamer",
+    "Buiten"
   ],
   "sliders": [
     {
@@ -81,7 +82,7 @@
       "writeGa": "1/0/33",
       "feedbackGa": "2/0/33",
       "value": 0,
-      "feedbackValue": 0,
+      "feedbackValue": 12,
       "rgbw": {
         "write": [
           "",
@@ -325,6 +326,37 @@
       "enableWriteGa": "",
       "enableFeedbackGa": "",
       "motion": false
+    },
+    {
+      "id": "s1790511705800",
+      "name": "Rolluik",
+      "room": "Buiten",
+      "mode": "dim",
+      "writeGa": "",
+      "feedbackGa": "",
+      "value": 0,
+      "feedbackValue": null,
+      "rgbw": {
+        "write": [
+          "",
+          "",
+          "",
+          ""
+        ],
+        "feedback": [
+          "",
+          "",
+          "",
+          ""
+        ]
+      },
+      "type": "security",
+      "securityType": "lock",
+      "controllable": true,
+      "physicalStatusGa": "",
+      "enableWriteGa": "",
+      "enableFeedbackGa": "",
+      "motionStatusGa": ""
     }
   ],
   "genericDevices": [
@@ -473,5 +505,6 @@
     ],
     "reconnect": true
   },
-  "configRevision": 995
+  "configRevision": 1013,
+  "deviceDrivers": []
 }

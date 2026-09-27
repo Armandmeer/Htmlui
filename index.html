@@ -495,6 +495,22 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 .settings-collapse-summary{list-style:none;cursor:pointer;margin:0}.settings-collapse-summary::-webkit-details-marker{display:none}.settings-collapse-summary::before{content:'›';display:inline-block;width:17px;margin-right:6px;color:var(--muted);font-size:22px;transition:transform .15s}.settings-section[open]>.settings-collapse-summary::before{transform:rotate(90deg)}.settings-section-body{padding-top:12px}[data-nav-kind][hidden]{display:none!important}
 .nax-device-item>.nax-art{grid-column:1!important;grid-row:1!important}.nax-device-item>.nax-media-copy{grid-column:2!important;grid-row:1!important}.nax-device-item>.av-power-actions{grid-column:3!important;grid-row:1!important;justify-self:end!important;align-self:center!important}.nax-control-icon{display:block;width:24px;height:24px;fill:currentColor;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.nax-transport button{display:grid!important;place-items:center!important}
 @media(max-width:700px){.nax-device-item>.av-power-actions{grid-column:3!important;grid-row:1!important;margin:0!important}.nax-device-item>.av-power-actions .security-btn{width:76px!important;min-width:76px!important}.nax-control-icon{width:22px;height:22px}}
+</style><style id="system-and-layout-fixes">
+.settings-collapse-summary{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;justify-content:initial!important;align-items:center!important;text-align:left!important;margin-bottom:0!important}
+.settings-collapse-summary>div{min-width:0;text-align:left!important;justify-self:stretch!important}
+.settings-collapse-summary::before{grid-column:1;grid-row:1}.settings-collapse-summary>div{grid-column:2;grid-row:1}.settings-collapse-summary>.github-status-badge,.settings-collapse-summary>.knx-connection-badge{grid-column:3;grid-row:1;justify-self:end}
+.lighting-room-section{grid-column:1/-1;border:1px solid rgba(116,145,157,.28);border-radius:16px;padding:14px;background:rgba(23,33,41,.34)}
+.lighting-room-section-title{font-size:16px;margin:0 0 12px;padding:0 2px;color:#f3f7fa}.lighting-room-devices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#overviewLightingSummary{grid-template-columns:repeat(auto-fill,minmax(190px,280px))!important;grid-auto-rows:auto!important;align-items:start!important;justify-content:start!important}
+#overviewLightingSummary .overview-room{height:auto!important;min-height:0!important;align-self:start!important;justify-content:center!important}
+.system-device-transfer{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}.system-device-transfer h3{margin:0 0 5px}.system-device-transfer-row{display:grid;grid-template-columns:minmax(220px,420px) auto auto;gap:9px;align-items:center;margin-top:12px}.system-device-transfer-row .btn{white-space:nowrap}
+@media(max-width:850px){#overviewLightingSummary{grid-template-columns:repeat(3,minmax(0,1fr))!important}.lighting-room-devices{grid-template-columns:1fr}}
+@media(max-width:600px){.system-device-transfer-row{grid-template-columns:1fr}.system-device-transfer-row .btn{width:100%}}
+</style>
+<style id="touch-and-tv-fixes">
+button,[role="button"],.security-item,.nax-preset,.av-app-button{touch-action:manipulation}
+.av-tv-status-only{display:flex;align-items:center;justify-content:center;min-width:72px;text-align:center}
+.av-tv-status-only .av-status-text{justify-content:center;margin:0}
 </style></head>
 <body><button aria-label="Menu" class="menu-toggle" onclick="toggleSidebar()">☰</button><div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div><div class="app">
 <aside><div class="label">Dashboard</div><nav>
@@ -510,8 +526,8 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <div class="security-grid security-page-grid"><div class="security-card"><div class="security-panel-head"><div><h2><span class="security-heading-lock-icon"></span><span>Locks</span></h2></div></div><div id="securityLocks" class="security-page-room-grid"></div></div>
 <div class="security-card"><div class="security-panel-head"><div><h2><span class="motion-heading-icon"></span><span>Motion sensors</span></h2></div></div><div id="securityMotion" class="security-page-room-grid"></div></div></div>
 </section></template><template data-page-id="rooms"><section class="page" id="rooms"><div class="card"><h2>Rooms</h2><div id="configuredRoomsPage" class="devices"></div></div></section></template><template data-page-id="scenes"><section class="page" id="scenes"><div class="card"><div class="settings-heading"><div><h2>Scenes</h2><div class="muted">Scenes configured in Devices are shown here.</div></div></div><div id="sceneDeviceList" class="devices"></div></div></section></template><template data-page-id="energy"><section class="page" id="energy"><div class="grid"><div class="card s4"><div class="muted">Today</div><div class="value">8,4 kWh</div></div><div class="card s4"><div class="muted">Current</div><div class="value">412 W</div></div><div class="card s4"><div class="muted">Solar</div><div class="value">1,8 kW</div></div></div></section></template><template data-page-id="settings"><section class="page" id="settings"><div class="grid">
-<details class="card s12 github-settings-card" id="githubSettingsCard">
-<summary class="settings-heading github-summary"><div><h2>GitHub updates</h2><div class="muted">Update the Html ui directly from a GitHub repository.</div></div><div id="githubStatusBadge" class="github-status-badge"><span class="github-status-led"></span><span>Not configured</span></div></summary>
+<details class="card s12 github-settings-card settings-section" id="githubSettingsCard">
+<summary class="settings-heading github-summary settings-collapse-summary"><div><h2>System</h2><div class="muted">Updates, configuration recovery and device transfer.</div></div><div id="githubStatusBadge" class="github-status-badge"><span class="github-status-led"></span><span>Not configured</span></div></summary>
 <div class="github-settings-body"><div class="settings-grid">
 <div style="grid-column:span 2"><label>GitHub repository URL</label><input id="githubUrl" placeholder="https://github.com/owner/repository" autocomplete="off"/></div>
 <div style="grid-column:span 2"><label>GitHub token</label><input id="githubToken" type="password" placeholder="ghp_… or fine-grained token" autocomplete="new-password"/></div>
@@ -519,9 +535,10 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <div class="actions" style="margin-top:16px"><button class="btn" onclick="saveGithubSettings()">Save GitHub settings</button><button class="btn primary" onclick="updateFromGithub()">↻ Update from GitHub</button><button class="btn" onclick="restoreConfigFromGithub()">Restore configuration from GitHub</button></div>
 <div class="github-note">The server uses the repository's default branch. Normal updates preserve local devices. Restore configuration replaces rooms and devices after creating a local backup. The token is never shown again.</div>
 <div class="github-update-status" id="githubUpdateStatus"></div>
+<div class="system-device-transfer"><h3>Device drivers</h3><div class="muted">Export a complete driver with device parameters, interface cards and optional Settings cards. Imported drivers are available on every connected interface.</div><div class="system-device-transfer-row"><select id="systemDriverExportSelect" aria-label="Driver to export"></select><button type="button" class="btn" onclick="exportSelectedDriver()">Export driver</button><button type="button" class="btn primary" onclick="document.getElementById('systemDriverImportFile').click()">Import driver</button></div><input id="systemDriverImportFile" type="file" accept="application/json,.json" hidden onchange="importDriverFile(this)"></div>
 </div></details>
-<details class="card s12 knx-settings-card" id="knxSettingsCard">
-<summary class="settings-heading knx-summary"><div><h2>KNX/IP connection</h2><div class="muted">Connection, parameters and communication log.</div></div><div id="knxConnectionBadge" class="knx-connection-badge offline"><span class="status-led"></span><span>Disconnected</span></div></summary>
+<details class="card s12 knx-settings-card settings-section" id="knxSettingsCard">
+<summary class="settings-heading knx-summary settings-collapse-summary"><div><h2>KNX/IP connection</h2><div class="muted">Connection, parameters and communication log.</div></div><div id="knxConnectionBadge" class="knx-connection-badge offline"><span class="status-led"></span><span>Disconnected</span></div></summary>
 <div class="knx-settings-body"><div class="settings-grid">
 <div><label>KNX/IP router / interface IP</label><input id="ip" value="192.168.200.50"/></div>
 <div><label>KNX/IP port</label><input id="port" type="number" value="3671"/></div>
@@ -531,7 +548,7 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <div class="actions" style="margin-top:16px"><button class="btn primary" onclick="connectKnx()">Connect to KNX</button><button class="btn" onclick="disconnectKnx()">Disconnect</button><button class="btn" onclick="saveConnection()">Save settings</button></div>
 <div class="knx-log-inline"><div class="muted" style="margin-bottom:6px">KNX communication log</div><div class="log" id="log">Dashboard started…</div></div>
 </div></details>
-<details class="card s12 settings-section"><summary class="settings-heading settings-collapse-summary"><div><h2>Rooms</h2><div class="muted">Manage the rooms that can be assigned to devices.</div></div></summary><div class="settings-section-body"><div class="actions" style="margin-bottom:14px"><input id="newRoomName" placeholder="New room" style="max-width:220px"/><button class="btn primary" onclick="addRoom()">＋ Add room</button></div><div class="devices" id="roomConfigList"></div></div></details>
+<div id="driverSettingsCards" class="driver-settings-cards"></div><details class="card s12 settings-section"><summary class="settings-heading settings-collapse-summary"><div><h2>Rooms</h2><div class="muted">Manage the rooms that can be assigned to devices.</div></div></summary><div class="settings-section-body"><div class="actions" style="margin-bottom:14px"><input id="newRoomName" placeholder="New room" style="max-width:220px"/><button class="btn primary" onclick="addRoom()">＋ Add room</button></div><div class="devices" id="roomConfigList"></div></div></details>
 <details class="card s12 settings-section"><summary class="settings-heading settings-collapse-summary"><div><h2>Devices</h2><div class="muted">All devices are grouped by room.</div></div></summary><div class="settings-section-body" id="deviceConfigList"></div></details>
 <details class="card s12 settings-code-card settings-section"><summary class="settings-heading settings-collapse-summary"><div><h2>Settings access code</h2><div class="muted">Change the code required to open Settings.</div></div></summary><div class="settings-grid settings-section-body"><div><label>Current code</label><input id="settingsCurrentCode" type="password" inputmode="numeric" autocomplete="current-password"></div><div><label>New code</label><input id="settingsNewCode" type="password" inputmode="numeric" autocomplete="new-password"></div><div><label>Confirm new code</label><input id="settingsConfirmCode" type="password" inputmode="numeric" autocomplete="new-password"></div><div class="actions" style="align-items:end"><button type="button" class="btn primary" onclick="changeSettingsCode()">Change code</button></div></div></details>
 </div></section></template></div></main></div><div class="camera-fullscreen" id="cameraFullscreen" role="dialog" aria-modal="true" aria-label="Fullscreen camera"><div class="camera-fs-top"><span class="camera-fs-title" id="cameraFsTitle">Camera 1</span><button class="camera-fs-back" onclick="closeCameraFullscreen()">← Back</button></div><img id="cameraFullscreenStream" src="" alt="Fullscreen camera"></div><div class="settings-lock-overlay" id="settingsLockOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsLockTitle" onclick="settingsOverlayClick(event)">
@@ -547,6 +564,8 @@ main > section.page[hidden]{display:none !important;visibility:hidden !important
 <div id="toast" style="position:fixed;right:25px;bottom:25px;background:#1b282f;border:1px solid #3a4c58;padding:13px 17px;border-radius:11px;display:none"></div>
 <script>
 let socket=null, timer=null;
+let lastTouchEndAt=0;
+document.addEventListener('touchend',event=>{if(!event.changedTouches||event.changedTouches.length!==1)return;const now=Date.now();if(now-lastTouchEndAt<380)event.preventDefault();lastTouchEndAt=now;},{passive:false});
 let settingsAccessToken='',settingsHeartbeatTimer=null,settingsUnlockPromise=null,settingsUnlockResolve=null;
 const meta={home:['Overview',''],lighting:['Lighting',''],shading:['Curtains & Screens','Curtains and sun protection'],av:['Audio & Video','Entertainment'],climate:['Climate','Temperature and ventilation'],rooms:['Rooms','Room control'],scenes:['Scenes','Favorites and automation'],energy:['Energy','Consumption and production'],security:['Security','Electric locks and motion sensors'],settings:['Settings','KNX/IP connection and group addresses']};
 function resetLightingPage(){
@@ -821,7 +840,7 @@ async function page(id,b){
  showPage(id,b);
 }
 
-let knxUiState='offline';
+let knxUiState='offline',lastKnxUiActivityAt=0;
 const logBuffer=[];
 function log(s,cls=''){
   const entry={time:new Date().toLocaleTimeString(),text:String(s),cls};
@@ -836,6 +855,9 @@ function renderCommunicationLog(){
   l.scrollTop=l.scrollHeight;
 }
 function updateKnxUi(connected,message,source='server'){
+  const manual=/manually disconnected/i.test(String(message||''));
+  if(connected)lastKnxUiActivityAt=Date.now();
+  if(!connected&&!manual&&lastKnxUiActivityAt&&Date.now()-lastKnxUiActivityAt<90000)connected=true;
   knxUiState=connected?'connected':'offline';
   const ks=document.getElementById('knxState'); if(ks)ks.textContent=connected?'online':'offline';
   const hk=document.getElementById('homeKnx'); if(hk)hk.textContent=connected?'Connected':'Not connected';
@@ -874,7 +896,7 @@ function connectSocket(){
  socket.onopen=()=>{log('Dashboard connection established','ok');setTimeout(refreshKNXFeedbackSubscriptions,500);if(sessionStorage.getItem('knxReconnectAfterUpdate')==='1'){sessionStorage.removeItem('knxReconnectAfterUpdate');setTimeout(()=>connectKnx(),350);}};
  socket.onclose=()=>{log('Dashboard connection lost — reconnecting…','err');clearTimeout(window.wsRetry);window.wsRetry=setTimeout(connectSocket,3000)};
  socket.onerror=()=>{log('Dashboard connection unavailable. Check that the server is running.','err')};
- socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==='knx-status'){updateKnxUi(!!m.connected,m.message|| (m.connected?'KNX connected':'KNX offline'));}else if(m.type==='server-error'){log(m.message||'Server action failed','err');toast(m.message||'Server action failed');}
+ socket.onmessage=e=>{const m=JSON.parse(e.data);if(['feedback','security-feedback','camera-feedback'].includes(m.type)){lastKnxUiActivityAt=Date.now();updateKnxUi(true,'');}if(m.type==='knx-status'){updateKnxUi(!!m.connected,m.message|| (m.connected?'KNX connected':'KNX offline'));}else if(m.type==='server-error'){log(m.message||'Server action failed','err');toast(m.message||'Server action failed');}
  if(m.type==='state-update'){
    const state=m.state||{},sig=sharedSignature(state);
    const active=document.activeElement;
@@ -972,8 +994,8 @@ function setLightingRoom(v){lightingRoom=v;renderLightingSliders()}
 function toggleSidebar(){document.querySelector('aside').classList.toggle('open');document.getElementById('sidebarBackdrop').classList.toggle('show')}
 function closeSidebar(){document.querySelector('aside').classList.remove('open');document.getElementById('sidebarBackdrop').classList.remove('show')}
 function updateSidebarVisibility(){
- const generic=genericDevices(),has=kind=>kind==='lighting'?sliders().length>0:kind==='security'?securityDevices().length>0:kind==='rooms'?rooms().length>0:kind==='energy'?false:generic.some(device=>device.type===kind);
- document.querySelectorAll('[data-nav-kind]').forEach(button=>{button.hidden=!has(button.dataset.navKind)});
+ const generic=genericDevices(),has=kind=>kind==='lighting'?sliders().length>0:kind==='security'?securityDevices().length>0:kind==='rooms'?rooms().length>0:kind==='energy'?false:generic.some(device=>String(device&&device.type||'').toLowerCase()===String(kind||'').toLowerCase());
+ document.querySelectorAll('[data-nav-kind]').forEach(button=>{const visible=has(button.dataset.navKind);button.hidden=!visible;button.setAttribute('aria-hidden',visible?'false':'true');if(visible)button.style.removeProperty('display');else button.style.setProperty('display','none','important')});
 }
 function renderRoomConfigs(){
  const box=document.getElementById('roomConfigList');if(!box)return;
@@ -1005,6 +1027,18 @@ function removeRoom(name){
  if(lightingRoom===name)lightingRoom='all';
  renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();renderSecurity();toast('Room removed');
 }
+const BUILTIN_LIGHTING_DRIVERS=[
+ {id:'dim',category:'lighting',name:'Dim',baseType:'dim',icon:'💡',description:'KNX percentage dimmer',parameters:[{key:'writeGa',label:'Write group address',kind:'knx',dpt:'5.001'},{key:'feedbackGa',label:'Feedback group address',kind:'knx',dpt:'5.001'}]},
+ {id:'switch',category:'lighting',name:'Switch',baseType:'switch',icon:'💡',description:'KNX one-bit switch',parameters:[{key:'writeGa',label:'Write group address',kind:'knx',dpt:'1.001'},{key:'feedbackGa',label:'Feedback group address',kind:'knx',dpt:'1.001'}]},
+ {id:'rgbw',category:'lighting',name:'RGBW',baseType:'rgbw',icon:'🎨',description:'Four-channel RGBW lighting control',parameters:[{key:'rgbw.write',label:'RGBW write addresses',kind:'knx-array',dpt:'5.001'},{key:'rgbw.feedback',label:'RGBW feedback addresses',kind:'knx-array',dpt:'5.001'}]}
+];
+function deviceDrivers(){try{const value=JSON.parse(localStorage.getItem('htmluiDeviceDrivers')||'[]');return Array.isArray(value)?value:[]}catch(_){return []}}
+function saveDeviceDrivers(value,options={}){localStorage.setItem('htmluiDeviceDrivers',JSON.stringify(value));if(options.shared!==false)syncSharedStateDebounced()}
+function lightingDriverDefinitions(){const custom=deviceDrivers().filter(driver=>driver&&driver.category==='lighting'&&['dim','switch','rgbw'].includes(driver.baseType));return [...BUILTIN_LIGHTING_DRIVERS,...custom]}
+function lightingDriverForDevice(device){const id=String(device&&device.driverId||device&&device.mode||'dim');return lightingDriverDefinitions().find(driver=>driver.id===id)||BUILTIN_LIGHTING_DRIVERS.find(driver=>driver.id===String(device&&device.mode||'dim'))||BUILTIN_LIGHTING_DRIVERS[0]}
+function lightingDriverParameter(device,key){const driver=lightingDriverForDevice(device);return (driver.parameters||[]).find(parameter=>parameter&&parameter.key===key)||{}}
+function lightingDriverDpt(device,key,fallback){return String(lightingDriverParameter(device,key).dpt||fallback)}
+function lightingDriverLabel(device,key,fallback){return String(lightingDriverParameter(device,key).label||fallback)}
 function allConfiguredDevices(){
   const out=[];
   sliders().forEach(x=>out.push({id:'light:'+x.id,type:'lighting',name:x.name||'Lighting',room:x.room||rooms()[0]||'',sourceId:x.id,source:'lighting',data:x}));
@@ -1023,7 +1057,7 @@ function unifiedAddressFields(item){
       const rgb={write:Array.isArray(x.rgbw?.write)?x.rgbw.write:['','','',''],feedback:Array.isArray(x.rgbw?.feedback)?x.rgbw.feedback:['','','','']};
       return '<div class="unified-device-addresses" style="grid-template-columns:1fr 1fr 1fr 1fr"><div><label>Red write</label><input class="knx" data-addr="rgbw-w-0" value="'+esc(rgb.write[0]||'')+'"></div><div><label>Green write</label><input class="knx" data-addr="rgbw-w-1" value="'+esc(rgb.write[1]||'')+'"></div><div><label>Blue write</label><input class="knx" data-addr="rgbw-w-2" value="'+esc(rgb.write[2]||'')+'"></div><div><label>White write</label><input class="knx" data-addr="rgbw-w-3" value="'+esc(rgb.write[3]||'')+'"></div></div><div class="unified-device-addresses" style="grid-template-columns:1fr 1fr 1fr 1fr"><div><label>Red feedback</label><input class="knx" data-addr="rgbw-f-0" value="'+esc(rgb.feedback[0]||'')+'"></div><div><label>Green feedback</label><input class="knx" data-addr="rgbw-f-1" value="'+esc(rgb.feedback[1]||'')+'"></div><div><label>Blue feedback</label><input class="knx" data-addr="rgbw-f-2" value="'+esc(rgb.feedback[2]||'')+'"></div><div><label>White feedback</label><input class="knx" data-addr="rgbw-f-3" value="'+esc(rgb.feedback[3]||'')+'"></div></div>';
     }
-    return '<div class="unified-device-addresses"><div><label>Write group address</label><input class="knx" data-addr="writeGa" value="'+esc(x.writeGa||'')+'"></div><div><label>Feedback group address</label><input class="knx" data-addr="feedbackGa" value="'+esc(x.feedbackGa||'')+'"></div></div>';
+    return '<div class="unified-device-addresses"><div><label>'+esc(lightingDriverLabel(x,'writeGa','Write group address'))+'</label><input class="knx" data-addr="writeGa" value="'+esc(x.writeGa||'')+'"></div><div><label>'+esc(lightingDriverLabel(x,'feedbackGa','Feedback group address'))+'</label><input class="knx" data-addr="feedbackGa" value="'+esc(x.feedbackGa||'')+'"></div></div>';
   }
   if(t==='security') { const motion=x.securityType==='motion'; const ctl=x.controllable!==false; if(motion){ return '<div class="security-settings-fields"><div><label>Security device</label><select data-addr="securityType"><option value="motion" selected>Motion sensor</option><option value="lock">Electric lock</option></select></div><div><label>Control</label><select data-addr="controllable"><option value="true" '+(ctl?'selected':'')+'>Enabled</option><option value="false" '+(!ctl?'selected':'')+'>Status only</option></select></div><div><label>Motion status group address</label><input class="knx" data-addr="motionStatusGa" value="'+esc(x.motionStatusGa||'')+'"></div><div><label>Motion colors</label><select data-addr="motionInvert"><option value="false" '+(!x.motionInvert?'selected':'')+'>Motion red / Standby green</option><option value="true" '+(x.motionInvert?'selected':'')+'>Motion green / Standby red</option></select></div>'+(ctl?'<div><label>Enable control group address</label><input class="knx" data-addr="enableWriteGa" value="'+esc(x.enableWriteGa||'')+'"></div><div><label>Enable status group address</label><input class="knx" data-addr="enableFeedbackGa" value="'+esc(x.enableFeedbackGa||'')+'"></div><div><label>Button colors</label><select data-addr="enableInvert"><option value="false" '+(!x.enableInvert?'selected':'')+'>Enabled green / Disabled red</option><option value="true" '+(x.enableInvert?'selected':'')+'>Enabled red / Disabled green</option></select></div>':'')+'</div>'; } return '<div class="security-settings-fields"><div><label>Security device</label><select data-addr="securityType"><option value="lock" selected>Electric lock</option><option value="motion">Motion sensor</option></select></div><div><label>Control</label><select data-addr="controllable"><option value="true" '+(ctl?'selected':'')+'>Enabled</option><option value="false" '+(!ctl?'selected':'')+'>Status only</option></select></div><div><label>Physical status group address</label><input class="knx" data-addr="physicalStatusGa" value="'+esc(x.physicalStatusGa||'')+'"></div><div><label>Status colors</label><select data-addr="statusInvert"><option value="false" '+(!x.statusInvert?'selected':'')+'>Locked green / Unlocked red</option><option value="true" '+(x.statusInvert?'selected':'')+'>Locked red / Unlocked green</option></select></div>'+(ctl?'<div><label>Lock control group address</label><input class="knx" data-addr="writeGa" value="'+esc(x.writeGa||'')+'"></div><div><label>Lock control status group address</label><input class="knx" data-addr="feedbackGa" value="'+esc(x.feedbackGa||'')+'"></div><div><label>Button colors</label><select data-addr="controlInvert"><option value="false" '+(!x.controlInvert?'selected':'')+'>Lock green / Unlock red</option><option value="true" '+(x.controlInvert?'selected':'')+'>Lock red / Unlock green</option></select></div>':'')+'</div>'; }
   if(t==='thermostat') return '<div class="unified-device-addresses"><div><label>Control group address</label><input class="knx" data-addr="writeGa" value="'+esc(x.writeGa||'')+'"></div><div><label>Status group address</label><input class="knx" data-addr="feedbackGa" value="'+esc(x.feedbackGa||'')+'"></div></div>';
@@ -1071,7 +1105,7 @@ function updateUnifiedDevice(item,el){ window.deviceRoomOpen=window.deviceRoomOp
    if(el.dataset.u==='type' && el.value!=='lighting'){convertLightingToGeneric(x,el.value);return}
    if(el.dataset.u==='name')x.name=el.value.trim()||'Lighting';
    if(el.dataset.u==='room')x.room=el.value;
-   if(el.dataset.u==='mode'){x.mode=el.value;x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};}
+   if(el.dataset.u==='mode'){const driver=lightingDriverDefinitions().find(value=>value.id===el.value)||BUILTIN_LIGHTING_DRIVERS[0];x.mode=driver.baseType;x.driverId=BUILTIN_LIGHTING_DRIVERS.some(value=>value.id===driver.id)?'':driver.id;x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};}
    saveSliders(a);
    if(el.dataset.u==='mode')refreshKNXFeedbackSubscriptions();
  } else if(item.source==='security'){
@@ -1144,48 +1178,38 @@ function updateSliderValue(id,v){const a=sliders(),x=a.find(z=>z.id===id);if(x){
 function sendSlider(id,v){
  const x=sliders().find(z=>z.id===id);if(!x||x.mode!=='dim')return;
  updateSliderValue(id,v);const sl=document.getElementById('light-slider-'+id);if(sl)sl.style.setProperty('--fill',Number(v)+'%');
- send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:'5.001',value:Number(v)});
+ send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:lightingDriverDpt(x,'writeGa','5.001'),value:Number(v)});
 }
 function toggleLightingSwitch(id){
  const a=sliders(),x=a.find(item=>item.id===id);if(!x||x.mode!=='switch')return;
  const current=Number(x.feedbackValue??x.value??0)>0,next=!current;
  x.value=next?1:0;x.feedbackValue=next?1:0;saveSliders(a,{shared:false});
  renderLightingSliders();if(currentPageId==='home')renderOverview();
- const ga=String(x.writeGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:'1.001',value:next?1:0});
+ const ga=String(x.writeGa||'').trim();if(ga&&gaOK(ga))send({type:'knx-write',ga,dpt:lightingDriverDpt(x,'writeGa','1.001'),value:next?1:0});
 }
 function renderLightingSliders(){
  const box=document.getElementById('lightingSliders');if(!box)return;
- renderRoomFilter();
- box.replaceChildren();
+ renderRoomFilter();box.replaceChildren();
  const arr=sliders().filter(x=>lightingRoom==='all'||(x.room||'')===lightingRoom);
- if(!arr.length){box.innerHTML='<div class="muted" style="padding:20px 4px">Geen verlichting in deze ruimte.</div>';return}
- arr.forEach(x=>{
+ if(!arr.length){box.innerHTML='<div class="muted" style="padding:20px 4px">No lighting in this room.</div>';return}
+ const renderOne=(x,target)=>{
   if(x.mode==='rgbw'){
    x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};
-   const vals=x.feedbackRGBW||[null,null,null,null];
-   const pos=rgbwPositionFromValues(vals);
-   const color=rgbwColorFromValues(vals);
-   const brightness=rgbwBrightnessFromValues(vals);
-   const warm=Number(vals[3]??0);
+   const vals=x.feedbackRGBW||[null,null,null,null],pos=rgbwPositionFromValues(vals),color=rgbwColorFromValues(vals),brightness=rgbwBrightnessFromValues(vals),warm=Number(vals[3]??0);
    const d=document.createElement('div');d.className='rgbw-control';
-   d.innerHTML='<div class="rgbw-top"><b>'+esc(x.name)+'</b><span class="rgbw-status-dot" id="rgbw-status-'+x.id+'" style="background:'+color+'" title="RGBW status"></span></div>'+
-     '<input class="rgbw-color-slider" id="rgbw-slider-'+x.id+'" type="range" min="0" max="100" value="'+pos+'" oninput="previewRGBW(\''+x.id+'\')">'+
-     '<div class="rgbw-secondary"><div><label>Brightness <b id="rgbw-bval-'+x.id+'">'+brightness+'%</b></label><input id="rgbw-bright-slider-'+x.id+'" type="range" min="0" max="100" value="'+brightness+'" oninput="previewRGBW(\''+x.id+'\')"></div><div><label>Warm white <b id="rgbw-wval-'+x.id+'">'+warm+'%</b></label><input id="rgbw-warm-slider-'+x.id+'" type="range" min="0" max="100" value="'+warm+'" oninput="previewRGBW(\''+x.id+'\')"></div></div>'+
-     '<div class="rgbw-presets" id="rgbw-presets-'+x.id+'"></div>';
-   box.appendChild(d);
-   renderRGBWPresets(x.id);
+   d.innerHTML='<div class="rgbw-top"><b>'+esc(x.name)+'</b><span class="rgbw-status-dot" id="rgbw-status-'+x.id+'" style="background:'+color+'" title="RGBW status"></span></div><input class="rgbw-color-slider" id="rgbw-slider-'+x.id+'" type="range" min="0" max="100" value="'+pos+'" oninput="previewRGBW(\''+x.id+'\')"><div class="rgbw-secondary"><div><label>Brightness <b id="rgbw-bval-'+x.id+'">'+brightness+'%</b></label><input id="rgbw-bright-slider-'+x.id+'" type="range" min="0" max="100" value="'+brightness+'" oninput="previewRGBW(\''+x.id+'\')"></div><div><label>Warm white <b id="rgbw-wval-'+x.id+'">'+warm+'%</b></label><input id="rgbw-warm-slider-'+x.id+'" type="range" min="0" max="100" value="'+warm+'" oninput="previewRGBW(\''+x.id+'\')"></div></div><div class="rgbw-presets" id="rgbw-presets-'+x.id+'"></div>';
+   target.appendChild(d);renderRGBWPresets(x.id);
   }else if(x.mode==='switch'){
-   const on=Number(x.feedbackValue??x.value??0)>0;
-   const d=document.createElement('div');d.className='lighting-control lighting-switch-control';
-   d.innerHTML='<div class="topline"><b>'+esc(x.name)+'</b><b class="switch-value '+(on?'on':' ')+'" id="light-switch-state-'+x.id+'">'+(on?'On':'Off')+'</b></div><button type="button" class="lighting-switch-button '+(on?'on':'')+'" id="light-switch-'+x.id+'" aria-pressed="'+(on?'true':'false')+'" onclick="toggleLightingSwitch(\''+x.id+'\')">'+(on?'On':'Off')+'</button>';
-   box.appendChild(d);
+   const on=Number(x.feedbackValue??x.value??0)>0,d=document.createElement('div');d.className='lighting-control lighting-switch-control';
+   d.innerHTML='<div class="topline"><b>'+esc(x.name)+'</b><b class="switch-value '+(on?'on':' ')+'" id="light-switch-state-'+x.id+'">'+(on?'On':'Off')+'</b></div><button type="button" class="lighting-switch-button '+(on?'on':'')+'" id="light-switch-'+x.id+'" aria-pressed="'+(on?'true':'false')+'" onclick="toggleLightingSwitch(\''+x.id+'\')">'+(on?'On':'Off')+'</button>';target.appendChild(d);
   }else{
-   const fb=(x.feedbackValue===undefined||x.feedbackValue===null)?'—':Number(x.feedbackValue)+'%';
-   const d=document.createElement('div');d.className='lighting-control';
-   d.innerHTML='<div class="topline"><b>'+esc(x.name)+'</b><b class="dim-value" id="light-val-'+x.id+'">'+fb+'</b></div><div class="range-wrap"><input id="light-slider-'+x.id+'" style="--fill:'+Number(x.value||0)+'%;" type="range" min="0" max="100" value="'+Number(x.value||0)+'" oninput="sendSlider(\''+x.id+'\',this.value)"></div>';
-   box.appendChild(d);
+   const fb=(x.feedbackValue===undefined||x.feedbackValue===null)?'—':Number(x.feedbackValue)+'%',d=document.createElement('div');d.className='lighting-control';
+   d.innerHTML='<div class="topline"><b>'+esc(x.name)+'</b><b class="dim-value" id="light-val-'+x.id+'">'+fb+'</b></div><div class="range-wrap"><input id="light-slider-'+x.id+'" style="--fill:'+Number(x.value||0)+'%;" type="range" min="0" max="100" value="'+Number(x.value||0)+'" oninput="sendSlider(\''+x.id+'\',this.value)"></div>';target.appendChild(d);
   }
- });
+ };
+ if(lightingRoom!=='all'){arr.forEach(x=>renderOne(x,box));return}
+ const order=[...rooms(),...arr.map(x=>x.room||'Other').filter(room=>!rooms().includes(room))];
+ [...new Set(order)].forEach(room=>{const items=arr.filter(x=>(x.room||'Other')===room);if(!items.length)return;const section=document.createElement('section');section.className='lighting-room-section';section.innerHTML='<h3 class="lighting-room-section-title">'+esc(room)+'</h3><div class="lighting-room-devices"></div>';box.appendChild(section);const target=section.querySelector('.lighting-room-devices');items.forEach(x=>renderOne(x,target));});
 }
 function addSlider(){ addUnifiedDevice(rooms()[0]||''); }
 function removeSlider(id){saveSliders(sliders().filter(x=>x.id!==id));renderSliderConfigs();renderLightingSliders();toast('Slider removed')}
@@ -1194,7 +1218,7 @@ function sendSlider(id,v){
  const x=sliders().find(z=>z.id===id);if(!x||x.mode!=='dim')return;
  updateSliderValue(id,v); const sl=document.getElementById('light-slider-'+id);if(sl)sl.style.setProperty('--fill',Number(v)+'%');
  if(currentPageId==='home')renderOverview();
- send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:'5.001',value:Number(v)});
+ send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:lightingDriverDpt(x,'writeGa','5.001'),value:Number(v)});
 }
 function hueToRgb(h){const s=1,l=.5;const c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2;let r=0,g=0,b=0;if(h<60){r=c;g=x}else if(h<120){r=x;g=c}else if(h<180){g=c;b=x}else if(h<240){g=x;b=c}else if(h<300){r=x;b=c}else{r=c;b=x}return [Math.round((r+m)*100),Math.round((g+m)*100),Math.round((b+m)*100)]}
 function rgbwFromPosition(pos){pos=Math.max(0,Math.min(100,Number(pos)||0));if(pos<=8||pos>=92)return [0,0,0,100];const hue=((pos-8)/84)*300;return [...hueToRgb(hue),0]}
@@ -1203,7 +1227,7 @@ function rgbwColorFromValues(vals){const a=(vals||[]).map(v=>Number(v??0));const
 function rgbwBrightnessFromValues(vals){const a=(vals||[]).map(v=>Number(v??0));return Math.round(Math.max(a[0]||0,a[1]||0,a[2]||0,a[3]||0));}
 function rgbwCurrentValues(id){const x=sliders().find(z=>z.id===id);if(!x)return [0,0,0,0];const fb=x.feedbackRGBW||[0,0,0,0];const posEl=document.getElementById('rgbw-slider-'+id);const bEl=document.getElementById('rgbw-bright-slider-'+id);const wEl=document.getElementById('rgbw-warm-slider-'+id);const pos=Number(posEl?.value ?? rgbwPositionFromValues(fb));const b=Number(bEl?.value ?? rgbwBrightnessFromValues(fb));const w=Number(wEl?.value ?? Number(fb[3]??0));const base=rgbwFromPosition(pos);return [Math.round(base[0]*b/100),Math.round(base[1]*b/100),Math.round(base[2]*b/100),Math.round(w)];}
 function updateRGBWPreview(id,values){const sw=document.getElementById('rgbw-status-'+id);if(sw)sw.style.background=rgbwColorFromValues(values);const b=rgbwBrightnessFromValues(values),w=Number(values[3]||0);const bv=document.getElementById('rgbw-bval-'+id),wv=document.getElementById('rgbw-wval-'+id);if(bv)bv.textContent=b+'%';if(wv)wv.textContent=w+'%';}
-function sendRGBWValues(id,values){const x=sliders().find(z=>z.id===id);if(!x||x.mode!=='rgbw')return;x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};const channels=values.map((v,i)=>({ga:String(x.rgbw.write[i]||'').trim(),value:Math.max(0,Math.min(100,Math.round(Number(v))))})).filter(c=>c.ga&&gaOK(c.ga));if(channels.length)send({type:'knx-write-rgbw',channels});x.value=Number(document.getElementById('rgbw-slider-'+id)?.value||0);}
+function sendRGBWValues(id,values){const x=sliders().find(z=>z.id===id);if(!x||x.mode!=='rgbw')return;x.rgbw=x.rgbw||{write:['','','',''],feedback:['','','','']};const channels=values.map((v,i)=>({ga:String(x.rgbw.write[i]||'').trim(),dpt:lightingDriverDpt(x,'rgbw.write','5.001'),value:Math.max(0,Math.min(100,Math.round(Number(v))))})).filter(c=>c.ga&&gaOK(c.ga));if(channels.length)send({type:'knx-write-rgbw',channels});x.value=Number(document.getElementById('rgbw-slider-'+id)?.value||0);}
 function previewRGBW(id){const values=rgbwCurrentValues(id);updateRGBWPreview(id,values);if(currentPageId==='home')renderOverview();sendRGBWValues(id,values);}
 function sendRGBWColor(id,pos){previewRGBW(id);}
 function rgbwPresets(){try{return JSON.parse(localStorage.getItem('knxRGBWPresets')||'{}')||{}}catch(e){return {}}}
@@ -1215,7 +1239,7 @@ function presetPressStart(ev,id,index){presetLongPress=false;clearTimeout(preset
 function presetPressEnd(ev){clearTimeout(presetPressTimer);presetPressTimer=null}
 function deleteRGBWPreset(id,index){const all=rgbwPresets();const list=all[id]||[];if(index<0||index>=list.length)return;list.splice(index,1);all[id]=list;saveRGBWPresets(all);renderRGBWPresets(id);toast('Preset deleted')}
 function applyRGBWPreset(id,index){if(presetLongPress){presetLongPress=false;return}const p=(rgbwPresets()[id]||[])[Number(index)];if(!p)return;const cs=document.getElementById('rgbw-slider-'+id),bs=document.getElementById('rgbw-bright-slider-'+id),ws=document.getElementById('rgbw-warm-slider-'+id);if(cs)cs.value=p.pos;if(bs)bs.value=p.brightness;if(ws)ws.value=p.warm;previewRGBW(id);toast('Preset applied')}
-function sliderPreview(id,v){updateSliderValue(id,v);const lab=document.getElementById('cfgval-'+id);if(lab)lab.textContent=v+'%';const prev=document.getElementById('preview-slider-'+id);if(prev)prev.style.setProperty('--fill',v+'%');const x=sliders().find(z=>z.id===id);if(x&&x.mode==='dim')send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:'5.001',value:Number(v)})}
+function sliderPreview(id,v){updateSliderValue(id,v);const lab=document.getElementById('cfgval-'+id);if(lab)lab.textContent=v+'%';const prev=document.getElementById('preview-slider-'+id);if(prev)prev.style.setProperty('--fill',v+'%');const x=sliders().find(z=>z.id===id);if(x&&x.mode==='dim')send({type:'knx-write',ga:String(x.writeGa).trim(),dpt:lightingDriverDpt(x,'writeGa','5.001'),value:Number(v)})}
 function setLight(v){
  const x=sliders()[0];if(x)sendSlider(x.id,v);
 }
@@ -1280,6 +1304,33 @@ async function restoreConfigFromGithub(){
  finally{if(btn)btn.disabled=false;}
 }
 
+function renderSystemDeviceTools(){
+ const select=document.getElementById('systemDriverExportSelect');if(!select)return;
+ const current=select.value,drivers=lightingDriverDefinitions();
+ select.innerHTML=drivers.map(driver=>'<option value="'+esc(driver.id)+'">Lighting — '+esc(driver.name)+(BUILTIN_LIGHTING_DRIVERS.some(item=>item.id===driver.id)?' (built-in)':'')+'</option>').join('');
+ if(drivers.some(driver=>driver.id===current))select.value=current;
+}
+function exportSelectedDriver(){
+ const select=document.getElementById('systemDriverExportSelect'),driver=lightingDriverDefinitions().find(item=>item.id===String(select&&select.value));if(!driver){toast('Select a driver to export');return}
+ const payload={format:'HTMLUI-driver',version:1,driver};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),link=document.createElement('a'),safe=String(driver.id||'driver').replace(/[^a-z0-9._-]+/gi,'-');
+ link.href=URL.createObjectURL(blob);link.download=safe+'.htmlui-driver.json';document.body.appendChild(link);link.click();const url=link.href;link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function importDriverFile(input){
+ const file=input&&input.files&&input.files[0];if(!file)return;
+ try{
+  const payload=JSON.parse(await file.text()),driver=payload&&payload.driver;
+  if(payload.format!=='HTMLUI-driver'||payload.version!==1||!driver||driver.category!=='lighting')throw new Error('This is not a valid HTMLUI driver file');
+  const id=String(driver.id||'').trim(),name=String(driver.name||'').trim(),baseType=String(driver.baseType||'').trim();
+  if(!/^[a-z0-9][a-z0-9._-]{1,63}$/i.test(id))throw new Error('Driver id must contain 2–64 letters, numbers, dots, dashes or underscores');
+  if(!name)throw new Error('Driver name is required');if(!['dim','switch','rgbw'].includes(baseType))throw new Error('Lighting baseType must be dim, switch or rgbw');
+  if(BUILTIN_LIGHTING_DRIVERS.some(item=>item.id===id))throw new Error('Choose a different id; built-in drivers cannot be replaced');
+  const clean={id,category:'lighting',name:name.slice(0,80),baseType,description:String(driver.description||'').slice(0,240),icon:String(driver.icon||'💡').slice(0,12),parameters:Array.isArray(driver.parameters)?driver.parameters.slice(0,20).map(parameter=>({key:String(parameter&&parameter.key||'').slice(0,40),label:String(parameter&&parameter.label||'').slice(0,80),kind:String(parameter&&parameter.kind||'text').slice(0,20),dpt:String(parameter&&parameter.dpt||'').slice(0,20)})):[]};
+  const drivers=deviceDrivers(),index=drivers.findIndex(item=>item.id===id);if(index>=0){if(!confirm('Replace imported driver '+name+'?'))return;drivers[index]=clean}else drivers.push(clean);
+  saveDeviceDrivers(drivers);renderSystemDeviceTools();renderDeviceConfigs();toast(name+' driver imported');
+ }catch(error){toast(error.message||'Driver import failed')}
+ finally{input.value=''}
+}
 function loadConnection(){try{const x=JSON.parse(localStorage.getItem('knxConnection')||'{}');if(x.ip)ip.value=x.ip;if(x.port)port.value=x.port;if(x.mode)mode.value=x.mode;if(x.phys)phys.value=x.phys}catch(e){}}
 function pageById(id){const b=[...document.querySelectorAll('nav button')].find(x=>(x.getAttribute('onclick')||'').includes("page('"+id+"'"));page(id,b)}
 function applySharedState(state){
@@ -1288,6 +1339,7 @@ function applySharedState(state){
  if(Array.isArray(state.sliders)) localStorage.setItem('knxSliders',JSON.stringify(state.sliders));
  if(Array.isArray(state.securityDevices)) localStorage.setItem('knxSecurityDevices',JSON.stringify(state.securityDevices));
  if(Array.isArray(state.genericDevices)) localStorage.setItem('knxGenericDevices',JSON.stringify(state.genericDevices));
+ if(Array.isArray(state.deviceDrivers)) localStorage.setItem('htmluiDeviceDrivers',JSON.stringify(state.deviceDrivers));
  if(state.presets && typeof state.presets==='object') localStorage.setItem('knxRGBWPresets',JSON.stringify(state.presets));
  if(typeof state.securityMode==='string') applySecurityMode(state.securityMode);
  renderRoomConfigs();renderDeviceConfigs();renderLightingSliders();updateSidebarVisibility();
@@ -1295,7 +1347,7 @@ function applySharedState(state){
 let lastSharedSignature='';
 let sharedStateHydrated=false;
 function sharedSignature(state){
- try{return JSON.stringify({rooms:state?.rooms||[],sliders:state?.sliders||[],securityDevices:state?.securityDevices||[],genericDevices:state?.genericDevices||[],presets:state?.presets||{},securityMode:normalizeSecurityMode(state?.securityMode)});}catch(e){return ''}
+ try{return JSON.stringify({rooms:state?.rooms||[],sliders:state?.sliders||[],securityDevices:state?.securityDevices||[],genericDevices:state?.genericDevices||[],deviceDrivers:state?.deviceDrivers||[],presets:state?.presets||{},securityMode:normalizeSecurityMode(state?.securityMode)});}catch(e){return ''}
 }
 async function syncSharedState(){
  try{
@@ -1324,7 +1376,7 @@ function syncSharedStateDebounced(){clearTimeout(syncTimer);syncTimer=setTimeout
 async function postSharedState(){
  if(!sharedStateHydrated)return;
  try{
-  const payload={rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),presets:rgbwPresets(),securityMode:securityState.mode};
+  const payload={rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),deviceDrivers:deviceDrivers(),presets:rgbwPresets(),securityMode:securityState.mode};
   const r=await fetch('/api/state',{method:'POST',headers:settingsRequestHeaders({'Content-Type':'application/json','Cache-Control':'no-cache'}),cache:'no-store',body:JSON.stringify(payload)});
   if(!r.ok)throw new Error('save '+r.status);
   lastSharedSignature=sharedSignature(payload);
@@ -1404,7 +1456,7 @@ function reviewReplayAddressPatch(patch){
   else if(patch.source==='security')update(securityDevices(),saveSecurityDevices);
   else if(patch.source==='generic')update(genericDevices(),saveGenericDevices);
 }
-function reviewCurrentPayload(){return {rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),presets:rgbwPresets(),securityMode:securityState.mode,baseRevision:sharedConfigRevision};}function reviewShortLightName(name){const text=String(name||'Lighting').trim();return text.length>18?text.slice(0,17)+'…':text;}
+function reviewCurrentPayload(){return {rooms:rooms(),sliders:sliders(),securityDevices:securityDevices(),genericDevices:genericDevices(),deviceDrivers:deviceDrivers(),presets:rgbwPresets(),securityMode:securityState.mode,baseRevision:sharedConfigRevision};}function reviewShortLightName(name){const text=String(name||'Lighting').trim();return text.length>18?text.slice(0,17)+'…':text;}
 function reviewDeviceHeaderFields(item){
   const x=item.data||{};
   if(item.type==='security'){
@@ -1412,7 +1464,7 @@ function reviewDeviceHeaderFields(item){
     return '<div><label>Security device</label><select data-addr="securityType"><option value="lock" '+(x.securityType!=='motion'?'selected':'')+'>Electric lock</option><option value="motion" '+(x.securityType==='motion'?'selected':'')+'>Motion sensor</option></select></div><div><label>Control</label><select data-addr="controllable"><option value="true" '+(control?'selected':'')+'>Enabled</option><option value="false" '+(!control?'selected':'')+'>Status only</option></select></div>';
   }
   if(item.type==='av'){const avType=['tv','radio','nax'].includes(x.avType)?x.avType:'tv';return '<div><label>Audio / Video device</label><select data-addr="avType"><option value="tv" '+(avType==='tv'?'selected':'')+'>TV</option><option value="radio" '+(avType==='radio'?'selected':'')+'>Radio</option><option value="nax" '+(avType==='nax'?'selected':'')+'>DM-NAX-4ZSA-50</option></select></div><div></div>';}
-  if(item.type==='lighting'){const mode=['dim','switch','rgbw'].includes(x.mode)?x.mode:'dim';return '<div><label>Lighting mode</label><select data-u="mode"><option value="dim" '+(mode==='dim'?'selected':'')+'>Dim</option><option value="switch" '+(mode==='switch'?'selected':'')+'>Switch</option><option value="rgbw" '+(mode==='rgbw'?'selected':'')+'>RGBW</option></select></div><div></div>';}
+  if(item.type==='lighting'){const selected=String(x.driverId||x.mode||'dim'),options=lightingDriverDefinitions().map(driver=>'<option value="'+esc(driver.id)+'" '+(driver.id===selected?'selected':'')+'>'+esc(driver.name)+'</option>').join('');return '<div><label>Lighting mode</label><select data-u="mode">'+options+'</select></div><div></div>';}
   return '<div></div><div></div>';
 }const reviewApplySharedState=applySharedState;
 applySharedState=function(state){sharedConfigRevision=reviewRevision(state);return reviewApplySharedState(state);};
@@ -1658,7 +1710,7 @@ renderConfiguredAv=function(){
  devices.forEach(x=>{const key=String(x.id),subtype=x.avType==='radio'?'radio':x.avType==='nax'?'nax':'tv',card=document.createElement('div');card.className='security-page-room av-room-card av-device-card';let content='';
   if(subtype==='radio')content='<div class="security-item av-device-item"><div class="av-tv-icon">📻</div><div><div class="security-name">'+esc(x.name||'Radio')+'</div><div class="av-status-text is-on"><span class="security-dot"></span>Configured</div></div></div>';
   else if(subtype==='nax'){const state=naxLiveStatus[key]||{},online=naxIsPlaying(state),now=naxPlayerNowPlaying(state),title=naxFirst(now,['TrackTitle','Title','TrackName','Name','MediaTitle'],''),artist=naxFirst(now,['ArtistName','Artist','Subtitle'],''),album=naxFirst(now,['AlbumName','Album'],''),art=naxFirst(now,['AlbumArtUrl','ArtworkUrl','ImageUrl','ArtworkURL'],'');content='<div class="security-item av-device-item nax-device-item"><div class="nax-art">'+(art?'<img src="'+esc(naxArtworkUrl(key,art))+'" alt="" onerror="this.replaceWith(document.createTextNode(\'📻\'))">':'📻')+'</div><div class="nax-media-copy"><div class="av-status-text '+(online?'is-on':'is-off')+'"><span class="security-dot '+(online?'':'red')+'"></span>'+(online?'On':'Off')+'</div>'+(title?'<div class="nax-media-title">'+esc(title)+'</div>':'')+(artist||album?'<div class="nax-media-sub">'+esc([artist,album].filter(Boolean).join(' · '))+'</div>':'')+'</div><div class="security-actions av-power-actions"><button class="security-btn av-power-btn '+(!online?'active':'')+'" data-nax-power="off" data-nax-id="'+esc(key)+'">Off</button></div>'+renderNaxTransport(key,state)+renderNaxVolume(key,state)+(state.error?'<div class="nax-rest-warning">'+esc(state.error)+'</div>':'')+renderNaxPresets(key,state)+renderNaxMenuToggle(key)+renderNaxMenu(key,state)+'</div>';
-  }else{const live=avLiveStatus[key]||{},online=live.online===true;content='<div class="security-item av-device-item"><div class="av-tv-icon">'+tvStatusIcon(online)+'</div><div><div class="security-name">'+esc(x.name||'TV')+'</div><div class="av-status-text '+(online?'is-on':'is-off')+'"><span class="security-dot '+(online?'':'red')+'"></span>'+(online?'On':'Off')+'</div></div><div class="security-actions av-power-actions"><button class="security-btn av-power-btn '+(online?'active':'')+'" data-av-power="on" data-av-id="'+esc(key)+'">On</button><button class="security-btn av-power-btn '+(!online?'active':'')+'" data-av-power="off" data-av-id="'+esc(key)+'">Off</button></div>'+renderAvVolume(key,online)+renderAvApps(key)+'</div>';}
+  }else{const live=avLiveStatus[key]||{},online=live.online===true;content='<div class="security-item av-device-item"><div class="av-tv-icon">'+tvStatusIcon(online)+'</div><div class="av-tv-status-only"><div class="av-status-text '+(online?'is-on':'is-off')+'"><span class="security-dot '+(online?'':'red')+'"></span>'+(online?'On':'Off')+'</div></div><div class="security-actions av-power-actions"><button class="security-btn av-power-btn '+(online?'active':'')+'" data-av-power="on" data-av-id="'+esc(key)+'">On</button><button class="security-btn av-power-btn '+(!online?'active':'')+'" data-av-power="off" data-av-id="'+esc(key)+'">Off</button></div>'+renderAvVolume(key,online)+renderAvApps(key)+'</div>';}
   card.innerHTML='<div class="security-page-room-head"><span class="security-page-room-title">'+esc(x.room||'Other')+'</span><span class="security-page-room-count">'+esc(x.name||'AV device')+'</span></div>'+content;
   card.querySelectorAll('[data-av-power]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();setAvPower(button.dataset.avId,button.dataset.avPower)}));card.querySelectorAll('[data-av-volume]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();changeAvVolume(button.dataset.avId,button.dataset.avVolume)}));card.querySelectorAll('[data-av-app-id]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();launchAvApp(button.dataset.avDeviceId,button.dataset.avAppId,button.textContent.trim())}));card.querySelectorAll('[data-nax-power]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();naxCommand(button.dataset.naxId,'action',{action:button.dataset.naxPower==='off'?'Pause':'Play'})}));card.querySelectorAll('[data-nax-action]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const action=button.dataset.naxAction,state=naxLiveStatus[button.dataset.naxId]||{},player=state.player&&state.player.Player||{};naxCommand(button.dataset.naxId,'action',{action,enabled:action==='Shuffle'?!player.Shuffle:undefined,mode:action==='Repeat'?(Number(player.Repeat||0)+1)%3:undefined})}));card.querySelectorAll('[data-nax-volume]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();changeNaxVolume(button.dataset.naxId,button.dataset.naxVolume)}));card.querySelectorAll('[data-nax-preset]').forEach(button=>{button.addEventListener('pointerdown',event=>{if(event.button===0||event.pointerType==='touch'){event.stopPropagation();startNaxPresetHold(button)}});['pointerup','pointerleave','pointercancel'].forEach(type=>button.addEventListener(type,()=>stopNaxPresetHold(button)));button.addEventListener('contextmenu',event=>event.preventDefault());button.addEventListener('click',event=>{event.stopPropagation();stopNaxPresetHold(button);if(naxPresetLongPressed.has(button)){naxPresetLongPressed.delete(button);event.preventDefault();return}naxCommand(button.dataset.naxId,'preset',{presetId:button.dataset.naxPreset,presetName:button.dataset.naxName})})});card.querySelectorAll('[data-nax-menu]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const id=button.dataset.naxId,action=button.dataset.naxMenu;if(action==='toggle'){if(naxOpenMenus.has(id))naxOpenMenus.delete(id);else{naxOpenMenus.add(id);naxCommand(id,'menu',{action:'home'});}renderConfiguredAv();}else naxCommand(id,'menu',{action,itemId:button.dataset.naxItem});}));card.querySelectorAll('[data-nax-search]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const id=button.dataset.naxSearch,input=card.querySelector('[data-nax-search-input="'+CSS.escape(id)+'"]');naxCommand(id,'menu',{action:'search',query:input&&input.value||'',category:'station'});}));card.querySelectorAll('[data-nax-search-input]').forEach(input=>input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();naxCommand(input.dataset.naxSearchInput,'menu',{action:'search',query:input.value,category:'station'});}}));card.querySelectorAll('[data-nax-favorite]').forEach(button=>button.addEventListener('click',event=>{event.stopPropagation();const name=prompt('Favorite name',button.dataset.naxName||'Favorite');if(name!==null)naxCommand(button.dataset.naxId,'favorite',{itemId:button.dataset.naxFavorite,name});}));box.appendChild(card);
  });
@@ -1676,8 +1728,196 @@ async function fetchNaxStatuses(){try{const response=await fetch('/api/nax/statu
 setInterval(fetchNaxStatuses,3000);fetchNaxStatuses();
 setInterval(fetchAvStatuses,3000);
 fetchAvStatuses();const reviewShowPage=showPage;
-showPage=function(id,button){reviewShowPage(id,button);if(id==='settings')syncSharedState();};
-syncSharedState();setTimeout(updateSidebarVisibility,0);</script></body></html>
+showPage=function(id,button){reviewShowPage(id,button);if(id==='settings'){renderSystemDeviceTools();syncSharedState();}};
+syncSharedState();setTimeout(updateSidebarVisibility,0);
+// General driver registry: built-in and imported definitions for every supported device category.
+const BUILTIN_DEVICE_DRIVERS=[
+ ...BUILTIN_LIGHTING_DRIVERS,
+ {id:'security-lock',category:'security',name:'Electric lock',baseType:'lock',icon:'🔒',description:'KNX electric lock',parameters:[{key:'physicalStatusGa',label:'Physical status group address',kind:'knx',dpt:'1.001'},{key:'writeGa',label:'Lock control group address',kind:'knx',dpt:'1.001'},{key:'feedbackGa',label:'Lock control status group address',kind:'knx',dpt:'1.001'}]},
+ {id:'security-motion',category:'security',name:'Motion sensor',baseType:'motion',icon:'🚶',description:'KNX motion sensor',parameters:[{key:'motionStatusGa',label:'Motion status group address',kind:'knx',dpt:'1.001'},{key:'enableWriteGa',label:'Enable control group address',kind:'knx',dpt:'1.001'},{key:'enableFeedbackGa',label:'Enable status group address',kind:'knx',dpt:'1.001'}]},
+ {id:'thermostat',category:'thermostat',name:'Thermostat',baseType:'thermostat',icon:'🌡️',description:'KNX thermostat',parameters:[{key:'writeGa',label:'Control group address',kind:'knx',dpt:'9.001'},{key:'feedbackGa',label:'Status group address',kind:'knx',dpt:'9.001'}]},
+ {id:'screen',category:'screen',name:'Curtain / screen',baseType:'screen',icon:'🪟',description:'KNX curtain or screen',parameters:[{key:'writeGa',label:'Control group address',kind:'knx',dpt:'1.008'},{key:'feedbackGa',label:'Status group address',kind:'knx',dpt:'1.008'}]},
+ {id:'camera',category:'camera',name:'IP camera',baseType:'camera',icon:'📷',description:'RTSP camera',parameters:[{key:'url',label:'RTSP camera URL',kind:'url',dpt:''},{key:'feedbackGa',label:'Fullscreen status group address',kind:'knx',dpt:'1.001'}]},
+ {id:'scene',category:'scene',name:'Scene',baseType:'scene',icon:'✨',description:'KNX scene control',parameters:[{key:'writeGa',label:'Control group address',kind:'knx',dpt:'17.001'},{key:'feedbackGa',label:'Status group address',kind:'knx',dpt:'17.001'}]},
+ {id:'av-lg-webos',category:'av',name:'LG webOS TV',baseType:'tv',icon:'📺',description:'LG webOS television',parameters:[{key:'ipAddress',label:'TV IP address',kind:'ip',dpt:''},{key:'macAddress',label:'TV MAC address',kind:'mac',dpt:''},{key:'pingIntervalSec',label:'Status interval (seconds)',kind:'number',dpt:''}]},
+ {id:'av-radio',category:'av',name:'Radio',baseType:'radio',icon:'📻',description:'Generic radio player',parameters:[]},
+ {id:'av-nax',category:'av',name:'DM-NAX-4ZSA-50',baseType:'nax',icon:'🎵',description:'Crestron NAX media player',parameters:[{key:'naxHost',label:'NAX IP address',kind:'ip',dpt:''},{key:'naxClientId',label:'Client UUID',kind:'text',dpt:''},{key:'naxClientSecret',label:'Client secret',kind:'password',dpt:''},{key:'naxRestUsername',label:'REST username',kind:'text',dpt:''},{key:'naxRestPassword',label:'REST password',kind:'password',dpt:''}]}
+];
+const DRIVER_CATEGORIES=['lighting','security','thermostat','screen','camera','scene','av'];
+const DRIVER_BASE_TYPES={lighting:['dim','switch','rgbw'],security:['lock','motion'],thermostat:['thermostat'],screen:['screen'],camera:['camera'],scene:['scene'],av:['tv','radio','nax']};
+const DRIVER_CATEGORY_LABELS={lighting:'Lighting',security:'Security',thermostat:'Thermostat',screen:'Curtains & Screens',camera:'Cameras',scene:'Scenes',av:'Audio & Video'};
+function allDeviceDriverDefinitions(){return [...BUILTIN_DEVICE_DRIVERS,...deviceDrivers().filter(driver=>driver&&DRIVER_CATEGORIES.includes(driver.category)&&(DRIVER_BASE_TYPES[driver.category]||[]).includes(driver.baseType))]}
+function deviceDriverDefinitions(category){return allDeviceDriverDefinitions().filter(driver=>driver.category===category)}
+function driverIsBuiltIn(id){return BUILTIN_DEVICE_DRIVERS.some(driver=>driver.id===id)}
+function driverForConfiguredDevice(item){const x=item&&item.data||item||{},category=item&&item.type||x.type||'lighting';let fallback=category;if(category==='lighting')fallback=String(x.mode||'dim');else if(category==='security')fallback='security-'+(x.securityType==='motion'?'motion':'lock');else if(category==='av')fallback='av-'+(['tv','radio','nax'].includes(x.avType)?x.avType:'tv');return deviceDriverDefinitions(category).find(driver=>driver.id===String(x.driverId||fallback))||deviceDriverDefinitions(category).find(driver=>driver.id===fallback)||deviceDriverDefinitions(category)[0]}
+function driverOptions(category,current){return deviceDriverDefinitions(category).map(driver=>'<option value="'+esc(driver.id)+'" '+(driver.id===current?'selected':'')+'>'+esc(driver.name)+(driverIsBuiltIn(driver.id)?'':' (imported)')+'</option>').join('')}
+function driverParameterLabel(item,key,fallback){const driver=driverForConfiguredDevice(item),parameter=(driver&&driver.parameters||[]).find(value=>value&&value.key===key);return String(parameter&&parameter.label||fallback)}
+
+renderSystemDeviceTools=function(){
+ const select=document.getElementById('systemDriverExportSelect');if(!select)return;
+ const current=select.value,drivers=allDeviceDriverDefinitions();
+ select.innerHTML=drivers.map(driver=>'<option value="'+esc(driver.id)+'">'+esc(DRIVER_CATEGORY_LABELS[driver.category]||driver.category)+' — '+esc(driver.name)+(driverIsBuiltIn(driver.id)?' (built-in)':' (imported)')+'</option>').join('');
+ if(drivers.some(driver=>driver.id===current))select.value=current;
+};
+exportSelectedDriver=function(){
+ const select=document.getElementById('systemDriverExportSelect'),driver=allDeviceDriverDefinitions().find(item=>item.id===String(select&&select.value));if(!driver){toast('Select a driver to export');return}
+ const payload={format:'HTMLUI-driver',version:2,driver};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),link=document.createElement('a'),safe=String(driver.id||'driver').replace(/[^a-z0-9._-]+/gi,'-');
+ link.href=URL.createObjectURL(blob);link.download=safe+'.htmlui-driver.json';document.body.appendChild(link);link.click();const url=link.href;link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+importDriverFile=async function(input){
+ const file=input&&input.files&&input.files[0];if(!file)return;
+ try{
+  const payload=JSON.parse(await file.text()),driver=payload&&payload.driver;
+  if(payload.format!=='HTMLUI-driver'||![1,2].includes(Number(payload.version))||!driver)throw new Error('This is not a valid HTMLUI driver file');
+  const id=String(driver.id||'').trim(),name=String(driver.name||'').trim(),category=String(driver.category||'').trim(),baseType=String(driver.baseType||'').trim();
+  if(!/^[a-z0-9][a-z0-9._-]{1,63}$/i.test(id))throw new Error('Driver id must contain 2–64 letters, numbers, dots, dashes or underscores');
+  if(!name)throw new Error('Driver name is required');if(!DRIVER_CATEGORIES.includes(category))throw new Error('Unsupported driver category');
+  if(!(DRIVER_BASE_TYPES[category]||[]).includes(baseType))throw new Error('Unsupported baseType for '+category);
+  if(driverIsBuiltIn(id))throw new Error('Choose a different id; built-in drivers cannot be replaced');
+  const clean={id,category,name:name.slice(0,80),baseType,description:String(driver.description||'').slice(0,240),icon:String(driver.icon||deviceIcon(category)).slice(0,24),parameters:Array.isArray(driver.parameters)?driver.parameters.slice(0,40).map(parameter=>({key:String(parameter&&parameter.key||'').slice(0,64),label:String(parameter&&parameter.label||'').slice(0,100),kind:String(parameter&&parameter.kind||'text').slice(0,24),dpt:String(parameter&&parameter.dpt||'').slice(0,24)})):[]};
+  const drivers=deviceDrivers(),position=drivers.findIndex(item=>item.id===id);if(position>=0){if(!confirm('Replace imported driver '+name+'?'))return;drivers[position]=clean}else drivers.push(clean);
+  saveDeviceDrivers(drivers);renderSystemDeviceTools();renderDeviceConfigs();toast(name+' driver imported');
+ }catch(error){toast(error.message||'Driver import failed')}finally{input.value=''}
+};
+
+const allDriversHeaderFields=reviewDeviceHeaderFields;
+reviewDeviceHeaderFields=function(item){
+ const x=item.data||{},category=item.type;
+ if(category==='lighting')return allDriversHeaderFields(item);
+ if(category==='security'){
+   const current=String(x.driverId||('security-'+(x.securityType==='motion'?'motion':'lock')));
+   return '<div><label>Security device</label><select data-addr="deviceDriver">'+driverOptions('security',current)+'</select></div><div><label>Control</label><select data-addr="controllable"><option value="true" '+(x.controllable!==false?'selected':'')+'>Enabled</option><option value="false" '+(x.controllable===false?'selected':'')+'>Status only</option></select></div>';
+ }
+ if(category==='av'){
+   const current=String(x.driverId||('av-'+(['tv','radio','nax'].includes(x.avType)?x.avType:'tv')));
+   return '<div><label>Audio / Video device</label><select data-addr="deviceDriver">'+driverOptions('av',current)+'</select></div><div></div>';
+ }
+ const definitions=deviceDriverDefinitions(category);if(definitions.length){const current=String(x.driverId||category);return '<div><label>Device driver</label><select data-addr="deviceDriver">'+driverOptions(category,current)+'</select></div><div></div>'}
+ return allDriversHeaderFields(item);
+};
+const allDriversUpdateAddress=updateUnifiedAddress;
+updateUnifiedAddress=function(item,el){
+ if(el&&el.dataset&&el.dataset.addr==='deviceDriver'){
+   const driver=allDeviceDriverDefinitions().find(value=>value.id===el.value&&value.category===item.type);if(!driver)return;
+   const apply=(list,save)=>{const x=list.find(value=>value.id===item.sourceId);if(!x)return;x.driverId=driverIsBuiltIn(driver.id)?'':driver.id;if(item.type==='security')x.securityType=driver.baseType;if(item.type==='av')x.avType=driver.baseType;save(list);};
+   if(item.source==='security')apply(securityDevices(),saveSecurityDevices);else if(item.source==='generic')apply(genericDevices(),saveGenericDevices);
+   renderDeviceConfigs();renderSecurity();renderConfiguredAv();return;
+ }
+ return allDriversUpdateAddress(item,el);
+};
+
+
+// Declarative driver UI metadata. Imported JSON can describe presentation but cannot execute code.
+const DRIVER_UI_RENDERERS={dim:'dimmer',switch:'switch',rgbw:'rgbw',lock:'lock',motion:'motion',thermostat:'thermostat',screen:'screen',camera:'camera',scene:'scene',tv:'television',radio:'radio',nax:'media-player'};
+const DRIVER_UI_DEFAULTS={
+ dim:{icon:'💡',activeIcon:'💡',inactiveIcon:'💡',activeText:'On',inactiveText:'Off',primaryAction:'On',secondaryAction:'Off'},
+ switch:{icon:'💡',activeIcon:'💡',inactiveIcon:'💡',activeText:'On',inactiveText:'Off',primaryAction:'On',secondaryAction:'Off'},
+ rgbw:{icon:'🎨',activeIcon:'🎨',inactiveIcon:'🎨',activeText:'On',inactiveText:'Off',primaryAction:'On',secondaryAction:'Off'},
+ lock:{icon:'🔒',activeIcon:'🔒',inactiveIcon:'🔓',activeText:'Locked',inactiveText:'Unlocked',primaryAction:'Lock',secondaryAction:'Unlock'},
+ motion:{icon:'🚶',activeIcon:'🏃',inactiveIcon:'🚶',activeText:'Motion',inactiveText:'Standby',primaryAction:'Enable',secondaryAction:'Disable'},
+ thermostat:{icon:'🌡️',activeIcon:'🌡️',inactiveIcon:'🌡️',activeText:'Active',inactiveText:'Off',primaryAction:'On',secondaryAction:'Off'},
+ screen:{icon:'🪟',activeIcon:'🪟',inactiveIcon:'🪟',activeText:'Open',inactiveText:'Closed',primaryAction:'Open',secondaryAction:'Close'},
+ camera:{icon:'📷',activeIcon:'📷',inactiveIcon:'📷',activeText:'Live',inactiveText:'Offline',primaryAction:'Open',secondaryAction:'Close'},
+ scene:{icon:'✨',activeIcon:'✨',inactiveIcon:'✨',activeText:'Active',inactiveText:'Ready',primaryAction:'Activate',secondaryAction:'Off'},
+ tv:{icon:'📺',activeIcon:'📺',inactiveIcon:'📺',activeText:'On',inactiveText:'Off',primaryAction:'On',secondaryAction:'Off'},
+ radio:{icon:'📻',activeIcon:'📻',inactiveIcon:'📻',activeText:'On',inactiveText:'Off',primaryAction:'On',secondaryAction:'Off'},
+ nax:{icon:'🎵',activeIcon:'🎵',inactiveIcon:'🎵',activeText:'On',inactiveText:'Off',primaryAction:'On',secondaryAction:'Off'}
+};
+function normalizedDriverUi(driver){
+ const base=DRIVER_UI_DEFAULTS[driver&&driver.baseType]||DRIVER_UI_DEFAULTS[driver&&driver.category]||{},source=driver&&driver.ui&&typeof driver.ui==='object'?driver.ui:{};
+ return {renderer:DRIVER_UI_RENDERERS[driver&&driver.baseType]||String(source.renderer||'standard'),icon:String(source.icon||driver&&driver.icon||base.icon||'⚙️').slice(0,32),activeIcon:String(source.activeIcon||base.activeIcon||source.icon||driver&&driver.icon||'⚙️').slice(0,32),inactiveIcon:String(source.inactiveIcon||base.inactiveIcon||source.icon||driver&&driver.icon||'⚙️').slice(0,32),activeText:String(source.activeText||base.activeText||'On').slice(0,40),inactiveText:String(source.inactiveText||base.inactiveText||'Off').slice(0,40),primaryAction:String(source.primaryAction||base.primaryAction||'On').slice(0,40),secondaryAction:String(source.secondaryAction||base.secondaryAction||'Off').slice(0,40),density:['compact','standard','comfortable'].includes(source.density)?source.density:'standard',accent:/^#[0-9a-f]{6}$/i.test(String(source.accent||''))?String(source.accent):'',showStatus:source.showStatus!==false,settingsOrder:Array.isArray(source.settingsOrder)?source.settingsOrder.map(String).slice(0,40):((driver&&driver.parameters)||[]).map(parameter=>String(parameter.key||'')).filter(Boolean)};
+}
+function driverWithUi(driver){return {...driver,ui:normalizedDriverUi(driver)}}
+allDeviceDriverDefinitions=function(){return [...BUILTIN_DEVICE_DRIVERS,...deviceDrivers().filter(driver=>driver&&DRIVER_CATEGORIES.includes(driver.category)&&(DRIVER_BASE_TYPES[driver.category]||[]).includes(driver.baseType))].map(driverWithUi)};
+deviceDriverDefinitions=function(category){return allDeviceDriverDefinitions().filter(driver=>driver.category===category)};
+function customUiDriverFor(item){const x=item&&item.data||item||{},driver=driverForConfiguredDevice(item);return x.driverId&&!driverIsBuiltIn(x.driverId)?driver:null}
+function applyDriverUiStyle(element,ui){if(!element||!ui)return;element.dataset.driverRenderer=ui.renderer;element.dataset.driverDensity=ui.density;if(ui.accent){element.style.setProperty('--driver-accent',ui.accent);element.style.borderColor=ui.accent}}
+function setDriverStatusText(node,text){if(!node)return;const dot=node.querySelector('.security-dot');node.textContent='';if(dot)node.appendChild(dot);node.appendChild(document.createTextNode(text))}
+if(!document.getElementById('driverUiStyles'))document.head.insertAdjacentHTML('beforeend','<style id="driverUiStyles">[data-driver-density="compact"]{padding-top:8px!important;padding-bottom:8px!important;min-height:0!important}[data-driver-density="comfortable"]{padding-top:22px!important;padding-bottom:22px!important}.driver-ui-icon{display:inline-block;margin-right:7px}.driver-ui-extra-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}@media(max-width:700px){.driver-ui-extra-fields{grid-template-columns:1fr}}</style>');
+
+exportSelectedDriver=function(){
+ const select=document.getElementById('systemDriverExportSelect'),found=allDeviceDriverDefinitions().find(item=>item.id===String(select&&select.value));if(!found){toast('Select a driver to export');return}
+ const driver=driverWithUi(found),payload={format:'HTMLUI-driver',version:3,driver};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),link=document.createElement('a'),safe=String(driver.id||'driver').replace(/[^a-z0-9._-]+/gi,'-');link.href=URL.createObjectURL(blob);link.download=safe+'.htmlui-driver.json';document.body.appendChild(link);link.click();const url=link.href;link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+importDriverFile=async function(input){
+ const file=input&&input.files&&input.files[0];if(!file)return;
+ try{
+  const payload=JSON.parse(await file.text()),driver=payload&&payload.driver;
+  if(payload.format!=='HTMLUI-driver'||![1,2,3].includes(Number(payload.version))||!driver)throw new Error('This is not a valid HTMLUI driver file');
+  const id=String(driver.id||'').trim(),name=String(driver.name||'').trim(),category=String(driver.category||'').trim(),baseType=String(driver.baseType||'').trim();
+  if(!/^[a-z0-9][a-z0-9._-]{1,63}$/i.test(id))throw new Error('Driver id must contain 2–64 letters, numbers, dots, dashes or underscores');if(!name)throw new Error('Driver name is required');if(!DRIVER_CATEGORIES.includes(category))throw new Error('Unsupported driver category');if(!(DRIVER_BASE_TYPES[category]||[]).includes(baseType))throw new Error('Unsupported baseType for '+category);if(driverIsBuiltIn(id))throw new Error('Choose a different id; built-in drivers cannot be replaced');
+  const parameterKeys=new Set(),parameters=Array.isArray(driver.parameters)?driver.parameters.slice(0,40).map(parameter=>{const key=String(parameter&&parameter.key||'').slice(0,64);if(key)parameterKeys.add(key);return {key,label:String(parameter&&parameter.label||'').slice(0,100),kind:String(parameter&&parameter.kind||'text').slice(0,24),dpt:String(parameter&&parameter.dpt||'').slice(0,24)}}):[];
+  const sourceUi=driver.ui&&typeof driver.ui==='object'?driver.ui:{},ui=normalizedDriverUi({...driver,parameters,ui:sourceUi});ui.settingsOrder=ui.settingsOrder.filter(key=>parameterKeys.has(key));parameters.forEach(parameter=>{if(parameter.key&&!ui.settingsOrder.includes(parameter.key))ui.settingsOrder.push(parameter.key)});
+  const clean={id,category,name:name.slice(0,80),baseType,description:String(driver.description||'').slice(0,240),icon:String(driver.icon||ui.icon||deviceIcon(category)).slice(0,24),parameters,ui};
+  const drivers=deviceDrivers(),position=drivers.findIndex(item=>item.id===id);if(position>=0){if(!confirm('Replace imported driver '+name+'?'))return;drivers[position]=clean}else drivers.push(clean);saveDeviceDrivers(drivers);renderSystemDeviceTools();renderDeviceConfigs();renderLightingSliders();renderSecurity();renderConfiguredAv();renderConfiguredCameras();renderConfiguredScenes();toast(name+' driver imported');
+ }catch(error){toast(error.message||'Driver import failed')}finally{input.value=''}
+};
+
+const driverUiRenderDevices=renderDeviceConfigs;
+renderDeviceConfigs=function(){driverUiRenderDevices();allConfiguredDevices().forEach(item=>{const driver=customUiDriverFor(item);if(!driver)return;const details=document.querySelector('details.unified-device[data-id="'+CSS.escape(item.id)+'"]');if(!details)return;const icon=details.querySelector('.unified-type-icon');if(icon)icon.textContent=driver.ui.icon;applyDriverUiStyle(details,driver.ui);const extra=[];(driver.parameters||[]).forEach(parameter=>{const field=details.querySelector('[data-addr="'+CSS.escape(parameter.key)+'"]');if(field&&parameter.label){const label=field.closest('div')&&field.closest('div').querySelector('label');if(label)label.textContent=parameter.label}else if(parameter.key){const value=item.data&&item.data[parameter.key]!=null?item.data[parameter.key]:'',type=parameter.kind==='password'?'password':parameter.kind==='number'?'number':parameter.kind==='checkbox'?'checkbox':'text';extra.push('<div><label>'+esc(parameter.label||parameter.key)+'</label><input '+(type==='checkbox'?'type="checkbox" '+(value?'checked':''):'type="'+type+'" value="'+esc(value)+'"')+' data-addr="'+esc(parameter.key)+'"></div>')}});if(extra.length){const body=details.querySelector('.unified-device-body'),remove=body&&body.querySelector('.unified-device-remove'),holder=document.createElement('div');holder.className='driver-ui-extra-fields';holder.innerHTML=extra.join('');if(remove)body.insertBefore(holder,remove);else body.appendChild(holder);holder.querySelectorAll('[data-addr]').forEach(field=>field.addEventListener('change',()=>updateUnifiedAddress(item,field)))}})};
+
+const driverUiRenderLighting=renderLightingSliders;
+renderLightingSliders=function(){driverUiRenderLighting();sliders().forEach(x=>{const driver=customUiDriverFor({type:'lighting',data:x});if(!driver)return;const anchor=document.getElementById('light-slider-'+x.id)||document.getElementById('light-switch-'+x.id)||document.getElementById('rgbw-slider-'+x.id),card=anchor&&anchor.closest('.lighting-control,.rgbw-control');if(!card)return;applyDriverUiStyle(card,driver.ui);const title=card.querySelector('.topline b:first-child,.rgbw-top b:first-child');if(title&&!title.querySelector('.driver-ui-icon'))title.insertAdjacentHTML('afterbegin','<span class="driver-ui-icon">'+esc(driver.ui.icon)+' </span>');if(x.mode==='switch'){const on=Number(x.feedbackValue??x.value??0)>0,state=card.querySelector('.switch-value'),button=card.querySelector('.lighting-switch-button');if(state)state.textContent=on?driver.ui.activeText:driver.ui.inactiveText;if(button)button.textContent=on?driver.ui.primaryAction:driver.ui.secondaryAction}})};
+
+const driverUiRenderSecurity=renderSecurity;
+renderSecurity=function(){driverUiRenderSecurity();const raw=securityDevices().filter(item=>rooms().includes(item.room));document.querySelectorAll('#securityLocks .security-page-room,#securityMotion .security-page-room').forEach(card=>{const room=card.querySelector('.security-page-room-title')?.textContent||'',isMotionSection=!!card.closest('#securityMotion'),rows=card.querySelectorAll('.security-item,.security-motion-row'),items=raw.filter(item=>item.room===room&&((item.securityType==='motion')===isMotionSection));rows.forEach((row,index)=>{const item=items[index],driver=item&&customUiDriverFor({type:'security',data:item});if(!driver)return;const active=item.securityType==='motion'?item.motion===true:item.locked!==false,icon=row.querySelector('.security-icon,.security-motion-icon'),status=row.querySelector('.security-state,.security-motion-status');if(icon)icon.textContent=active?driver.ui.activeIcon:driver.ui.inactiveIcon;if(status)setDriverStatusText(status,active?driver.ui.activeText:driver.ui.inactiveText);const buttons=row.querySelectorAll('.security-btn,.security-enable-btn');if(buttons[0])buttons[0].textContent=driver.ui.primaryAction;if(buttons[1])buttons[1].textContent=driver.ui.secondaryAction;applyDriverUiStyle(row,driver.ui)})})};
+
+const driverUiRenderAv=renderConfiguredAv;
+renderConfiguredAv=function(){driverUiRenderAv();const cards=[...document.querySelectorAll('#avDeviceList .av-device-card')],configured=naxConfiguredCards();cards.forEach(card=>{const room=card.querySelector('.security-page-room-title')?.textContent||'',name=card.querySelector('.security-page-room-count')?.textContent||'',item=configured.find(value=>(value.room||'Other')===room&&(value.name||'AV device')===name),driver=item&&customUiDriverFor({type:'av',data:item});if(!driver)return;const row=card.querySelector('.av-device-item'),state=row?.querySelector('.av-status-text'),online=state?.classList.contains('is-on');applyDriverUiStyle(card,driver.ui);const icon=row?.querySelector('.av-tv-icon');if(icon)icon.textContent=online?driver.ui.activeIcon:driver.ui.inactiveIcon;if(state)setDriverStatusText(state,online?driver.ui.activeText:driver.ui.inactiveText);const on=row?.querySelector('[data-av-power="on"]'),off=row?.querySelector('[data-av-power="off"],[data-nax-power="off"]');if(on)on.textContent=driver.ui.primaryAction;if(off)off.textContent=driver.ui.secondaryAction})};
+
+const driverUiRenderScenes=renderConfiguredScenes;
+renderConfiguredScenes=function(){driverUiRenderScenes();genericDevices().filter(item=>item.type==='scene').forEach(item=>{const driver=customUiDriverFor({type:'scene',data:item});if(!driver)return;const button=document.querySelector('#sceneDeviceList [data-scene="'+CSS.escape(String(item.id))+'"]');if(button){button.textContent=driver.ui.icon+' '+(item.name||driver.name);applyDriverUiStyle(button,driver.ui)}})};
+
+
+// Driver-defined Settings cards. The schema is declarative; HTML and JavaScript are never imported.
+const DRIVER_SETTINGS_FIELD_TYPES=['text','password','number','select','checkbox','ip','url'];
+function sanitizeDriverSettingsPanels(value){
+ if(!Array.isArray(value))return [];
+ return value.slice(0,12).map((panel,index)=>{
+  panel=panel&&typeof panel==='object'?panel:{};
+  const id=String(panel.id||('panel-'+(index+1))).replace(/[^a-z0-9._-]+/gi,'-').slice(0,64)||('panel-'+(index+1));
+  const fields=Array.isArray(panel.fields)?panel.fields.slice(0,30).map(field=>{field=field&&typeof field==='object'?field:{};const key=String(field.key||'').replace(/[^a-z0-9._-]+/gi,'-').slice(0,64),type=DRIVER_SETTINGS_FIELD_TYPES.includes(field.type)?field.type:'text',options=Array.isArray(field.options)?field.options.slice(0,50).map(option=>typeof option==='object'?{value:String(option.value??'').slice(0,120),label:String(option.label??option.value??'').slice(0,120)}:{value:String(option).slice(0,120),label:String(option).slice(0,120)}):[];return key?{key,label:String(field.label||key).slice(0,100),type,placeholder:String(field.placeholder||'').slice(0,160),description:String(field.description||'').slice(0,240),default:type==='password'?'':(typeof field.default==='boolean'||typeof field.default==='number'?field.default:String(field.default??'').slice(0,500)),min:Number.isFinite(Number(field.min))?Number(field.min):undefined,max:Number.isFinite(Number(field.max))?Number(field.max):undefined,step:Number.isFinite(Number(field.step))?Number(field.step):undefined,options,width:field.width==='full'?'full':'half'}:null}).filter(Boolean):[];
+  return {id,title:String(panel.title||'Driver settings').slice(0,100),description:String(panel.description||'').slice(0,300),icon:String(panel.icon||'⚙️').slice(0,32),collapsible:panel.collapsible!==false,initiallyOpen:panel.initiallyOpen===true,saveLabel:String(panel.saveLabel||'Save settings').slice(0,60),fields};
+ }).filter(panel=>panel.fields.length);
+}
+const driverPanelsNormalizedUi=normalizedDriverUi;
+normalizedDriverUi=function(driver){const ui=driverPanelsNormalizedUi(driver),source=driver&&driver.ui&&typeof driver.ui==='object'?driver.ui:{};ui.settingsPanels=sanitizeDriverSettingsPanels(source.settingsPanels);return ui};
+function driverSettingsValues(driver){return driver&&driver.settingsValues&&typeof driver.settingsValues==='object'?driver.settingsValues:{}}
+function driverSettingValue(driver,panel,field){const values=driverSettingsValues(driver),key=panel.id+'.'+field.key;if(Object.prototype.hasOwnProperty.call(values,key))return values[key];return field.default??(field.type==='checkbox'?false:'')}
+function driverSettingsFieldHtml(driver,panel,field){
+ const value=driverSettingValue(driver,panel,field),id='driver-setting-'+driver.id+'-'+panel.id+'-'+field.key,label='<label for="'+esc(id)+'">'+esc(field.label)+'</label>',attrs=' id="'+esc(id)+'" data-driver-setting="'+esc(driver.id)+'" data-driver-panel="'+esc(panel.id)+'" data-driver-field="'+esc(field.key)+'"';let control='';
+ if(field.type==='select')control='<select'+attrs+'>'+field.options.map(option=>'<option value="'+esc(option.value)+'" '+(String(value)===option.value?'selected':'')+'>'+esc(option.label)+'</option>').join('')+'</select>';
+ else if(field.type==='checkbox')control='<label class="security-option driver-settings-checkbox"><input type="checkbox"'+attrs+' '+(value===true||value==='true'?'checked':'')+'> '+esc(field.label)+'</label>';
+ else {const type=field.type==='password'?'password':field.type==='number'?'number':field.type==='url'?'url':'text',limits=(field.min!==undefined?' min="'+field.min+'"':'')+(field.max!==undefined?' max="'+field.max+'"':'')+(field.step!==undefined?' step="'+field.step+'"':'');control=label+'<input type="'+type+'"'+attrs+limits+' value="'+esc(value)+'" placeholder="'+esc(field.placeholder)+'" '+(type==='password'?'autocomplete="new-password"':'')+'>'}
+ return '<div class="driver-settings-field '+(field.width==='full'?'full':'')+'">'+control+(field.description?'<div class="muted driver-settings-field-help">'+esc(field.description)+'</div>':'')+'</div>';
+}
+function renderDriverSettingsCards(){
+ const host=document.getElementById('driverSettingsCards');if(!host)return;host.replaceChildren();
+ deviceDrivers().map(driverWithUi).filter(driver=>driver.ui.settingsPanels.length).forEach(driver=>driver.ui.settingsPanels.forEach(panel=>{
+  const details=document.createElement('details');details.className='card s12 settings-section driver-settings-card';details.dataset.driverId=driver.id;details.dataset.panelId=panel.id;details.open=panel.collapsible?panel.initiallyOpen:true;
+  details.innerHTML='<summary class="settings-heading settings-collapse-summary"><div><h2><span class="settings-section-icon">'+esc(panel.icon||driver.ui.icon)+'</span>'+esc(panel.title)+'</h2>'+(panel.description?'<div class="muted">'+esc(panel.description)+'</div>':'')+'</div><span class="device-type-label">'+esc(driver.name)+'</span></summary><div class="settings-section-body"><div class="driver-settings-grid">'+panel.fields.map(field=>driverSettingsFieldHtml(driver,panel,field)).join('')+'</div><div class="actions driver-settings-actions"><button type="button" class="btn primary" data-driver-settings-save="'+esc(driver.id)+'">'+esc(panel.saveLabel)+'</button></div></div>';
+  if(!panel.collapsible){const summary=details.querySelector('summary');summary.style.cursor='default';summary.addEventListener('click',event=>event.preventDefault())}details.querySelector('[data-driver-settings-save]').addEventListener('click',()=>saveDriverSettingsPanel(details));host.appendChild(details);
+ }));
+}
+function saveDriverSettingsPanel(card){
+ const drivers=deviceDrivers(),driver=drivers.find(item=>item.id===card.dataset.driverId);if(!driver)return;const panel=card.dataset.panelId,values=driver.settingsValues&&typeof driver.settingsValues==='object'?{...driver.settingsValues}:{};
+ card.querySelectorAll('[data-driver-field]').forEach(field=>{const key=panel+'.'+field.dataset.driverField;values[key]=field.type==='checkbox'?field.checked:field.type==='number'&&field.value!==''?Number(field.value):field.value});driver.settingsValues=values;saveDeviceDrivers(drivers);toast((driver.name||'Driver')+' settings saved');
+}
+const driverPanelsRenderSystemTools=renderSystemDeviceTools;
+renderSystemDeviceTools=function(){driverPanelsRenderSystemTools();renderDriverSettingsCards()};
+
+exportSelectedDriver=function(){
+ const select=document.getElementById('systemDriverExportSelect'),found=allDeviceDriverDefinitions().find(item=>item.id===String(select&&select.value));if(!found){toast('Select a driver to export');return}const withUi=driverWithUi(found),driver={...withUi};delete driver.settingsValues;driver.ui={...withUi.ui,settingsPanels:sanitizeDriverSettingsPanels(withUi.ui.settingsPanels)};const payload={format:'HTMLUI-driver',version:4,driver};const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),link=document.createElement('a'),safe=String(driver.id||'driver').replace(/[^a-z0-9._-]+/gi,'-');link.href=URL.createObjectURL(blob);link.download=safe+'.htmlui-driver.json';document.body.appendChild(link);link.click();const url=link.href;link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+importDriverFile=async function(input){
+ const file=input&&input.files&&input.files[0];if(!file)return;
+ try{const payload=JSON.parse(await file.text()),driver=payload&&payload.driver;if(payload.format!=='HTMLUI-driver'||![1,2,3,4].includes(Number(payload.version))||!driver)throw new Error('This is not a valid HTMLUI driver file');const id=String(driver.id||'').trim(),name=String(driver.name||'').trim(),category=String(driver.category||'').trim(),baseType=String(driver.baseType||'').trim();if(!/^[a-z0-9][a-z0-9._-]{1,63}$/i.test(id))throw new Error('Driver id must contain 2–64 letters, numbers, dots, dashes or underscores');if(!name)throw new Error('Driver name is required');if(!DRIVER_CATEGORIES.includes(category))throw new Error('Unsupported driver category');if(!(DRIVER_BASE_TYPES[category]||[]).includes(baseType))throw new Error('Unsupported baseType for '+category);if(driverIsBuiltIn(id))throw new Error('Choose a different id; built-in drivers cannot be replaced');const parameterKeys=new Set(),parameters=Array.isArray(driver.parameters)?driver.parameters.slice(0,40).map(parameter=>{const key=String(parameter&&parameter.key||'').slice(0,64);if(key)parameterKeys.add(key);return {key,label:String(parameter&&parameter.label||'').slice(0,100),kind:String(parameter&&parameter.kind||'text').slice(0,24),dpt:String(parameter&&parameter.dpt||'').slice(0,24)}}):[];const sourceUi=driver.ui&&typeof driver.ui==='object'?driver.ui:{},ui=normalizedDriverUi({...driver,parameters,ui:sourceUi});ui.settingsOrder=ui.settingsOrder.filter(key=>parameterKeys.has(key));parameters.forEach(parameter=>{if(parameter.key&&!ui.settingsOrder.includes(parameter.key))ui.settingsOrder.push(parameter.key)});const drivers=deviceDrivers(),position=drivers.findIndex(item=>item.id===id),previousValues=position>=0?driverSettingsValues(drivers[position]):{},clean={id,category,name:name.slice(0,80),baseType,description:String(driver.description||'').slice(0,240),icon:String(driver.icon||ui.icon||deviceIcon(category)).slice(0,24),parameters,ui,settingsValues:previousValues};if(position>=0){if(!confirm('Replace imported driver '+name+'?'))return;drivers[position]=clean}else drivers.push(clean);saveDeviceDrivers(drivers);renderSystemDeviceTools();renderDeviceConfigs();renderLightingSliders();renderSecurity();renderConfiguredAv();renderConfiguredCameras();renderConfiguredScenes();toast(name+' driver imported');}catch(error){toast(error.message||'Driver import failed')}finally{input.value=''}
+};
+if(!document.getElementById('driverSettingsPanelStyles'))document.head.insertAdjacentHTML('beforeend','<style id="driverSettingsPanelStyles">.driver-settings-cards{display:contents}.driver-settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.driver-settings-field.full{grid-column:1/-1}.driver-settings-field-help{font-size:12px;margin-top:5px}.driver-settings-checkbox{min-height:44px;align-items:center}.driver-settings-actions{margin-top:16px}@media(max-width:700px){.driver-settings-grid{grid-template-columns:1fr}.driver-settings-field.full{grid-column:auto}}</style>');
+
+</script></body></html>
 
 
 

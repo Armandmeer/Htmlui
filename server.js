@@ -92,6 +92,7 @@ function configurationFieldsChanged(saved, input) {
     sliders: Array.isArray(value && value.sliders) ? value.sliders : [],
     securityDevices: Array.isArray(value && value.securityDevices) ? value.securityDevices : [],
     genericDevices: Array.isArray(value && value.genericDevices) ? value.genericDevices : [],
+    deviceDrivers: Array.isArray(value && value.deviceDrivers) ? value.deviceDrivers : [],
     presets: value && value.presets && typeof value.presets === 'object' ? value.presets : {}
   });
   return JSON.stringify(project(saved)) !== JSON.stringify(project(input));
@@ -1086,6 +1087,20 @@ async function naxRefreshVolume(unit) {
   if(result.status!==200||!result.json)throw new Error('NAX volume HTTP '+result.status);
   unit.channels=channels;unit.restError='';unit.restAuth='ok';
 }
+async function naxRefreshRouting(unit) {
+  const [inputsResult, routesResult] = await Promise.all([
+    naxGetRestObject(unit, '/Device/InputSources/'),
+    naxGetRestObject(unit, '/Device/AvMatrixRouting/')
+  ]);
+  unit.inputSources = inputsResult.json && inputsResult.json.Device && inputsResult.json.Device.InputSources && inputsResult.json.Device.InputSources.Inputs || {};
+  unit.avRoutes = routesResult.json && routesResult.json.Device && routesResult.json.Device.AvMatrixRouting && routesResult.json.Device.AvMatrixRouting.Routes || {};
+}
+async function naxRefreshRouting(unit){
+  const inputsResult=await naxGetRestObject(unit,'/Device/InputSources/');
+  const routesResult=await naxGetRestObject(unit,'/Device/AvMatrixRouting/');
+  unit.inputSources=inputsResult.json&&inputsResult.json.Device&&inputsResult.json.Device.InputSources&&inputsResult.json.Device.InputSources.Inputs||{};
+  unit.avRoutes=routesResult.json&&routesResult.json.Device&&routesResult.json.Device.AvMatrixRouting&&routesResult.json.Device.AvMatrixRouting.Routes||{};
+}
 async function naxRefreshMediaRest(unit){
   const profilesResult=await naxGetRestObject(unit,'/Device/StreamingServices/UserProfiles/');
   const profiles=profilesResult.json&&profilesResult.json.Device&&profilesResult.json.Device.StreamingServices&&profilesResult.json.Device.StreamingServices.UserProfiles;if(profiles)unit.userProfiles=naxDeepMerge(unit.userProfiles,profiles);
@@ -1114,7 +1129,27 @@ function naxChannelForPlayer(unit, device, playerNumber) {
   if (roomIndex>=0 && roomIndex<4) return 'Zone'+String(roomIndex+1);
   return '';
 }
-async function naxSetVolume(unit, device, playerNumber, volumePercent) {
+function naxInputForPlayer(unit, playerNumber) {
+  const number=naxPlayerNumber(playerNumber),inputs=unit&&unit.inputSources||{},entries=Object.entries(inputs);
+  const named=entries.find(([,value])=>String(value&&value.Name||'').trim().toLowerCase()==='mediastream'+number);
+  if(named)return named[0];
+  const media=entries.filter(([,value])=>String(value&&value.AudioType||'').toLowerCase()==='mediaplayer').sort(([a],[b])=>a.localeCompare(b,undefined,{numeric:true}));
+  return media[number-1]&&media[number-1][0]||'';
+}
+async function naxRoutePlayerToOutput(unit,device,playerNumber){
+  if(!unit)throw new Error('NAX unit is not connected');
+  if(!Object.keys(unit.channels||{}).length||!Object.keys(unit.inputSources||{}).length||!Object.keys(unit.avRoutes||{}).length){await naxRefreshVolume(unit);await naxRefreshRouting(unit);}
+  const channel=naxChannelForPlayer(unit,device,playerNumber),source=naxInputForPlayer(unit,playerNumber);
+  if(!channel)throw new Error('No NAX output channel is available for this player');
+  if(!source)throw new Error('No NAX media input is available for this player');
+  if(String(unit.avRoutes[channel]&&unit.avRoutes[channel].AudioSource||'')===source)return {channel,source};
+  const payload={Device:{AvMatrixRouting:{Routes:{[channel]:{AudioSource:source}}}}};
+  let result=await naxHttpsRequest(unit,'POST','/Device',payload);
+  if(naxNeedsLogin(result)){await naxRestLogin(unit);result=await naxHttpsRequest(unit,'POST','/Device',payload);}
+  if(result.status<200||result.status>=300)throw new Error('NAX source routing HTTP '+result.status);
+  unit.avRoutes[channel]={...(unit.avRoutes[channel]||{}),AudioSource:source};
+  return {channel,source};
+}async function naxSetVolume(unit, device, playerNumber, volumePercent) {
   if (!Object.keys(unit.channels || {}).length && Date.now() >= Number(unit.restRetryAt || 0)) { try { await naxRefreshVolume(unit); } catch (_) {} }
   const channel = naxChannelForPlayer(unit, device, playerNumber);
   if (!channel) throw new Error('No NAX output channel is available. Select an output for this player in Settings.');
@@ -1144,12 +1179,12 @@ function naxPublicPlayerState(device, playerNumber) {
   const channel=unit ? naxChannelForPlayer(unit,device,playerNumber) : '', channelState=unit && unit.channels[channel] || {};
   let rawVolume=channelState.Volume,pending=unit&&unit.pendingVolumes&&unit.pendingVolumes[channel];
   if(pending){if(Number.isFinite(Number(rawVolume))&&Math.abs(Number(rawVolume)-Number(pending.value))<=1)delete unit.pendingVolumes[channel];else if(Date.now()<Number(pending.until||0))rawVolume=pending.value;else delete unit.pendingVolumes[channel];}
-  return { connected:!!(unit&&unit.connected), socketOpen:!!(unit&&unit.socketOpen), error:unit&&(unit.error||unit.restError)||'', restAuth:unit&&unit.restAuth||'unknown', playerId, player, availableActions:naxAvailableActions(player), presets:naxFavoriteList(unit).map(item=>({id:item.id,name:item.name,icon:item.icon,provider:item.provider,playable:!!item.signedData})), volume:Number.isFinite(Number(rawVolume))?Math.round(Number(rawVolume)/10):null, muted:!!channelState.IsMuted, outputChannel:channel, outputs:Object.entries(unit&&unit.channels||{}).map(([id,value])=>({id,name:value&&value.Name||id})), menu:naxMenuPublic(unit), updatedAt:unit&&unit.updatedAt||'' };
+  return { connected:!!(unit&&unit.connected), socketOpen:!!(unit&&unit.socketOpen), error:unit&&(unit.error||unit.restError)||'', restAuth:unit&&unit.restAuth||'unknown', playerId, player, availableActions:naxAvailableActions(player), presets:naxFavoriteList(unit).map(item=>({id:item.id,name:item.name,icon:item.icon,provider:item.provider,playable:!!item.signedData})), volume:Number.isFinite(Number(rawVolume))?Math.round(Number(rawVolume)/10):null, muted:!!channelState.IsMuted, outputChannel:channel, outputs:Object.entries(unit&&unit.channels||{}).map(([id,value])=>({id,name:value&&value.Name||id,signal:!!(value&&value.IsSignalDetected)})), routing:{inputs:Object.fromEntries(Object.entries(unit&&unit.inputSources||{}).map(([id,value])=>[id,{name:value&&value.Name||id,type:value&&value.AudioType||'',signal:!!(value&&value.IsSignalPresent)}])),routes:Object.fromEntries(Object.entries(unit&&unit.avRoutes||{}).map(([id,value])=>[id,{audioSource:value&&value.AudioSource||''}]))}, menu:naxMenuPublic(unit), updatedAt:unit&&unit.updatedAt||'' };
 }
 async function naxMonitor() {
   naxReconcile();
   const now = Date.now();
-  for (const unit of naxUnits.values()) if (now >= Number(unit.nextRest || 0)) { unit.nextRest = now + 7000; if (now < Number(unit.restRetryAt || 0)) continue; try{await naxRefreshVolume(unit);await naxRefreshMediaRest(unit);unit.restError='';const missing=naxFavoriteList(unit,false).find(item=>!item.signedData);if(missing&&!unit.presetResolveInFlight){unit.presetResolveInFlight=true;naxResolveFavoriteSignedData(unit,missing).catch(()=>{}).finally(()=>{unit.presetResolveInFlight=false;});}}catch(error){unit.restError=error.message;} }
+  for (const unit of naxUnits.values()) if (now >= Number(unit.nextRest || 0)) { unit.nextRest = now + 7000; if (now < Number(unit.restRetryAt || 0)) continue; try{await naxRefreshVolume(unit);await naxRefreshRouting(unit);await naxRefreshMediaRest(unit);unit.restError='';const missing=naxFavoriteList(unit,false).find(item=>!item.signedData);if(missing&&!unit.presetResolveInFlight){unit.presetResolveInFlight=true;naxResolveFavoriteSignedData(unit,missing).catch(()=>{}).finally(()=>{unit.presetResolveInFlight=false;});}}catch(error){unit.restError=error.message;} }
 }
 setInterval(naxMonitor, 2500); setTimeout(naxMonitor, 900);
 
@@ -1309,8 +1344,9 @@ function writeRGBW(channels) {
   for (const ch of channels) {
     if (!ch || !/^\d{1,3}\/\d{1,3}\/\d{1,3}$/.test(String(ch.ga || '').trim())) continue;
     const v = Math.max(0, Math.min(100, Number(ch.value)));
-    knx.write(String(ch.ga).trim(), v, '5.001');
-    console.log(`[KNX] RGBW WRITE ${String(ch.ga).trim()} 5.001 ${v}%`);
+    const dpt = /^\d{1,3}(?:\.\d{1,3})?$/.test(String(ch.dpt || '')) ? String(ch.dpt) : '5.001';
+    knx.write(String(ch.ga).trim(), v, dpt);
+    console.log(`[KNX] RGBW WRITE ${String(ch.ga).trim()} ${dpt} ${v}%`);
   }
 }
 
@@ -1536,9 +1572,10 @@ const server = http.createServer((req, res) => {
   }
   const naxActionMatch=requestPath.match(/^\/api\/nax\/([^/]+)\/action$/);
   if(naxActionMatch&&req.method==='POST'){
-    let id='';try{id=decodeURIComponent(naxActionMatch[1])}catch(_){} let body='';req.on('data',c=>{body+=c;if(body.length>20000)req.destroy()});req.on('end',()=>{try{
+    let id='';try{id=decodeURIComponent(naxActionMatch[1])}catch(_){} let body='';req.on('data',c=>{body+=c;if(body.length>20000)req.destroy()});req.on('end',async()=>{try{
       const input=JSON.parse(body||'{}'), allowed=new Set(['Play','Pause','Stop','NextTrack','PreviousTrack','Ffwd','Rewind','Shuffle','Repeat','ThumbsUp','ThumbsDown']), target=naxResolveTarget(id); if(!target)throw new Error('Configured NAX player not found'); if(!allowed.has(input.action))throw new Error('NAX action is not allowed');
       const options=input.action==='Shuffle'?{ShufState:!!input.enabled}:input.action==='Repeat'?{RepState:Math.max(0,Math.min(2,Number(input.mode)||0))}:{};
+      const unit=naxUnits.get(naxUnitKey(target.device));if(input.action==='Play')await naxRoutePlayerToOutput(unit,target.device,target.number);
       naxPlayerAction(naxUnits.get(naxUnitKey(target.device)),naxPlayerIdForNumber(target.number),input.action,options);res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true}));
     }catch(error){res.writeHead(400,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:false,error:error.message}))}});return;
   }
@@ -1551,18 +1588,18 @@ const server = http.createServer((req, res) => {
   const naxPresetMatch=requestPath.match(/^\/api\/nax\/([^/]+)\/preset$/);
   if(naxPresetMatch&&req.method==='POST'){
     let id='';try{id=decodeURIComponent(naxPresetMatch[1])}catch(_){} let body='';req.on('data',c=>{body+=c;if(body.length>20000)req.destroy()});req.on('end',async()=>{try{
-      const input=JSON.parse(body||'{}'),target=naxResolveTarget(id);if(!target)throw new Error('Configured NAX player not found');const unit=naxUnits.get(naxUnitKey(target.device)),favorites=naxFavoriteList(unit,false),favorite=favorites.find(item=>String(item.id)===String(input.presetId||''))||favorites.find(item=>String(item.name||'').toLowerCase()===String(input.presetName||'').toLowerCase());if(!favorite)throw new Error('NAX preset is no longer available');const signedData=await naxResolveFavoriteSignedData(unit,favorite),source=signedData.SourceData||{};const playerId=naxPlayerIdForNumber(target.number);naxPlayerAction(unit,playerId,'LoadSource',{ProfileKey:source.ProfileKey||favorite.profile,ProviderKey:source.ProviderKey||favorite.provider||'',AutoPlay:true,SignedData:signedData});setTimeout(()=>{try{naxPlayerAction(unit,playerId,'Play')}catch(_){}},1200);res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true}));
+      const input=JSON.parse(body||'{}'),target=naxResolveTarget(id);if(!target)throw new Error('Configured NAX player not found');const unit=naxUnits.get(naxUnitKey(target.device)),favorites=naxFavoriteList(unit,false),favorite=favorites.find(item=>String(item.id)===String(input.presetId||''))||favorites.find(item=>String(item.name||'').toLowerCase()===String(input.presetName||'').toLowerCase());if(!favorite)throw new Error('NAX preset is no longer available');const signedData=await naxResolveFavoriteSignedData(unit,favorite),source=signedData.SourceData||{};const playerId=naxPlayerIdForNumber(target.number);await naxRoutePlayerToOutput(unit,target.device,target.number);naxPlayerAction(unit,playerId,'LoadSource',{ProfileKey:source.ProfileKey||favorite.profile,ProviderKey:source.ProviderKey||favorite.provider||'',AutoPlay:true,SignedData:signedData});[900,2500].forEach(delay=>setTimeout(()=>{try{naxPlayerAction(unit,playerId,'Play')}catch(_){}},delay));res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true}));
     }catch(error){res.writeHead(400,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:false,error:error.message}))}});return;
   }
   const naxMenuMatch=requestPath.match(/^\/api\/nax\/([^/]+)\/menu$/);
   if(naxMenuMatch&&req.method==='POST'){
-    let id='';try{id=decodeURIComponent(naxMenuMatch[1])}catch(_){} let body='';req.on('data',c=>{body+=c;if(body.length>100000)req.destroy()});req.on('end',()=>{try{
+    let id='';try{id=decodeURIComponent(naxMenuMatch[1])}catch(_){} let body='';req.on('data',c=>{body+=c;if(body.length>100000)req.destroy()});req.on('end',async()=>{try{
       const input=JSON.parse(body||'{}'),target=naxResolveTarget(id);if(!target)throw new Error('Configured NAX player not found');const unit=naxUnits.get(naxUnitKey(target.device));if(!unit)throw new Error('NAX unit is not connected');const profile=naxProfileForPlayer(unit,target.number),history=unit.menuHistory[target.virtualId]||(unit.menuHistory[target.virtualId]=[]);
       const browseItem=item=>{const source=item&&item.signedData&&item.signedData.SourceData||{};naxMenuRequest(unit,source.ProfileKey||profile,'ProviderBrowseMenu',{ProviderKey:source.ProviderKey||item.provider||'',BrowseKey:source.BrowseKey||item.browseKey||'',ItemCount:24,ItemOffset:0,SignedData:item.signedData});};
       if(input.action==='home'){history.length=0;unit.menu={};naxMenuRequest(unit,profile,'HomeScreenMenu',{HomeScreenCategory:'All',ItemCount:50,ItemOffset:0});}
       else if(input.action==='search'){const query=String(input.query||'').trim();if(!query)throw new Error('Enter a station or artist');history.length=0;unit.menu={};naxMenuRequest(unit,profile,'SearchMenu',{SearchProviderKey:'All',SearchText:query,SearchCategory:String(input.category||'station'),ItemCount:24,ItemOffset:0});}
       else if(input.action==='back'){history.pop();unit.menu={};if(history.length)browseItem(history[history.length-1]);else naxMenuRequest(unit,profile,'HomeScreenMenu',{HomeScreenCategory:'All',ItemCount:50,ItemOffset:0});}
-      else if(input.action==='select'){const item=naxMenuItems(unit).find(entry=>String(entry.id)===String(input.itemId));if(!item)throw new Error('NAX menu item not found');if(item.homeCategory){unit.menu={};naxMenuRequest(unit,profile,'HomeScreenMenu',{HomeScreenCategory:item.homeCategory,ItemCount:50,ItemOffset:0});}else if(!item.signedData)throw new Error('This menu item is unavailable');else if(!item.playable){history.push(item);unit.menu={};browseItem(item)}else{const source=item.signedData.SourceData||{};naxPlayerAction(unit,naxPlayerIdForNumber(target.number),'LoadSource',{ProfileKey:source.ProfileKey||profile,ProviderKey:source.ProviderKey||item.provider||'',AutoPlay:true,SignedData:item.signedData});}}
+      else if(input.action==='select'){const item=naxMenuItems(unit).find(entry=>String(entry.id)===String(input.itemId));if(!item)throw new Error('NAX menu item not found');if(item.homeCategory){unit.menu={};naxMenuRequest(unit,profile,'HomeScreenMenu',{HomeScreenCategory:item.homeCategory,ItemCount:50,ItemOffset:0});}else if(!item.signedData)throw new Error('This menu item is unavailable');else if(!item.playable){history.push(item);unit.menu={};browseItem(item)}else{const source=item.signedData.SourceData||{};await naxRoutePlayerToOutput(unit,target.device,target.number);naxPlayerAction(unit,naxPlayerIdForNumber(target.number),'LoadSource',{ProfileKey:source.ProfileKey||profile,ProviderKey:source.ProviderKey||item.provider||'',AutoPlay:true,SignedData:item.signedData});}}
       else throw new Error('Invalid NAX menu action');res.writeHead(200,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:true}));
     }catch(error){res.writeHead(400,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify({ok:false,error:error.message}))}});return;
   }
@@ -1773,7 +1810,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   if (requestPath === "/api/state" && req.method === "GET") {
-    let state = { rooms: [], sliders: [], securityDevices: [], genericDevices: [], presets: {}, securityMode: "Home" };
+    let state = { rooms: [], sliders: [], securityDevices: [], genericDevices: [], deviceDrivers: [], presets: {}, securityMode: "Home" };
     try { if (fs.existsSync(STATE_FILE)) state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch (_) {}
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     return res.end(JSON.stringify(state));
@@ -1808,6 +1845,25 @@ const server = http.createServer((req, res) => {
           sliders: Array.isArray(state.sliders) ? state.sliders.slice(0, 200) : [],
           securityDevices: Array.isArray(state.securityDevices) ? state.securityDevices.filter(x => !sampleSecurityIds.has(String(x && x.id || ""))).slice(0, 200) : [],
           genericDevices: Array.isArray(state.genericDevices) ? state.genericDevices.slice(0, 300) : [],
+          deviceDrivers: Array.isArray(state.deviceDrivers) ? state.deviceDrivers.filter(driver => {
+            const allowed = { lighting:['dim','switch','rgbw'], security:['lock','motion'], thermostat:['thermostat'], screen:['screen'], camera:['camera'], scene:['scene'], av:['tv','radio','nax'] };
+            return driver && allowed[driver.category] && allowed[driver.category].includes(driver.baseType) && /^[a-z0-9][a-z0-9._-]{1,63}$/i.test(String(driver.id || ''));
+          }).map(driver => ({
+            id: String(driver.id).slice(0,64), category: String(driver.category), name: String(driver.name || driver.id).slice(0,80), baseType: String(driver.baseType),
+            description: String(driver.description || '').slice(0,240), icon: String(driver.icon || '⚙️').slice(0,24),
+            ui: driver.ui && typeof driver.ui === 'object' ? {
+              renderer: String(driver.ui.renderer || '').slice(0,32), icon: String(driver.ui.icon || '').slice(0,32), activeIcon: String(driver.ui.activeIcon || '').slice(0,32), inactiveIcon: String(driver.ui.inactiveIcon || '').slice(0,32),
+              activeText: String(driver.ui.activeText || '').slice(0,40), inactiveText: String(driver.ui.inactiveText || '').slice(0,40), primaryAction: String(driver.ui.primaryAction || '').slice(0,40), secondaryAction: String(driver.ui.secondaryAction || '').slice(0,40),
+              density: ['compact','standard','comfortable'].includes(driver.ui.density) ? driver.ui.density : 'standard', accent: /^#[0-9a-f]{6}$/i.test(String(driver.ui.accent || '')) ? String(driver.ui.accent) : '', showStatus: driver.ui.showStatus !== false,
+              settingsOrder: Array.isArray(driver.ui.settingsOrder) ? driver.ui.settingsOrder.slice(0,40).map(value => String(value).slice(0,64)) : [],
+              settingsPanels: Array.isArray(driver.ui.settingsPanels) ? driver.ui.settingsPanels.slice(0,12).map((panel, panelIndex) => ({
+                id: String(panel && panel.id || ('panel-' + (panelIndex + 1))).replace(/[^a-z0-9._-]+/gi,'-').slice(0,64), title: String(panel && panel.title || 'Driver settings').slice(0,100), description: String(panel && panel.description || '').slice(0,300), icon: String(panel && panel.icon || '⚙️').slice(0,32), collapsible: !panel || panel.collapsible !== false, initiallyOpen: !!(panel && panel.initiallyOpen), saveLabel: String(panel && panel.saveLabel || 'Save settings').slice(0,60),
+                fields: Array.isArray(panel && panel.fields) ? panel.fields.slice(0,30).map(field => ({ key:String(field && field.key || '').replace(/[^a-z0-9._-]+/gi,'-').slice(0,64), label:String(field && field.label || field && field.key || '').slice(0,100), type:['text','password','number','select','checkbox','ip','url'].includes(field && field.type) ? field.type : 'text', placeholder:String(field && field.placeholder || '').slice(0,160), description:String(field && field.description || '').slice(0,240), default:field && field.type === 'password' ? '' : (typeof (field && field.default) === 'boolean' || typeof (field && field.default) === 'number' ? field.default : String(field && field.default || '').slice(0,500)), min:Number.isFinite(Number(field && field.min)) ? Number(field.min) : undefined, max:Number.isFinite(Number(field && field.max)) ? Number(field.max) : undefined, step:Number.isFinite(Number(field && field.step)) ? Number(field.step) : undefined, width:field && field.width === 'full' ? 'full' : 'half', options:Array.isArray(field && field.options) ? field.options.slice(0,50).map(option => typeof option === 'object' ? {value:String(option.value || '').slice(0,120),label:String(option.label || option.value || '').slice(0,120)} : {value:String(option).slice(0,120),label:String(option).slice(0,120)}) : [] })) : []
+              })).filter(panel => panel.id && panel.fields.length) : []
+            } : {},
+            settingsValues: driver.settingsValues && typeof driver.settingsValues === 'object' ? Object.fromEntries(Object.entries(driver.settingsValues).filter(([key]) => !['__proto__','constructor','prototype'].includes(key)).slice(0,300).map(([key,value]) => [String(key).slice(0,140), typeof value === 'boolean' || typeof value === 'number' ? value : String(value || '').slice(0,2000)])) : {},
+            parameters: Array.isArray(driver.parameters) ? driver.parameters.slice(0,40).map(parameter => ({ key:String(parameter&&parameter.key||'').slice(0,64), label:String(parameter&&parameter.label||'').slice(0,100), kind:String(parameter&&parameter.kind||'text').slice(0,24), dpt:String(parameter&&parameter.dpt||'').slice(0,24) })) : []
+          })).slice(0,200) : [],
           presets: state.presets && typeof state.presets === "object" ? state.presets : {},
           securityMode,
           configRevision: currentRevision + 1
