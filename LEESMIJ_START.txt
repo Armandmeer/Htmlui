@@ -1,0 +1,12 @@
+HTMLUI SmartHome V2.1.6 - READY
+
+1. Pak de ZIP volledig uit naar een normale map.
+2. Dubbelklik START_HTMLUI.bat.
+3. De eerste keer downloadt de starter automatisch de officiele portable Node.js LTS runtime en installeert de benodigde modules. Internet is hiervoor eenmalig nodig.
+4. De browser opent op http://localhost:3010/.
+5. Log in en ga naar Settings -> Cloudflare Portal.
+6. Vul de Cloudflare-gegevens in en klik Activeren. HTMLUI regelt cloudflared, tunnel, DNS en connector.
+
+Geen port forwarding nodig.
+
+De lokale runtime en node_modules blijven in deze map staan, zodat volgende starts direct gaan.

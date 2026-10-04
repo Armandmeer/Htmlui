@@ -1,0 +1,318 @@
+/* Shared visual finish. Device layout and state colours remain functional. */
+body.nuvex-motion{
+  --text:#edf1f4;--muted:#a3adb7;--line:rgba(203,217,229,.15);
+  --p:rgba(15,23,32,.82);--p2:rgba(24,33,43,.62);
+  --surface:linear-gradient(145deg,rgba(23,32,43,.84),rgba(10,18,27,.86));
+  --surface-edge:rgba(205,219,232,.14);
+  -webkit-font-smoothing:antialiased;
+}
+body.nuvex-motion main .top{margin-bottom:30px}
+body.nuvex-motion main h1{font-weight:350;font-size:36px;letter-spacing:-.045em;line-height:1.15}
+body.nuvex-motion main h2{font-weight:550;letter-spacing:-.02em;font-size:18px}
+body.nuvex-motion main .muted{line-height:1.5}
+body.nuvex-motion #pageHost :is(.card,.lighting-control,.rgbw-control,.security-page-room,.av-device-card,.climate-device-card,.camera-tile,.slider-config){
+  background:var(--surface);border:1px solid var(--surface-edge);border-radius:18px;
+  box-shadow:0 12px 32px rgba(0,0,0,.19),inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  transition:border-color .22s ease,box-shadow .22s ease;
+}
+body.nuvex-motion #pageHost .card{padding:24px}
+body.nuvex-motion #pageHost :is(.lighting-control,.rgbw-control){padding:22px}
+body.nuvex-motion #pageHost :is(.card,.security-page-room) :is(.device,.overview-room){
+  background:rgba(185,205,225,.035);border:1px solid rgba(205,219,232,.09);border-radius:12px;box-shadow:none;
+}
+body.nuvex-motion #pageHost :is(.settings-heading,.security-page-room-head,.overview-room-head){gap:12px}
+body.nuvex-motion #pageHost :is(.security-page-room-title,.security-name,.overview-room-head b,.lighting-control .topline b:first-child,.rgbw-top b:first-child){font-weight:550;letter-spacing:-.015em}
+body.nuvex-motion #pageHost :is(.lighting-control .topline b:last-child,.rgbw-top b:last-child){font-weight:400;font-variant-numeric:tabular-nums}
+body.nuvex-motion #pageHost :is(.security-item,.security-motion-row,.row,.security-page-room-head){border-color:rgba(203,217,229,.09)}
+body.nuvex-motion #pageHost .security-icon{background:rgba(210,222,235,.04);border:1px solid rgba(210,222,235,.07);border-radius:14px}
+body.nuvex-motion #pageHost :is(.btn,.security-btn,.security-enable-btn){
+  border-radius:10px;border-color:rgba(203,217,229,.18);font-weight:500;
+  box-shadow:inset 0 1px rgba(255,255,255,.04);transition:background .18s,border-color .18s,box-shadow .18s;
+}
+body.nuvex-motion #pageHost :is(.btn,.security-btn):not(.primary):not(.active):not(.danger):not(.lock):not(.unlock){background:rgba(196,215,232,.055)}
+body.nuvex-motion #pageHost .btn.primary{background:linear-gradient(135deg,#285846,#1b3e33);border-color:#69998670;color:#e8f8ef}
+body.nuvex-motion #pageHost .btn.danger{background:rgba(135,49,57,.16);border-color:rgba(235,128,138,.32)}
+body.nuvex-motion #pageHost :is(button,input,select,summary):focus-visible{outline:2px solid #9bd6ec;outline-offset:3px}
+body.nuvex-motion #pageHost button:disabled{opacity:.45;cursor:not-allowed}
+body.nuvex-motion #pageHost :is(input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea){
+  background:rgba(5,13,21,.62);border:1px solid rgba(203,217,229,.18);border-radius:10px;
+  color:#e7eef3;padding:11px 12px;box-shadow:inset 0 1px 4px #0002;
+}
+body.nuvex-motion #pageHost input::placeholder{color:#8d9aa5}
+body.nuvex-motion #pageHost select option{background:#111d28;color:#edf1f4}
+body.nuvex-motion #pageHost label{font-size:12px;font-weight:450;color:#aab7c2;margin-bottom:8px}
+body.nuvex-motion #pageHost :is(.badge,.device-type-label,.device-filter-count){
+  background:rgba(207,221,234,.045);border-color:rgba(207,221,234,.10);border-radius:7px;font-weight:450;color:#b7c6d1;
+}
+body.nuvex-motion #pageHost :is(.lighting-filter,.room-filter){gap:12px;margin-bottom:20px}
+body.nuvex-motion #pageHost :is(.lighting-control,.rgbw-secondary) input[type=range]{height:8px;box-shadow:inset 0 1px 3px #0003}
+body.nuvex-motion #pageHost :is(.lighting-control,.rgbw-secondary) input[type=range]::-webkit-slider-thumb{width:26px;height:26px;border:3px solid #c6b18b;background:#f5f1e9;box-shadow:0 2px 10px #0004}
+body.nuvex-motion #pageHost :is(.lighting-control,.rgbw-secondary) input[type=range]::-moz-range-thumb{width:20px;height:20px;border:3px solid #c6b18b;background:#f5f1e9;box-shadow:0 2px 10px #0004}
+body.nuvex-motion #pageHost .settings-collapse-summary{padding:2px 0}
+body.nuvex-motion #pageHost details[open] > .settings-collapse-summary{padding-bottom:18px;border-bottom:1px solid rgba(203,217,229,.10);margin-bottom:18px}
+body.nuvex-motion aside .label{font-size:10px;font-weight:500;letter-spacing:.17em;color:#8697a5;padding-top:18px}
+body.nuvex-motion aside nav button{font-weight:450;border-radius:10px;background:transparent;color:#b9c7d2;font-size:15px;transition:color .2s,background .2s}
+body.nuvex-motion aside nav button::first-letter{font-size:21px}
+body.nuvex-motion aside nav button.active{color:#f1f6f9;background:linear-gradient(90deg,rgba(112,185,215,.12),rgba(112,185,215,.025));box-shadow:inset 2px 0 #9bd6ec}
+@media(hover:hover){
+  body.nuvex-motion #pageHost :is(.lighting-control,.rgbw-control,.climate-device-card,.av-device-card,.camera-tile):hover{border-color:rgba(203,217,229,.27);box-shadow:0 14px 36px #0004,inset 0 1px #ffffff09}
+  body.nuvex-motion #pageHost :is(.btn,.security-btn,.security-enable-btn):hover{border-color:rgba(172,213,232,.55);box-shadow:0 3px 12px #0003}
+  body.nuvex-motion aside nav button:hover{color:#f1f6f9;background:rgba(190,213,231,.055)}
+}
+@media(max-width:850px){
+  body.nuvex-motion main h1{font-size:30px}
+  body.nuvex-motion main .top{margin-bottom:24px}
+  body.nuvex-motion #pageHost .card{padding:18px;border-radius:16px}
+  body.nuvex-motion #pageHost :is(.lighting-control,.rgbw-control){padding:18px;border-radius:16px}
+  body.nuvex-motion #pageHost :is(.btn,.security-btn,.security-enable-btn){min-height:44px}
+  body.nuvex-motion #pageHost :is(input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color]),select,textarea){font-size:16px;min-height:44px}
+  body.nuvex-motion aside nav button{font-size:16px;min-height:48px}
+}
+@media(prefers-reduced-motion:reduce){body.nuvex-motion #pageHost :is(.card,.lighting-control,.rgbw-control,.btn,.security-btn){transition:none}}
+
+/* A generous touch area surrounds the fine slider track. */
+body.nuvex-motion #pageHost input[type=range]{
+  appearance:none;-webkit-appearance:none;display:block;width:100%;height:36px!important;
+  padding:0;border:0;border-radius:0;outline:none;cursor:pointer;touch-action:pan-y;
+  background-color:transparent;box-shadow:none!important;
+  background-size:100% 6px!important;background-position:center!important;background-repeat:no-repeat!important;
+  accent-color:#d0bc97;
+}
+body.nuvex-motion #pageHost input[type=range]:not(.rgbw-color-slider){
+  background-image:linear-gradient(90deg,#cdb891 0%,#e5d8bf var(--fill,var(--control-fill,50%)),#35414d var(--fill,var(--control-fill,50%)),#35414d 100%)!important;
+}
+body.nuvex-motion #pageHost input.rgbw-color-slider{background-image:linear-gradient(90deg,#ffffff 0%,#ff5353 12%,#f1db6e 27%,#71d492 42%,#6ad5e0 58%,#697ee8 73%,#d879de 88%,#ffffff 100%)!important;background-size:100% 8px!important}
+body.nuvex-motion #pageHost input[type=range]::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;width:26px!important;height:26px!important;border-radius:50%;
+  border:3px solid #ab9c84!important;background:#f5f1e9!important;
+  box-shadow:0 2px 8px #0005,inset 0 1px #fff!important;transition:box-shadow .18s,border-color .18s;
+}
+body.nuvex-motion #pageHost input[type=range]::-moz-range-thumb{
+  width:20px!important;height:20px!important;border-radius:50%;border:3px solid #ab9c84!important;
+  background:#f5f1e9!important;box-shadow:0 2px 8px #0005!important;
+}
+body.nuvex-motion #pageHost input[type=range]::-moz-range-track{background:transparent;border:0}
+body.nuvex-motion #pageHost input[type=range]:active::-webkit-slider-thumb{border-color:#ead6b0!important;box-shadow:0 0 0 6px #d0bc9722,0 2px 8px #0005!important}
+body.nuvex-motion #pageHost input[type=range]:active::-moz-range-thumb{border-color:#ead6b0!important;box-shadow:0 0 0 6px #d0bc9722!important}
+body.nuvex-motion #pageHost input[type=range]:disabled{opacity:.4;cursor:not-allowed}
+body.nuvex-motion #pageHost :is(.rgbw-status-dot,.rgbw-swatch){width:28px;height:28px;border:1px solid #ffffff80;box-shadow:0 2px 8px #0003}
+body.nuvex-motion #pageHost .preset-dot{width:36px;height:36px;border:2px solid #ffffff60;box-shadow:0 2px 8px #0003}
+body.nuvex-motion #pageHost :is(.lighting-switch-button,.climate-switch-button,.av-volume-button,.tv-remote-key,.av-app-button,.nax-transport button,.climate-control>button,.thermostat-function-tile){
+  border:1px solid rgba(203,217,229,.20);border-radius:12px;
+  font-weight:500;box-shadow:inset 0 1px rgba(255,255,255,.045),0 3px 8px #0002;
+  transition:border-color .18s,background .18s,box-shadow .18s;
+}
+body.nuvex-motion #pageHost :is(.lighting-switch-button,.climate-switch-button):not(.on):not(.active){background:rgba(180,202,223,.055);color:#a4b1bc;border-color:rgba(203,217,229,.16)}
+body.nuvex-motion #pageHost :is(.lighting-switch-button,.climate-switch-button).on{background:linear-gradient(135deg,#75674a55,#a9905733);border-color:#d9c09288;color:#f0dfbe;box-shadow:inset 0 1px #fff1,0 0 18px #d2b87912}
+body.nuvex-motion #pageHost :is(.nax-transport button,.av-volume-button,.tv-remote-key):not(.primary):not(.active):not(.color){background:linear-gradient(145deg,rgba(43,56,70,.65),rgba(21,31,42,.72));color:#dce7ee}
+body.nuvex-motion #pageHost input[type=range]:focus-visible{outline:2px solid #9bd6ec;outline-offset:3px;border-radius:8px}
+body.nuvex-motion #pageHost .tv-remote-dpad{border-color:rgba(203,217,229,.19);box-shadow:inset 0 1px #ffffff08,0 8px 24px #0003}
+body.nuvex-motion #pageHost :is(.thermostat-step,.climate-adjust button){border-width:1px;box-shadow:inset 0 1px #ffffff14,0 5px 14px #0003;font-weight:450}
+body.nuvex-motion #pageHost .thermostat-dial{background:radial-gradient(circle at 40% 30%,#293647ee,#0c1725f5 75%);border-color:#95adc52e;box-shadow:0 0 0 1px #cad8e31a,inset 0 0 25px #0003,0 10px 24px #0003}
+body.nuvex-motion #pageHost .thermostat-dial>strong{font-weight:350;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+body.nuvex-motion #pageHost .switch{background:#45515b;box-shadow:inset 0 1px 3px #0003}
+body.nuvex-motion #pageHost .switch.on{background:#55816c}
+body.nuvex-motion #pageHost .switch i{background:#d6dce1;box-shadow:0 1px 4px #0003}
+body.nuvex-motion #pageHost .switch.on i{background:#f1f6f3}
+body.nuvex-motion #pageHost input[type=checkbox]{accent-color:#709980;width:18px;height:18px;flex-shrink:0}
+@media(hover:hover){body.nuvex-motion #pageHost :is(.lighting-switch-button,.climate-switch-button,.tv-remote-key,.av-volume-button,.nax-transport button,.av-app-button):hover{border-color:#a0c0d37a;box-shadow:inset 0 1px #ffffff0c,0 4px 14px #0003}}
+@media(max-width:850px){
+  body.nuvex-motion #pageHost :is(.nax-transport button,.tv-remote-key,.av-volume-button,.av-app-button){min-height:44px}
+  body.nuvex-motion #pageHost input[type=range]{height:44px!important}
+}
+
+/* Core Control inspired sliders: flat filled bars, without a visible handle. */
+body.nuvex-motion #pageHost input[type=range],body.nuvex-motion #pageHost input[type=range]:not(.rgbw-color-slider),body.nuvex-motion #pageHost input.rgbw-color-slider{background:none!important}
+body.nuvex-motion #pageHost input[type=range]::-webkit-slider-runnable-track{
+  height:20px;border:0;border-radius:10px;
+  background:linear-gradient(90deg,#f0d7a0 0%,#f0d7a0 var(--fill,var(--control-fill,50%)),#30363b var(--fill,var(--control-fill,50%)),#30363b 100%);
+  box-shadow:inset 0 1px 1px #ffffff06;
+}
+body.nuvex-motion #pageHost input[type=range]::-moz-range-track{
+  height:20px;border:0;border-radius:10px;
+  background:linear-gradient(90deg,#f0d7a0 0%,#f0d7a0 var(--fill,var(--control-fill,50%)),#30363b var(--fill,var(--control-fill,50%)),#30363b 100%);
+  box-shadow:inset 0 1px 1px #ffffff06;
+}
+body.nuvex-motion #pageHost input[type=range]::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;width:1px!important;height:20px!important;margin-top:0;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+body.nuvex-motion #pageHost input[type=range]::-moz-range-thumb{
+  width:1px!important;height:20px!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+body.nuvex-motion #pageHost input[type=range]:active::-webkit-slider-thumb{background:transparent!important;box-shadow:none!important}
+body.nuvex-motion #pageHost input[type=range]:active::-moz-range-thumb{background:transparent!important;box-shadow:none!important}
+body.nuvex-motion #pageHost input[type=range]:active::-webkit-slider-runnable-track{filter:brightness(1.12)}
+body.nuvex-motion #pageHost input[type=range]:active::-moz-range-track{filter:brightness(1.12)}
+body.nuvex-motion #pageHost input.rgbw-color-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#ffffff,#ff3939 12%,#ffe14a 27%,#35dc70 42%,#23d5ef 58%,#5365ff 73%,#ed48dc 88%,#ffffff)}
+body.nuvex-motion #pageHost input.rgbw-color-slider::-moz-range-track{background:linear-gradient(90deg,#ffffff,#ff3939 12%,#ffe14a 27%,#35dc70 42%,#23d5ef 58%,#5365ff 73%,#ed48dc 88%,#ffffff)}
+/* A color position needs a marker because its track is a spectrum, not a fill. */
+body.nuvex-motion #pageHost input.rgbw-color-slider::-webkit-slider-thumb{width:3px!important;border-radius:2px!important;background:#fff!important;box-shadow:0 0 0 1px #0003!important}
+body.nuvex-motion #pageHost input.rgbw-color-slider::-moz-range-thumb{width:3px!important;border-radius:2px!important;background:#fff!important;box-shadow:0 0 0 1px #0003!important}
+body.nuvex-motion #pageHost input.rgbw-color-slider:active::-webkit-slider-thumb{background:#fff!important;box-shadow:0 0 0 1px #0003!important}
+body.nuvex-motion #pageHost input.rgbw-color-slider:active::-moz-range-thumb{background:#fff!important;box-shadow:0 0 0 1px #0003!important}
+
+/* Full-width bottom navigation, with a single scrollable row on phones. */
+.nuvex-swipe-hint[hidden]{display:none!important}
+.nuvex-swipe-hint{
+  position:fixed;z-index:900;left:0;right:0;bottom:0;
+  display:flex;flex-wrap:nowrap;justify-content:safe center;gap:4px;
+  width:100%;box-sizing:border-box;padding:6px max(12px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));
+  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:none;
+  background:rgba(10,19,28,.94);border:0;border-top:1px solid rgba(203,217,229,.10);border-radius:0;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:none;
+}
+.nuvex-swipe-hint::-webkit-scrollbar{display:none}
+.nuvex-swipe-hint .swipe-page{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  flex:0 0 80px;min-width:0;min-height:54px;border:0;border-radius:0;padding:7px 3px;
+  color:#99a9b6;background:transparent;font:inherit;font-size:11px;font-weight:450;cursor:pointer;
+  transition:color .18s;
+}
+.nuvex-swipe-hint .swipe-page span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nuvex-swipe-hint svg{width:20px;height:20px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.nuvex-swipe-hint .swipe-page.active{color:#f0d7a0;background:transparent}
+.nuvex-swipe-hint .swipe-page.active:after{content:'';position:absolute;bottom:1px;width:20px;height:2px;border-radius:2px;background:#f0d7a0;box-shadow:0 0 9px #f0d7a044}
+.nuvex-swipe-hint button:focus-visible{outline:2px solid #9bd6ec;outline-offset:-2px}
+body.nuvex-has-swipe-hint main{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))!important}
+@media(hover:hover){.nuvex-swipe-hint button:hover{color:#e5edf2}}
+@media(max-width:850px){
+  .nuvex-swipe-hint{justify-content:flex-start;gap:2px;padding-top:4px}
+  .nuvex-swipe-hint .swipe-page{flex-basis:68px;min-height:50px;gap:5px;font-size:10px;padding:5px 2px}
+  .nuvex-swipe-hint svg{width:19px;height:19px}
+  body.nuvex-has-swipe-hint main{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))!important}
+}
+/* Compact light cards, with room for three columns on laptop screens. */
+body.nuvex-motion #pageHost .lighting-root .devices{gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+body.nuvex-motion #pageHost .lighting-root .lighting-control{box-sizing:border-box;align-self:start;height:96px;min-height:96px;margin:0;padding:13px 15px;border-radius:15px}
+body.nuvex-motion #pageHost .lighting-root .lighting-control .topline{margin-bottom:5px;font-size:15px;gap:10px}
+body.nuvex-motion #pageHost .lighting-root .lighting-control .topline b:last-child{font-size:19px!important;flex-shrink:0}
+body.nuvex-motion #pageHost .lighting-root .lighting-control .range-wrap{width:100%;margin:0;padding:0}
+body.nuvex-motion #pageHost .lighting-root .rgbw-control{padding:15px;border-radius:15px}
+body.nuvex-motion #pageHost .lighting-root .rgbw-top{margin-bottom:10px}
+@media(min-width:1100px){body.nuvex-motion #pageHost .lighting-root .devices{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){
+  body.nuvex-motion #pageHost .lighting-root .devices{grid-template-columns:1fr;gap:10px}
+  body.nuvex-motion #pageHost .lighting-root .lighting-control{height:88px;min-height:88px;padding:10px 13px}
+}
+
+/* Keep only the individual lighting controls framed. */
+body.nuvex-motion #pageHost .lighting-root,
+body.nuvex-motion #pageHost .lighting-root .lighting-room-section{
+  background:transparent;border:0;box-shadow:none;border-radius:0;
+  backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;
+}
+body.nuvex-motion #pageHost .lighting-root .lighting-room-section{grid-column:1/-1;margin-top:8px}
+body.nuvex-motion #pageHost .lighting-root .lighting-room-section-title{margin:0 0 12px;padding:0;font-weight:450;color:#c7d3dc}
+body.nuvex-motion #pageHost .lighting-root .lighting-room-devices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+@media(min-width:1100px){body.nuvex-motion #pageHost .lighting-root .lighting-room-devices{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){body.nuvex-motion #pageHost .lighting-root .lighting-room-devices{grid-template-columns:1fr;gap:10px}}
+/* Reserve touch gestures for the slider for the entire drag. */
+body.nuvex-motion #pageHost input[type=range]{touch-action:none;-webkit-user-select:none;user-select:none}
+
+/* Short pages still provide a full, comfortable surface for page swipes. */
+body.nuvex-motion #pageHost{min-height:max(240px,calc(100vh - 220px - env(safe-area-inset-bottom,0px)));min-height:max(240px,calc(100dvh - 220px - env(safe-area-inset-bottom,0px)))}
+
+/* Restore the desktop dock; keep the phone bar attached to the bottom edge. */
+@media(min-width:851px){
+  .nuvex-swipe-hint{
+    left:50%;right:auto;bottom:12px;transform:translateX(-50%);
+    width:min(1020px,calc(100% - 40px));padding:7px;gap:3px;
+    display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);
+    background:linear-gradient(180deg,rgba(25,34,44,.94),rgba(10,19,28,.96));
+    border:1px solid rgba(203,217,229,.16);border-radius:22px;
+    box-shadow:0 12px 36px #0006,inset 0 1px #ffffff09;
+  }
+  .nuvex-swipe-hint .swipe-page{border-radius:15px}
+  .nuvex-swipe-hint .swipe-page.active{background:linear-gradient(180deg,#f0d7a015,#f0d7a007)}
+  body.nuvex-has-swipe-hint main{padding-bottom:100px!important}
+}
+@media(max-width:850px){
+  .nuvex-swipe-hint{-webkit-overflow-scrolling:touch;scroll-behavior:auto}
+  .nuvex-swipe-hint .swipe-page{-webkit-tap-highlight-color:transparent;touch-action:pan-x}
+}
+
+/* Keep the navigation gesture above the iPhone Home/app-switching area. */
+@media(max-width:850px){
+  .nuvex-swipe-hint{
+    --nuvex-home-clearance:max(34px,env(safe-area-inset-bottom,0px));
+    padding-bottom:calc(12px + var(--nuvex-home-clearance));
+  }
+  body.nuvex-has-swipe-hint main{padding-bottom:calc(92px + max(34px,env(safe-area-inset-bottom,0px)))!important}
+}
+
+/* Clip and scroll page content above the navigation, never underneath it. */
+body.nuvex-has-swipe-hint{height:100vh;height:100dvh;overflow:hidden}
+body.nuvex-has-swipe-hint .app{height:100%;min-height:0}
+body.nuvex-motion.nuvex-has-swipe-hint main{
+  box-sizing:border-box;margin-top:0;margin-bottom:0;
+  height:calc(100vh - var(--nuvex-navigation-space,112px));
+  height:calc(100dvh - var(--nuvex-navigation-space,112px));
+  min-height:0;overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;
+  padding-bottom:24px!important;
+}
+
+/* The Lighting finish is shared by the individual controls on every page. */
+body.nuvex-motion #pageHost :is(
+  #home>.grid>.card,#av>.card,#shading>.card,#scenes>.card,#automation>.card,
+  .camera-root,.climate-root,.climate-room-section,#security .security-card,
+  #security .security-page-room
+){
+  background:transparent;border:0;box-shadow:none;border-radius:0;padding:0;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+body.nuvex-motion #pageHost :is(
+  .av-device-card,.climate-device-card,.thermostat-card,.camera-tile,
+  #shading .device,#scenes .device,.overview-room,
+  .security-item,.security-motion-row,.automation-rule-card,.slider-config,
+  #settings .card
+){
+  box-sizing:border-box;min-width:0;align-self:start;
+  background:var(--surface);border:1px solid var(--surface-edge);border-radius:15px;
+  box-shadow:0 12px 32px rgba(0,0,0,.19),inset 0 1px rgba(255,255,255,.035);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+body.nuvex-motion #pageHost :is(.av-device-card,.climate-device-card,.thermostat-card,#shading .device,#scenes .device,.overview-room,#settings .card){padding:15px}
+body.nuvex-motion #pageHost :is(.security-item,.security-motion-row){padding:13px 15px;margin-bottom:10px}
+body.nuvex-motion #pageHost .camera-tile{padding:10px}
+body.nuvex-motion #pageHost :is(.devices,.climate-room-devices,.camera-grid){gap:12px;align-items:start}
+body.nuvex-motion #pageHost :is(.climate-room-section>h2,.security-page-room-title){font-size:16px;font-weight:450;color:#c7d3dc}
+body.nuvex-motion #pageHost .camera-title{font-size:15px;font-weight:550;margin:2px 3px 10px}
+body.nuvex-motion #pageHost .camera-frame{width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden}
+body.nuvex-motion #pageHost .camera-frame img{display:block;width:100%;height:100%;object-fit:contain}
+body.nuvex-motion #pageHost .camera-root .camera-grid{width:100%;max-width:none;grid-template-columns:repeat(2,minmax(0,1fr));margin:0}
+@media(max-width:850px){
+  body.nuvex-motion #pageHost .camera-root .camera-grid{grid-template-columns:minmax(0,1fr);gap:14px}
+  body.nuvex-motion #pageHost .camera-root .camera-tile{width:100%;padding:10px}
+  body.nuvex-motion #pageHost :is(#avDeviceList,#shadingDeviceList,#sceneDeviceList,.climate-room-devices){grid-template-columns:minmax(0,1fr)}
+  body.nuvex-motion #pageHost :is(.av-device-card,.climate-device-card,.thermostat-card,#shading .device,#scenes .device,.overview-room,#settings .card){padding:13px}
+}
+
+/* Keep scrolling unobtrusive and use available width for the light controls. */
+body.nuvex-motion.nuvex-has-swipe-hint main{scrollbar-width:none;-ms-overflow-style:none;padding-bottom:16px!important}
+body.nuvex-motion.nuvex-has-swipe-hint main::-webkit-scrollbar{display:none;width:0;height:0}
+body.nuvex-motion main:has(#lighting){max-width:1800px}
+body.nuvex-motion #pageHost .lighting-root{container-type:inline-size}
+body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){grid-template-columns:minmax(0,1fr)}
+@container(min-width:560px){body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container(min-width:860px){body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container(min-width:1180px){body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* Phone navigation uses the sidebar and page gestures. */
+@media(max-width:850px){.nuvex-swipe-hint{display:none!important}}
+
+/* Center incomplete lighting rows while retaining the full-row card width. */
+body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){
+  --lighting-columns:1;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:12px;
+}
+body.nuvex-motion #pageHost .lighting-root .devices>.lighting-room-section{flex:0 0 100%;width:100%;min-width:0}
+body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices)>:is(.lighting-control,.rgbw-control){
+  flex:0 0 calc((100% - (var(--lighting-columns) - 1)*12px)/var(--lighting-columns));
+  width:calc((100% - (var(--lighting-columns) - 1)*12px)/var(--lighting-columns));min-width:0;
+}
+@container(min-width:560px){body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){--lighting-columns:2}}
+@container(min-width:860px){body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){--lighting-columns:3}}
+@container(min-width:1180px){body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){--lighting-columns:4}}

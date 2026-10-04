@@ -1,0 +1,5 @@
+Starter fix:
+- Node.js wordt alleen gedownload als runtime\node.exe ontbreekt of niet werkt.
+- npm.cmd is niet langer vereist om te bepalen of Node.js al geinstalleerd is.
+- Na succesvolle runtime-validatie wordt runtime\.htmlui-runtime-ready opgeslagen.
+- node_modules worden alleen geinstalleerd wanneer de vereiste modules ontbreken.

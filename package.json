@@ -1,10 +1,11 @@
 {
-  "name": "smart-home-knx-dashboard",
-  "version": "2.1.6",
+  "name": "nuvex-ai-3.0",
+  "version": "3.0.0",
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "create-user": "node create-user.js"
   },
   "dependencies": {
     "knxultimate": "^6.0.6",

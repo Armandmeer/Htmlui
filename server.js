@@ -8,6 +8,7 @@ const dgram = require("dgram");
 const net = require("net");
 const os = require("os");
 const crypto = require("crypto");
+const outdoorWeather = require('./weather');
 let FFMPEG_BIN = process.env.FFMPEG_PATH || "ffmpeg";
 let FFMPEG_FALLBACK = null;
 try { FFMPEG_FALLBACK = require("ffmpeg-static") || null; } catch (_) {}
@@ -38,6 +39,93 @@ const WEBOS_KEYS_FILE = path.join(__dirname, "webos_tv_keys.json");
 const WEBOS_APPS_FILE = path.join(__dirname, "webos_tv_apps.json");
 const NAX_MEDIA_CACHE_FILE = path.join(__dirname, "nax_media_cache.json");
 const SETTINGS_SECURITY_FILE = path.join(__dirname, "settings_security.json");
+const AUTH_USERS_FILE = path.join(__dirname, "users.json");
+const CLOUDFLARE_CONFIG_FILE = path.join(__dirname, "cloudflare_portal.json");
+let cloudflaredProcess = null;
+function writePrivateJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2), { mode: 0o600 }); try { fs.chmodSync(file, 0o600); } catch (_) {} }
+function hashPassword(password) { const salt=crypto.randomBytes(16).toString('hex'); return {salt,passwordHash:crypto.scryptSync(String(password),salt,64).toString('hex')}; }
+function writeAuthUsers(users) { writePrivateJson(AUTH_USERS_FILE, {users}); }
+function readCloudflareConfig() { try { return JSON.parse(fs.readFileSync(CLOUDFLARE_CONFIG_FILE,'utf8')); } catch (_) { return {}; } }
+function writeCloudflareConfig(value) { writePrivateJson(CLOUDFLARE_CONFIG_FILE, value); }
+function cloudflareRequest(method, pathname, token, body) { return new Promise((resolve,reject)=>{ const payload=body==null?null:JSON.stringify(body); const r=https.request({hostname:'api.cloudflare.com',port:443,path:'/client/v4'+pathname,method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',...(payload?{'Content-Length':Buffer.byteLength(payload)}:{})}},resp=>{let data='';resp.on('data',c=>data+=c);resp.on('end',()=>{try{const j=JSON.parse(data||'{}');if(resp.statusCode>=400||j.success===false)return reject(new Error((j.errors&&j.errors[0]&&j.errors[0].message)||('Cloudflare HTTP '+resp.statusCode)));resolve(j.result)}catch(e){reject(e)}})});r.on('error',reject);if(payload)r.write(payload);r.end(); }); }
+const PORTAL_BIN_DIR = path.join(__dirname, '.portal-bin');
+function cloudflaredLocalPath(){ return path.join(PORTAL_BIN_DIR, process.platform === 'win32' ? 'cloudflared.exe' : 'cloudflared'); }
+function cloudflaredDownloadUrl(){
+  const a=os.arch();
+  if(process.platform==='win32' && (a==='x64'||a==='ia32')) return 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-'+(a==='x64'?'amd64':'386')+'.exe';
+  if(process.platform==='linux' && (a==='x64'||a==='arm64')) return 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-'+(a==='x64'?'amd64':'arm64');
+  if(process.platform==='darwin' && (a==='x64'||a==='arm64')) return 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-'+(a==='x64'?'amd64':'arm64')+'.tgz';
+  return null;
+}
+function downloadFile(url,dest,redirects=0){return new Promise((resolve,reject)=>{if(redirects>8)return reject(new Error('Te veel redirects bij downloaden van cloudflared'));const mod=url.startsWith('https:')?https:http;const r=mod.get(url,{headers:{'User-Agent':'HTMLUI-Portal/1.0'}},resp=>{if(resp.statusCode>=300&&resp.statusCode<400&&resp.headers.location){resp.resume();return resolve(downloadFile(new URL(resp.headers.location,url).toString(),dest,redirects+1));}if(resp.statusCode!==200){resp.resume();return reject(new Error('Download cloudflared mislukt (HTTP '+resp.statusCode+')'));}const tmp=dest+'.download';const f=fs.createWriteStream(tmp,{mode:0o700});resp.pipe(f);f.on('finish',()=>f.close(()=>{try{fs.renameSync(tmp,dest);try{fs.chmodSync(dest,0o700)}catch(_){}resolve(dest)}catch(e){reject(e)}}));f.on('error',reject);});r.on('error',reject);});}
+function execCheck(bin,args){return new Promise((resolve,reject)=>{const p=spawn(bin,args,{stdio:['ignore','pipe','pipe'],windowsHide:true});let out='';p.stdout.on('data',d=>out+=d);p.stderr.on('data',d=>out+=d);p.on('error',reject);p.on('exit',c=>c===0?resolve(out.trim()):reject(new Error(out.trim()||('Exit code '+c))));});}
+async function ensureCloudflared(){
+  if(process.env.CLOUDFLARED_PATH){await execCheck(process.env.CLOUDFLARED_PATH,['--version']);return {bin:process.env.CLOUDFLARED_PATH,installed:false};}
+  const local=cloudflaredLocalPath();
+  if(fs.existsSync(local)){try{await execCheck(local,['--version']);return {bin:local,installed:false};}catch(_){try{fs.unlinkSync(local)}catch(__){}}}
+  const url=cloudflaredDownloadUrl(); if(!url) throw new Error('Automatische cloudflared-installatie wordt niet ondersteund op '+process.platform+'/'+os.arch());
+  if(process.platform==='darwin') throw new Error('Automatische installatie op macOS vereist nog een handmatige cloudflared-installatie');
+  fs.mkdirSync(PORTAL_BIN_DIR,{recursive:true,mode:0o700}); await downloadFile(url,local); await execCheck(local,['--version']); return {bin:local,installed:true};
+}
+function startCloudflared(token,binOverride) { if(cloudflaredProcess && !cloudflaredProcess.killed) return; const bin=binOverride||process.env.CLOUDFLARED_PATH||(fs.existsSync(cloudflaredLocalPath())?cloudflaredLocalPath():'cloudflared'); cloudflaredProcess=spawn(bin,['tunnel','--no-autoupdate','run','--token',token],{stdio:['ignore','pipe','pipe'],windowsHide:true}); cloudflaredProcess.stdout.on('data',d=>console.log('[Cloudflare]',String(d).trim())); cloudflaredProcess.stderr.on('data',d=>console.log('[Cloudflare]',String(d).trim())); cloudflaredProcess.on('error',e=>{console.error('[Cloudflare] start failed:',e.message);cloudflaredProcess=null}); cloudflaredProcess.on('exit',()=>{cloudflaredProcess=null}); }
+function stopCloudflared(){ if(cloudflaredProcess){try{cloudflaredProcess.kill()}catch(_){} cloudflaredProcess=null;} }
+
+const authSessions = new Map();
+const authFailures = new Map();
+const AUTH_SESSION_TTL = Math.max(15 * 60 * 1000, Number(process.env.HTML_UI_SESSION_HOURS || 24) * 60 * 60 * 1000);
+const AUTH_COOKIE = "htmlui_session";
+function parseCookies(req) {
+  const out = {};
+  for (const part of String(req.headers.cookie || '').split(';')) {
+    const i = part.indexOf('='); if (i < 0) continue;
+    try { out[decodeURIComponent(part.slice(0,i).trim())] = decodeURIComponent(part.slice(i+1).trim()); } catch (_) {}
+  }
+  return out;
+}
+function normalizeEmail(value) { return String(value || '').trim().toLowerCase(); }
+function readAuthUsers() {
+  try {
+    const value = JSON.parse(fs.readFileSync(AUTH_USERS_FILE, 'utf8'));
+    return Array.isArray(value.users) ? value.users : [];
+  } catch (_) { return []; }
+}
+function verifyUserPassword(user, password) {
+  try {
+    if (!user || !user.salt || !user.passwordHash) return false;
+    const actual = crypto.scryptSync(String(password), String(user.salt), 64);
+    const expected = Buffer.from(String(user.passwordHash), 'hex');
+    return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+  } catch (_) { return false; }
+}
+function authSession(req) {
+  const token = parseCookies(req)[AUTH_COOKIE];
+  const session = token && authSessions.get(token);
+  if (!session) return null;
+  if (Date.now() >= session.expiresAt) { authSessions.delete(token); return null; }
+  session.expiresAt = Date.now() + AUTH_SESSION_TTL;
+  return session;
+}
+function secureRequest(req) { return String(req.headers['x-forwarded-proto'] || '').toLowerCase() === 'https' || !!req.socket.encrypted; }
+function setAuthCookie(req, res, token) {
+  const parts = [`${AUTH_COOKIE}=${encodeURIComponent(token)}`, 'Path=/', 'HttpOnly', 'SameSite=Strict', `Max-Age=${Math.floor(AUTH_SESSION_TTL/1000)}`];
+  if (secureRequest(req) || process.env.HTML_UI_SECURE_COOKIE === '1') parts.push('Secure');
+  res.setHeader('Set-Cookie', parts.join('; '));
+}
+function clearAuthCookie(req, res) {
+  const parts = [`${AUTH_COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Strict', 'Max-Age=0'];
+  if (secureRequest(req) || process.env.HTML_UI_SECURE_COOKIE === '1') parts.push('Secure');
+  res.setHeader('Set-Cookie', parts.join('; '));
+}
+function clientKey(req) { return String(req.headers['cf-connecting-ip'] || req.socket.remoteAddress || 'unknown'); }
+function jsonResponse(res, status, value) {
+  res.writeHead(status, { 'Content-Type':'application/json; charset=utf-8', 'Cache-Control':'no-store' });
+  res.end(JSON.stringify(value));
+}
+function readJsonBody(req, limit, callback) {
+  let body = '', tooLarge = false;
+  req.on('data', chunk => { if (tooLarge) return; body += chunk; if (Buffer.byteLength(body) > limit) tooLarge = true; });
+  req.on('end', () => { if (tooLarge) return callback(new Error('Request too large')); try { callback(null, JSON.parse(body || '{}')); } catch (_) { callback(new Error('Invalid JSON')); } });
+}
 const settingsSessions = new Map();
 const settingsFailures = new Map();
 const SETTINGS_SESSION_TTL = 35000;
@@ -302,7 +390,7 @@ async function updateFromGithub() {
   const roots = fs.readdirSync(extractDir, { withFileTypes: true }).filter(x => x.isDirectory());
   if (!roots.length) throw new Error("GitHub archive is empty");
   const sourceRoot = path.join(extractDir, roots[0].name);
-  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "smarthome_state.before-update.json", "github_update.json", "github-update-status.json", "webos_tv_keys.json", "webos_tv_apps.json", "settings_security.json"]);
+  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "smarthome_state.before-update.json", "github_update.json", "github-update-status.json", "webos_tv_keys.json", "webos_tv_apps.json", "settings_security.json", "users.json", "cloudflare_portal.json", "weather-config.json"]);
   const copyTree = (src, dest) => {
     for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
       if (protectedNames.has(ent.name)) continue;
@@ -729,6 +817,22 @@ async function lgWebosRequest(tv, uri, payload = {}, options = {}) {
   }
   throw firstError || new Error('LG webOS request failed');
 }
+
+async function lgWebosRemoteButton(tv, buttonName) {
+  const result = await lgWebosRequest(tv, 'ssap://com.webos.service.networkinput/getPointerInputSocket', {}, { allowPairing: true, timeoutMs: 7000 });
+  const socketPath = String(result.socketPath || result.socketUrl || result.url || '').trim();
+  if (!/^wss?:\/\//i.test(socketPath)) throw new Error('LG webOS returned no remote-control socket');
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const socket = new WebSocket(socketPath, { rejectUnauthorized: false, handshakeTimeout: 5000 });
+    const finish = error => { if (settled) return; settled = true; clearTimeout(timeout); try { socket.close(); } catch (_) {} if (error) reject(error); else resolve(); };
+    const timeout = setTimeout(() => finish(new Error('LG webOS remote command timed out')), 7000);
+    socket.once('open', () => { try { socket.send('type:button\nname:' + buttonName + '\n\n', error => error ? finish(error) : setTimeout(() => finish(), 140)); } catch (error) { finish(error); } });
+    socket.once('error', finish);
+    socket.once('close', () => { if (!settled) finish(); });
+  });
+}
+
 async function getLgWebosPowerStatus(tv) {
   try {
     const result = await lgWebosRequest(tv, 'ssap://com.webos.service.tvpower/power/getPowerState', {}, { timeoutMs: 3500 });
@@ -1199,6 +1303,7 @@ function feedbackAddresses(connection) {
   const values = [
     ...(Array.isArray(connection.feedbackGAs) ? connection.feedbackGAs : []),
     connection.feedbackGa,
+    ...outdoorWeather.stations(readDashboardState()).map(s => s.ga),
     ...(Array.isArray(connection.switchFeedbackGAs) ? connection.switchFeedbackGAs : []),
     ...(Array.isArray(connection.securityFeedbackGAs) ? connection.securityFeedbackGAs : []),
     ...(Array.isArray(connection.cameraFeedbackGAs) ? connection.cameraFeedbackGAs : [])
@@ -1249,6 +1354,7 @@ function connectKNX(newConfig) {
     const gas = Array.from(new Set([
       ...(Array.isArray(config.feedbackGAs) ? config.feedbackGAs : []),
       config.feedbackGa,
+      ...outdoorWeather.stations(readDashboardState()).map(s => s.ga),
       ...securityFeedbackGAs,
       ...cameraFeedbackGAs
     ].filter(Boolean)));
@@ -1278,6 +1384,12 @@ function connectKNX(newConfig) {
       if (!cemi?.npdu) return;
 
       const ga = cemi.dstAddress?.toString?.();
+      const weatherStation = outdoorWeather.stations(readDashboardState()).find(s => s.ga && s.ga === ga);
+      if (weatherStation && (cemi.npdu.isGroupWrite || cemi.npdu.isGroupResponse) && cemi.npdu.dataValue && dptlib) {
+        outdoorWeather.record(ga, Number(dptlib.fromBuffer(cemi.npdu.dataValue, dptlib.resolve('9.001'))));
+        broadcast({type:'weather-feedback'});
+        return;
+      }
       const normGA = v => String(v || '').trim().replace(/\s+/g, '');
       const feedbackGAs = new Set([
         ...(Array.isArray(config.feedbackGAs) ? config.feedbackGAs : []),
@@ -1352,6 +1464,228 @@ function writeRGBW(channels) {
 
 const server = http.createServer((req, res) => {
   const requestPath = (req.url || "/").split("?")[0];
+  // Home Screen icons must also be available before signing in.
+  if (req.method === 'GET' && ['/apple-touch-icon.png', '/apple-touch-icon-precomposed.png', '/nuvex-sidebar-mobile.png'].includes(requestPath)) {
+    const file = path.join(__dirname, requestPath === '/nuvex-sidebar-mobile.png' ? 'nuvex-sidebar-mobile.png' : 'apple-touch-icon.png');
+    if (!fs.existsSync(file)) { res.writeHead(404); return res.end(); }
+    res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600', 'X-Content-Type-Options': 'nosniff' });
+    return fs.createReadStream(file).pipe(res);
+  }
+  if (requestPath === '/api/startup-session' && req.method === 'GET') {
+    return jsonResponse(res, 200, { bootId: String(Math.round((Date.now() - os.uptime() * 1000) / 300000)) });
+  }
+  if (req.method === 'GET' && ['/nuvex-motion.js', '/nuvex-status.js', '/nuvex-swipe.js', '/nuvex-theme.css', '/login-media/startup.mp4'].includes(requestPath)) {
+    const file = path.join(__dirname, requestPath.slice(1));
+    if (!fs.existsSync(file)) { res.writeHead(404); return res.end(); }
+    const size = fs.statSync(file).size, video = requestPath.endsWith('.mp4');
+    const headers = { 'Content-Type': video ? 'video/mp4' : requestPath.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' };
+    const range = video && req.headers.range;
+    if (range) {
+      const match = /^bytes=(\d*)-(\d*)$/.exec(range);
+      let start = match && match[1] ? Number(match[1]) : 0;
+      let end = match && match[2] ? Number(match[2]) : size - 1;
+      if (match && !match[1] && match[2]) { start = Math.max(0, size - Number(match[2])); end = size - 1; }
+      if (!match || start > end || start >= size) { res.writeHead(416, { 'Content-Range': 'bytes */' + size }); return res.end(); }
+      end = Math.min(end, size - 1);
+      res.writeHead(206, { ...headers, 'Accept-Ranges': 'bytes', 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': end - start + 1 });
+      return fs.createReadStream(file, { start, end }).pipe(res);
+    }
+    res.writeHead(200, { ...headers, 'Content-Length': size, ...(video ? { 'Accept-Ranges': 'bytes' } : {}) });
+    return fs.createReadStream(file).pipe(res);
+  }
+
+  // First-run setup: when no users exist, only the setup page/API are exposed.
+  if (requestPath === "/api/auth/setup-status" && req.method === "GET") {
+    return jsonResponse(res, 200, { ok:true, needsSetup: readAuthUsers().length === 0 });
+  }
+  if (requestPath === "/api/auth/setup" && req.method === "POST") {
+    if (readAuthUsers().length !== 0) return jsonResponse(res, 409, {ok:false,error:"De eerste installatie is al voltooid."});
+    return readJsonBody(req, 16384, (error, input) => {
+      if (error) return jsonResponse(res, 400, {ok:false,error:error.message});
+      // Re-check after reading the body to avoid two simultaneous first-admin creations.
+      if (readAuthUsers().length !== 0) return jsonResponse(res, 409, {ok:false,error:"De eerste installatie is al voltooid."});
+      const email=normalizeEmail(input.email), password=String(input.password||''), confirm=String(input.confirmPassword||'');
+      if (!/^\S+@\S+\.\S+$/.test(email)) return jsonResponse(res,400,{ok:false,error:"Vul een geldig e-mailadres in."});
+      if (password.length < 12) return jsonResponse(res,400,{ok:false,error:"Wachtwoord moet minimaal 12 tekens zijn."});
+      if (password !== confirm) return jsonResponse(res,400,{ok:false,error:"De wachtwoorden zijn niet gelijk."});
+      writeAuthUsers([{email,...hashPassword(password),role:"admin",disabled:false,createdAt:new Date().toISOString()}]);
+      const token=crypto.randomBytes(32).toString('hex');
+      authSessions.set(token,{email,role:'admin',expiresAt:Date.now()+AUTH_SESSION_TTL});
+      setAuthCookie(req,res,token);
+      return jsonResponse(res,201,{ok:true,user:{email,role:'admin'}});
+    });
+  }
+  if (requestPath === "/nuvex-ai-login-v23.png" && req.method === "GET") {
+    const file = path.join(__dirname, "nuvex-ai-login-v23.png");
+    return fs.readFile(file, (err, data) => {
+      if (err) { res.writeHead(404); return res.end("Not found"); }
+      res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-cache, no-store, must-revalidate", "X-Content-Type-Options":"nosniff" });
+      res.end(data);
+    });
+  }
+
+  if (requestPath === "/login-media/status" && req.method === "GET") {
+    return jsonResponse(res, 200, { ok:true, video:fs.existsSync(path.join(__dirname,"login-media","background.mp4")) });
+  }
+  if ((requestPath === "/login-media/background.png" || requestPath === "/login-media/background-4k.jpg" || requestPath === "/login-media/startup-fullscreen.png" || requestPath === "/nuvex-ai-sidebar-logo.png" || requestPath === "/login-media/background.mp4") && req.method === "GET") {
+    const isSidebarLogo = requestPath === "/nuvex-ai-sidebar-logo.png";
+    const name = requestPath.endsWith(".mp4") ? "background.mp4" : (requestPath.endsWith("startup-fullscreen.png") ? "startup-fullscreen.png" : (requestPath.endsWith(".jpg") ? "background-4k.jpg" : "background.png"));
+    const file = isSidebarLogo ? path.join(__dirname, "nuvex-ai-sidebar-logo.png") : path.join(__dirname, "login-media", name);
+    if (!fs.existsSync(file)) { res.writeHead(404); return res.end("Not found"); }
+    const headers = { "Content-Type": name.endsWith(".mp4") ? "video/mp4" : (name.endsWith(".jpg") ? "image/jpeg" : "image/png"), "Cache-Control":"no-cache, no-store, must-revalidate", "X-Content-Type-Options":"nosniff" };
+    res.writeHead(200, headers); return fs.createReadStream(file).pipe(res);
+  }
+
+  // Public branding asset used by login/setup before authentication.
+  if (requestPath === "/nuvex-ai-v2-background.jpg" && req.method === "GET") {
+    const file = path.join(__dirname, "nuvex-ai-v2-background.jpg");
+    return fs.readFile(file, (err, data) => {
+      if (err) { res.writeHead(404); return res.end("Not found"); }
+      res.writeHead(200, { "Content-Type": "image/jpeg", "Cache-Control": "no-cache, no-store, must-revalidate" });
+      res.end(data);
+    });
+  }
+
+  if (requestPath === "/nuvex-home-control.png" && req.method === "GET") {
+    const file = path.join(__dirname, "nuvex-home-control.png");
+    if (!fs.existsSync(file)) { res.writeHead(404); return res.end(); }
+    res.writeHead(200, { "Content-Type":"image/png", "Cache-Control":"public, max-age=3600", "X-Content-Type-Options":"nosniff" });
+    return res.end(fs.readFileSync(file));
+  }
+
+  if (requestPath === "/setup.html" && req.method === "GET") {
+    if (readAuthUsers().length !== 0) { res.writeHead(302,{Location:'/login.html','Cache-Control':'no-store'}); return res.end(); }
+    const file=path.join(__dirname,'setup.html');
+    res.writeHead(200,{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store","X-Frame-Options":"DENY","Content-Security-Policy":"frame-ancestors 'none'; base-uri 'self'; form-action 'self'"});
+    return res.end(fs.readFileSync(file));
+  }
+  if (readAuthUsers().length === 0) {
+    if (requestPath.startsWith('/api/')) return jsonResponse(res,428,{ok:false,error:'Eerste installatie vereist',needsSetup:true});
+    res.writeHead(302,{Location:'/setup.html','Cache-Control':'no-store'}); return res.end();
+  }
+
+  if (requestPath === "/api/auth/login" && req.method === "POST") {
+    const key = clientKey(req), failure = authFailures.get(key);
+    if (failure && failure.blockedUntil > Date.now()) return jsonResponse(res, 429, { ok:false, error:"Te veel mislukte pogingen. Probeer het later opnieuw." });
+    return readJsonBody(req, 16384, (error, input) => {
+      if (error) return jsonResponse(res, 400, { ok:false, error:error.message });
+      const email = normalizeEmail(input.email), user = readAuthUsers().find(x => normalizeEmail(x.email) === email && x.disabled !== true);
+      if (!user || !verifyUserPassword(user, input.password)) {
+        const previous = authFailures.get(key) || { count:0, blockedUntil:0 }, count = previous.count + 1;
+        authFailures.set(key, { count, blockedUntil: count >= 5 ? Date.now() + 60000 : 0 });
+        return jsonResponse(res, 401, { ok:false, error:"E-mailadres of wachtwoord is onjuist." });
+      }
+      authFailures.delete(key);
+      const token = crypto.randomBytes(32).toString('hex');
+      authSessions.set(token, { email:normalizeEmail(user.email), role:String(user.role || 'user'), expiresAt:Date.now()+AUTH_SESSION_TTL });
+      setAuthCookie(req, res, token);
+      return jsonResponse(res, 200, { ok:true, user:{ email:normalizeEmail(user.email), role:String(user.role || 'user') } });
+    });
+  }
+  if (requestPath === "/api/auth/logout" && req.method === "POST") {
+    const token = parseCookies(req)[AUTH_COOKIE]; if (token) authSessions.delete(token); clearAuthCookie(req, res);
+    return jsonResponse(res, 200, { ok:true });
+  }
+  if (requestPath === "/api/auth/session" && req.method === "GET") {
+    const session = authSession(req); return jsonResponse(res, session ? 200 : 401, session ? {ok:true,user:{email:session.email,role:session.role}} : {ok:false});
+  }
+  if (requestPath === "/api/portal/users" && req.method === "GET") {
+    const session=authSession(req); if(!session) return jsonResponse(res,401,{ok:false,error:'Authentication required'}); if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req))) return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});
+    return jsonResponse(res,200,{ok:true,users:readAuthUsers().map(u=>({email:normalizeEmail(u.email),role:String(u.role||'user'),disabled:u.disabled===true}))});
+  }
+  if (requestPath === "/api/portal/users" && req.method === "POST") {
+    const session=authSession(req); if(!session) return jsonResponse(res,401,{ok:false}); if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req))) return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});
+    return readJsonBody(req,16384,(e,input)=>{if(e)return jsonResponse(res,400,{ok:false,error:e.message});const email=normalizeEmail(input.email),password=String(input.password||''),role=input.role==='admin'?'admin':'user';if(!/^\S+@\S+\.\S+$/.test(email))return jsonResponse(res,400,{ok:false,error:'Ongeldig e-mailadres'});if(password.length<12)return jsonResponse(res,400,{ok:false,error:'Wachtwoord moet minimaal 12 tekens zijn'});let users=readAuthUsers();if(users.some(u=>normalizeEmail(u.email)===email))return jsonResponse(res,409,{ok:false,error:'Gebruiker bestaat al'});users.push({email,...hashPassword(password),role,disabled:false});writeAuthUsers(users);return jsonResponse(res,200,{ok:true});});
+  }
+  const portalUserMatch=requestPath.match(/^\/api\/portal\/users\/(.+)$/);
+  if(portalUserMatch && req.method==='DELETE') { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});const email=normalizeEmail(decodeURIComponent(portalUserMatch[1]));if(email===session.email)return jsonResponse(res,400,{ok:false,error:'Je kunt je eigen account niet verwijderen'});let users=readAuthUsers(),next=users.filter(u=>normalizeEmail(u.email)!==email);if(next.length===users.length)return jsonResponse(res,404,{ok:false,error:'Gebruiker niet gevonden'});writeAuthUsers(next);return jsonResponse(res,200,{ok:true}); }
+  if (requestPath === "/api/portal/cloudflare" && req.method === "GET") { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});const c=readCloudflareConfig();return jsonResponse(res,200,{ok:true,configured:!!c.tunnelToken,running:!!cloudflaredProcess,cloudflaredInstalled:!!(process.env.CLOUDFLARED_PATH||fs.existsSync(cloudflaredLocalPath())),accountId:c.accountId||'',zoneId:c.zoneId||'',hostname:c.hostname||'',tunnelId:c.tunnelId||'',tunnelName:c.tunnelName||'htmlui-portal',hasApiToken:!!c.apiToken}); }
+  if (requestPath === "/api/portal/cloudflare/setup" && req.method === "POST") { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});return readJsonBody(req,32768,async(e,input)=>{if(e)return jsonResponse(res,400,{ok:false,error:e.message});try{const old=readCloudflareConfig(),apiToken=String(input.apiToken||old.apiToken||'').trim(),accountId=String(input.accountId||'').trim(),zoneId=String(input.zoneId||'').trim(),hostname=String(input.hostname||'').trim().toLowerCase(),tunnelName=String(input.tunnelName||'htmlui-portal').trim();if(!apiToken||!accountId||!zoneId||!hostname)throw new Error('Account ID, Zone ID, hostname en API-token zijn verplicht');let tunnelId=old.tunnelId,tunnelToken=old.tunnelToken;if(!tunnelId){const t=await cloudflareRequest('POST','/accounts/'+encodeURIComponent(accountId)+'/cfd_tunnel',apiToken,{name:tunnelName,config_src:'cloudflare'});tunnelId=t.id;}tunnelToken=await cloudflareRequest('GET','/accounts/'+encodeURIComponent(accountId)+'/cfd_tunnel/'+encodeURIComponent(tunnelId)+'/token',apiToken);await cloudflareRequest('PUT','/accounts/'+encodeURIComponent(accountId)+'/cfd_tunnel/'+encodeURIComponent(tunnelId)+'/configurations',apiToken,{config:{ingress:[{hostname,service:'http://localhost:'+PORT},{service:'http_status:404'}]}});const records=await cloudflareRequest('GET','/zones/'+encodeURIComponent(zoneId)+'/dns_records?type=CNAME&name='+encodeURIComponent(hostname),apiToken);const dns={type:'CNAME',name:hostname,content:tunnelId+'.cfargotunnel.com',proxied:true};if(Array.isArray(records)&&records[0])await cloudflareRequest('PUT','/zones/'+encodeURIComponent(zoneId)+'/dns_records/'+records[0].id,apiToken,dns);else await cloudflareRequest('POST','/zones/'+encodeURIComponent(zoneId)+'/dns_records',apiToken,dns);const cf=await ensureCloudflared();writeCloudflareConfig({accountId,zoneId,hostname,tunnelName,tunnelId,tunnelToken,apiToken,updatedAt:new Date().toISOString()});stopCloudflared();startCloudflared(tunnelToken,cf.bin);await new Promise(r=>setTimeout(r,1200));return jsonResponse(res,200,{ok:true,hostname,tunnelId,running:!!cloudflaredProcess,cloudflaredInstalled:true,downloaded:cf.installed});}catch(err){return jsonResponse(res,500,{ok:false,error:err.message});}}); }
+  if (requestPath === "/api/portal/cloudflare/start" && req.method === "POST") { const session=authSession(req),c=readCloudflareConfig();if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false});if(!c.tunnelToken)return jsonResponse(res,400,{ok:false,error:'Cloudflare is nog niet geconfigureerd'});return ensureCloudflared().then(cf=>{startCloudflared(c.tunnelToken,cf.bin);return jsonResponse(res,200,{ok:true,cloudflaredInstalled:true});}).catch(e=>jsonResponse(res,500,{ok:false,error:e.message})); }
+  if (requestPath === "/api/portal/cloudflare/stop" && req.method === "POST") { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false});stopCloudflared();return jsonResponse(res,200,{ok:true}); }
+  if (requestPath === "/login.html" && req.method === "GET") {
+    const file = path.join(__dirname, 'login.html');
+    res.writeHead(200, { "Content-Type":"text/html; charset=utf-8", "Cache-Control":"no-store", "X-Frame-Options":"DENY", "Content-Security-Policy":"frame-ancestors 'none'; base-uri 'self'; form-action 'self'" });
+    return res.end(fs.readFileSync(file));
+  }
+  const session = authSession(req);
+  if (!session) {
+    if (requestPath.startsWith('/api/') || requestPath.startsWith('/camera')) return jsonResponse(res, 401, {ok:false,error:'Authentication required'});
+    res.writeHead(302, { Location:'/login.html', 'Cache-Control':'no-store' }); return res.end();
+  }
+
+
+  if (requestPath === '/api/outdoor-weather' && req.method === 'GET') {
+    return outdoorWeather.getWeather(readDashboardState(),connected).then(data => jsonResponse(res,200,data)).catch(e => jsonResponse(res,503,{configured:true,error:e.message}));
+  }
+  if (requestPath === '/api/weather-settings' && req.method === 'GET') {
+    return outdoorWeather.settings(readDashboardState()).then(data => jsonResponse(res,200,data)).catch(e => jsonResponse(res,503,{error:e.message}));
+  }
+  if (requestPath === '/api/weather-settings' && req.method === 'POST') {
+    if (session.role !== 'admin' || !extendSettingsAccess(settingsTokenFromRequest(req))) return jsonResponse(res,403,{error:'Open en ontgrendel Instellingen'});
+    return readJsonBody(req,4096,(error,input) => {
+      if(error)return jsonResponse(res,400,{error:error.message});
+      outdoorWeather.save(input).then(data=>jsonResponse(res,200,data)).catch(e=>jsonResponse(res,400,{error:e.message}));
+    });
+  }
+  // UI background manager. These routes are behind the normal authenticated session.
+  const uiBgDir = path.join(__dirname, "ui-backgrounds");
+  const uiBgUploads = path.join(uiBgDir, "uploads");
+  const uiBgConfigFile = path.join(uiBgDir, "config.json");
+  const uiBgBuiltins = [
+    { id:"builtin-city", name:"NUVEX City (default)", builtin:true, file:"default-city.png", mime:"image/png" },
+    { id:"builtin-original", name:"Original HTMLUI", builtin:true, file:"original-htmlui.jpg", mime:"image/jpeg" }
+  ];
+  const readUiBgConfig = () => { try { return JSON.parse(fs.readFileSync(uiBgConfigFile,"utf8")); } catch (_) { return {selected:"builtin-city"}; } };
+  const writeUiBgConfig = cfg => { fs.mkdirSync(uiBgDir,{recursive:true}); fs.writeFileSync(uiBgConfigFile,JSON.stringify(cfg,null,2)); };
+  const listUiBackgrounds = () => {
+    fs.mkdirSync(uiBgUploads,{recursive:true});
+    const uploads=fs.readdirSync(uiBgUploads).filter(n=>/\.(png|jpe?g|webp)$/i.test(n)).map(n=>{
+      const id="upload-"+n.replace(/\.[^.]+$/,"");
+      return {id,name:n.replace(/^[a-f0-9]+-/i,"").replace(/\.[^.]+$/,""),builtin:false,file:n};
+    });
+    return uiBgBuiltins.concat(uploads);
+  };
+  if (requestPath === "/api/ui-backgrounds" && req.method === "GET") {
+    const cfg=readUiBgConfig(), items=listUiBackgrounds();
+    if(!items.some(x=>x.id===cfg.selected)) cfg.selected="builtin-city";
+    return jsonResponse(res,200,{ok:true,selected:cfg.selected,items:items.map(x=>({id:x.id,name:x.name,builtin:x.builtin,url:"/ui-background/"+encodeURIComponent(x.id)}))});
+  }
+  if (requestPath === "/api/ui-backgrounds/select" && req.method === "POST") {
+    return readJsonBody(req,16384,(e,input)=>{if(e)return jsonResponse(res,400,{ok:false,error:e.message});const id=String(input.id||"");if(!listUiBackgrounds().some(x=>x.id===id))return jsonResponse(res,404,{ok:false,error:"Background not found"});writeUiBgConfig({selected:id});return jsonResponse(res,200,{ok:true,selected:id});});
+  }
+  if (requestPath === "/api/ui-backgrounds/upload" && req.method === "POST") {
+    return readJsonBody(req,20*1024*1024,(e,input)=>{
+      if(e)return jsonResponse(res,400,{ok:false,error:e.message});
+      try{
+        const name=String(input.name||"Background").replace(/[^\w .()-]+/g,"").trim().slice(0,80)||"Background";
+        const m=String(input.dataUrl||"").match(/^data:image\/(png|jpeg|webp);base64,([A-Za-z0-9+/=]+)$/);
+        if(!m)throw new Error("Use a PNG, JPG or WEBP image.");
+        const buf=Buffer.from(m[2],"base64"); if(!buf.length||buf.length>12*1024*1024)throw new Error("Image must be 12 MB or smaller.");
+        const ext=m[1]==="jpeg"?"jpg":m[1], token=require("crypto").randomBytes(8).toString("hex");
+        fs.mkdirSync(uiBgUploads,{recursive:true}); const file=token+"-"+name.replace(/\s+/g,"-")+"."+ext; fs.writeFileSync(path.join(uiBgUploads,file),buf);
+        const id="upload-"+file.replace(/\.[^.]+$/,""); writeUiBgConfig({selected:id});
+        return jsonResponse(res,200,{ok:true,id});
+      }catch(err){return jsonResponse(res,400,{ok:false,error:err.message});}
+    });
+  }
+  const uiBgDeleteMatch=requestPath.match(/^\/api\/ui-backgrounds\/([^/]+)$/);
+  if (uiBgDeleteMatch && req.method === "DELETE") {
+    let id="";try{id=decodeURIComponent(uiBgDeleteMatch[1])}catch(_){}
+    if(!id.startsWith("upload-"))return jsonResponse(res,400,{ok:false,error:"Built-in backgrounds cannot be deleted."});
+    const item=listUiBackgrounds().find(x=>x.id===id&&!x.builtin);if(!item)return jsonResponse(res,404,{ok:false,error:"Background not found"});
+    try{fs.unlinkSync(path.join(uiBgUploads,item.file));}catch(_){}
+    const cfg=readUiBgConfig();if(cfg.selected===id)writeUiBgConfig({selected:"builtin-city"});
+    return jsonResponse(res,200,{ok:true});
+  }
+  const uiBgFileMatch=requestPath.match(/^\/ui-background\/([^/]+)$/);
+  if (uiBgFileMatch && req.method === "GET") {
+    let id="";try{id=decodeURIComponent(uiBgFileMatch[1])}catch(_){}
+    const item=listUiBackgrounds().find(x=>x.id===id);if(!item){res.writeHead(404);return res.end("Not found");}
+    const file=item.builtin?path.join(uiBgDir,item.file):path.join(uiBgUploads,item.file);
+    const ext=path.extname(file).toLowerCase(), mime=ext===".png"?"image/png":ext===".webp"?"image/webp":"image/jpeg";
+    res.writeHead(200,{"Content-Type":mime,"Cache-Control":"no-cache","X-Content-Type-Options":"nosniff"});return fs.createReadStream(file).pipe(res);
+  }
 
   const dynamicCameraMatch = requestPath === "/camera/stream.mjpg" ? true : false;
   if (dynamicCameraMatch && req.method === "GET") {
@@ -1505,6 +1839,29 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+
+  const avRemoteMatch = requestPath.match(/^\/api\/av\/([^/]+)\/remote$/);
+  if (avRemoteMatch && req.method === "POST") {
+    let id = ''; try { id = decodeURIComponent(avRemoteMatch[1]); } catch (_) {}
+    let body = ''; req.on('data', chunk => { body += chunk; if (body.length > 10000) req.destroy(); });
+    req.on('end', async () => {
+      try {
+        const input = JSON.parse(body || '{}'), key = String(input.key || '').toUpperCase();
+        const allowed = new Set(['UP','DOWN','LEFT','RIGHT','ENTER','BACK','HOME','MENU','SETTINGS','GUIDE','CHANNELUP','CHANNELDOWN','RED','GREEN','YELLOW','BLUE','0','1','2','3','4','5','6','7','8','9']);
+        if (!allowed.has(key)) throw new Error('TV remote key is not allowed');
+        const tv = configuredTvById(id); if (!tv) throw new Error('Configured LG TV not found');
+        const power = await getLgWebosPowerStatus(tv); if (!power.online) throw new Error('TV is off');
+        await lgWebosRemoteButton(tv, key);
+        res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        res.end(JSON.stringify({ ok: true, key }));
+      } catch (error) {
+        res.writeHead(400, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+        res.end(JSON.stringify({ ok: false, error: error.message }));
+      }
+    });
+    return;
+  }
+
   const avPowerMatch = requestPath.match(/^\/api\/av\/([^/]+)\/power$/);
   if (avPowerMatch && req.method === "POST") {
     let id = '';
@@ -1565,6 +1922,37 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
+
+  if (requestPath === "/api/nax/all-off" && req.method === "POST") {
+    (async () => {
+      const results = [];
+      for (const device of naxDevices()) {
+        const unit = naxUnits.get(naxUnitKey(device));
+        if (!unit) { results.push({ id: String(device.id || ''), ok: false, error: 'NAX unit is not connected' }); continue; }
+        for (let number = 1; number <= 5; number++) {
+          const playerId = naxPlayerIdForNumber(number);
+          try {
+            naxPlayerAction(unit, playerId, 'Pause');
+            await new Promise(resolve => setTimeout(resolve, 140));
+            naxPlayerAction(unit, playerId, 'Stop');
+            results.push({ id: String(device.id || '') + '::' + number, ok: true });
+          } catch (error) {
+            results.push({ id: String(device.id || '') + '::' + number, ok: false, error: error.message });
+          }
+          await new Promise(resolve => setTimeout(resolve, 160));
+        }
+      }
+      const stopped = results.filter(item => item.ok).length;
+      if (!results.length) throw new Error('No NAX media players are configured');
+      res.writeHead(stopped ? 200 : 400, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ ok: stopped > 0, stopped, results }));
+    })().catch(error => {
+      res.writeHead(400, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ ok: false, error: error.message }));
+    });
+    return;
+  }
+
   if (requestPath === "/api/nax/status" && req.method === "GET") {
     naxReconcile(); const devices={};
     for (const device of naxDevices()) for (const mapping of naxPlayerMappings(device)) devices[String(device.id||'')+'::'+mapping.number]=naxPublicPlayerState(device,mapping.number);
@@ -1810,7 +2198,7 @@ const server = http.createServer((req, res) => {
     return;
   }
   if (requestPath === "/api/state" && req.method === "GET") {
-    let state = { rooms: [], sliders: [], securityDevices: [], genericDevices: [], deviceDrivers: [], presets: {}, securityMode: "Home" };
+    let state = { rooms: [], sliders: [], securityDevices: [], genericDevices: [], deviceDrivers: [], automations: [], presets: {}, securityMode: "Home" };
     try { if (fs.existsSync(STATE_FILE)) state = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")); } catch (_) {}
     res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     return res.end(JSON.stringify(state));
@@ -1846,7 +2234,7 @@ const server = http.createServer((req, res) => {
           securityDevices: Array.isArray(state.securityDevices) ? state.securityDevices.filter(x => !sampleSecurityIds.has(String(x && x.id || ""))).slice(0, 200) : [],
           genericDevices: Array.isArray(state.genericDevices) ? state.genericDevices.slice(0, 300) : [],
           deviceDrivers: Array.isArray(state.deviceDrivers) ? state.deviceDrivers.filter(driver => {
-            const allowed = { lighting:['dim','switch','rgbw'], security:['lock','motion'], thermostat:['thermostat'], screen:['screen'], camera:['camera'], scene:['scene'], av:['tv','radio','nax'] };
+            const allowed = { lighting:['dim','switch','rgbw'], security:['lock','motion'], thermostat:['thermostat','switch'], screen:['screen'], camera:['camera'], scene:['scene'], av:['tv','radio','nax'], energy:['energy'] };
             return driver && allowed[driver.category] && allowed[driver.category].includes(driver.baseType) && /^[a-z0-9][a-z0-9._-]{1,63}$/i.test(String(driver.id || ''));
           }).map(driver => ({
             id: String(driver.id).slice(0,64), category: String(driver.category), name: String(driver.name || driver.id).slice(0,80), baseType: String(driver.baseType),
@@ -1864,6 +2252,13 @@ const server = http.createServer((req, res) => {
             settingsValues: driver.settingsValues && typeof driver.settingsValues === 'object' ? Object.fromEntries(Object.entries(driver.settingsValues).filter(([key]) => !['__proto__','constructor','prototype'].includes(key)).slice(0,300).map(([key,value]) => [String(key).slice(0,140), typeof value === 'boolean' || typeof value === 'number' ? value : String(value || '').slice(0,2000)])) : {},
             parameters: Array.isArray(driver.parameters) ? driver.parameters.slice(0,40).map(parameter => ({ key:String(parameter&&parameter.key||'').slice(0,64), label:String(parameter&&parameter.label||'').slice(0,100), kind:String(parameter&&parameter.kind||'text').slice(0,24), dpt:String(parameter&&parameter.dpt||'').slice(0,24) })) : []
           })).slice(0,200) : [],
+          automations: Array.isArray(state.automations) ? state.automations.slice(0,100).map((rule,index) => ({
+            id: String(rule && rule.id || ('automation-' + (index + 1))).replace(/[^a-z0-9._-]+/gi,'-').slice(0,64),
+            name: String(rule && rule.name || 'Automation').slice(0,100),
+            enabled: !rule || rule.enabled !== false,
+            trigger: { type: 'security-mode', value: ['Home','Night','Away'].includes(String(rule && rule.trigger && rule.trigger.value || '')) ? String(rule.trigger.value) : 'Away' },
+            action: { type: 'all-av-off' }
+          })) : (Array.isArray(savedState.automations) ? savedState.automations : []),
           presets: state.presets && typeof state.presets === "object" ? state.presets : {},
           securityMode,
           configRevision: currentRevision + 1
@@ -1895,14 +2290,14 @@ const server = http.createServer((req, res) => {
     return res.end("Not found");
   }
 
-  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" });
+  res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate", "X-Content-Type-Options":"nosniff", "Referrer-Policy":"same-origin", "X-Frame-Options":"DENY" });
   res.end(fs.readFileSync(file));
 });
 
 const wss = new WebSocket.Server({ noServer: true });
 
 server.on("upgrade", (req, socket, head) => {
-  if (req.url === "/ws") {
+  if (req.url === "/ws" && authSession(req)) {
     wss.handleUpgrade(req, socket, head, ws => {
       wss.emit("connection", ws, req);
     });
@@ -1960,13 +2355,15 @@ server.on("error", err => {
   process.exitCode = 1;
 });
 
-server.listen(PORT, "0.0.0.0", () => {
+const BIND_HOST = process.env.HTML_UI_BIND || "0.0.0.0";
+server.listen(PORT, BIND_HOST, () => {
   startMdns();
   console.log("");
   console.log("======================================");
   console.log("       SMART HOME KNX DASHBOARD");
   console.log("======================================");
   console.log(`Dashboard : http://${MDNS_HOSTNAME}:${PORT}`);
+  console.log(`Bind      : ${BIND_HOST}:${PORT}`);
   console.log(`Fallback  : http://<server-ip>:${PORT}`);
   console.log(`KNX router: ${DEFAULT.ip}:${DEFAULT.port}`);
   console.log(`Write GA  : ${DEFAULT.writeGa}`);
@@ -1977,6 +2374,7 @@ server.listen(PORT, "0.0.0.0", () => {
     console.log("[KNX] Herstellen van de opgeslagen verbinding na serverstart.");
     setTimeout(() => connectKNX(savedConnection), 500);
   }
+  const cf=readCloudflareConfig(); if(cf.tunnelToken){ try{startCloudflared(cf.tunnelToken);console.log('[Cloudflare] Saved tunnel starting automatically.')}catch(e){console.error('[Cloudflare]',e.message)} }
   console.log("");
 });
 

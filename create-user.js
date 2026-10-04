@@ -1,0 +1,5 @@
+const fs=require('fs'),path=require('path'),crypto=require('crypto'),readline=require('readline');
+const file=path.join(__dirname,'users.json');
+const rl=readline.createInterface({input:process.stdin,output:process.stdout});
+const ask=q=>new Promise(r=>rl.question(q,r));
+(async()=>{const email=String(await ask('E-mailadres: ')).trim().toLowerCase();const password=String(await ask('Wachtwoord (min. 12 tekens): '));if(!/^\S+@\S+\.\S+$/.test(email))throw new Error('Ongeldig e-mailadres');if(password.length<12)throw new Error('Gebruik minimaal 12 tekens');let data={users:[]};try{data=JSON.parse(fs.readFileSync(file,'utf8'))}catch(_){}if(!Array.isArray(data.users))data.users=[];const salt=crypto.randomBytes(16).toString('hex'),passwordHash=crypto.scryptSync(password,salt,64).toString('hex');const user={email,salt,passwordHash,role:'admin',disabled:false};const i=data.users.findIndex(x=>String(x.email||'').toLowerCase()===email);if(i>=0)data.users[i]=user;else data.users.push(user);fs.writeFileSync(file,JSON.stringify(data,null,2));console.log('Gebruiker opgeslagen in users.json');rl.close()})().catch(e=>{console.error(e.message);rl.close();process.exitCode=1});

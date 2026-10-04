@@ -1,0 +1,104 @@
+HTMLUI PORTAL - EENMALIGE INSTALLATIE
+=====================================
+
+Wat is ingebouwd
+----------------
+- E-mail/wachtwoord login vóór dashboard, API, camera endpoints en WebSocket.
+- Wachtwoorden worden niet plaintext opgeslagen: scrypt + unieke salt.
+- Server-side sessies en HttpOnly/SameSite cookies.
+- Login rate limiting (tijdelijke blokkade na 5 foute pogingen).
+- Logout-knop in dashboard.
+- Cloudflare Tunnel-vriendelijke HTTPS-detectie via X-Forwarded-Proto.
+- Optioneel alleen luisteren op localhost via HTML_UI_BIND=127.0.0.1.
+
+1. Maak je eerste account
+-------------------------
+Open een terminal in deze map en voer uit:
+
+  npm run create-user
+
+Vul je e-mailadres en een wachtwoord van minimaal 12 tekens in.
+Dit maakt users.json aan. Herhaal dit commando om een gebruiker toe te voegen
+of het wachtwoord van een bestaand e-mailadres te vervangen.
+
+BELANGRIJK: users.json bevat hashes, geen leesbare wachtwoorden, maar behandel
+het bestand wel als vertrouwelijk en publiceer het niet op GitHub.
+
+2. Test eerst lokaal
+--------------------
+Start zoals normaal:
+
+  npm start
+
+Open daarna je bestaande lokale HTMLUI-adres. Je hoort eerst /login.html te
+zien. Test login, KNX-bediening, Settings, camera's en AV/NAX.
+
+3. Cloudflare Tunnel installeren
+--------------------------------
+Je hebt een domein nodig dat in Cloudflare staat. Installeer cloudflared op
+de computer waarop HTMLUI draait en maak in Cloudflare Zero Trust een Tunnel.
+Koppel bijvoorbeeld:
+
+  portal.jouwdomein.nl  ->  http://localhost:3010
+
+Je hoeft GEEN poort op de router open te zetten.
+
+4. Aanbevolen: HTMLUI alleen aan localhost binden
+--------------------------------------------------
+Nadat de Cloudflare Tunnel goed werkt, start HTMLUI met:
+
+Windows PowerShell:
+  $env:HTML_UI_BIND="127.0.0.1"
+  npm start
+
+Windows CMD:
+  set HTML_UI_BIND=127.0.0.1
+  npm start
+
+Linux/macOS:
+  HTML_UI_BIND=127.0.0.1 npm start
+
+Als andere apparaten op je LAN rechtstreeks naar :3010 moeten kunnen blijven
+gaan, laat HTML_UI_BIND dan op 0.0.0.0 (standaard). De login blijft dan actief.
+
+5. Cloudflare HTTPS
+-------------------
+Gebruik extern uitsluitend https://portal.jouwdomein.nl. Via Cloudflare wordt
+de sessiecookie automatisch als Secure gezet doordat X-Forwarded-Proto=https is.
+Je kunt dit ook forceren met HTML_UI_SECURE_COOKIE=1, maar doe dat NIET tijdens
+een test via gewone lokale http://, omdat de browser de cookie dan lokaal niet
+zal terugsturen.
+
+6. Sessie-duur (optioneel)
+--------------------------
+Standaard blijft een actieve sessie 24 uur geldig. Bijvoorbeeld 8 uur:
+
+  HTML_UI_SESSION_HOURS=8
+
+7. Back-up / updates
+--------------------
+Bewaar users.json buiten publieke repositories. Maak vóór toekomstige updates
+een back-up van users.json en van je bestaande configuratiebestanden.
+
+Opmerking over rollen
+---------------------
+De gebruikersfile bevat al een role-veld voor toekomstige admin/user rechten.
+In deze versie beschermt iedere geldige portalgebruiker het dashboard; de
+bestaande Settings-pincode blijft daarnaast vereist voor configuratiewijzigingen.
+
+V2.1.6 PORTAL SETTINGS MANAGEMENT
+---------------------------------
+Portal users are now managed in Settings > Portal users.
+Cloudflare is managed in Settings > Cloudflare Portal.
+
+One-time Cloudflare prerequisites:
+1. Your domain must already be active in Cloudflare.
+2. Install cloudflared on the HTMLUI machine and make sure `cloudflared --version` works.
+3. In Cloudflare create a LIMITED API token with Account: Cloudflare Tunnel Edit and Zone: DNS Edit for only the relevant account/zone.
+4. Copy Account ID and Zone ID from Cloudflare.
+5. In HTMLUI unlock Settings, fill Account ID, Zone ID, hostname (e.g. portal.example.com), tunnel name and API token, then click Create / update tunnel.
+HTMLUI creates the remotely-managed tunnel, configures its ingress to localhost:3010, creates/updates the CNAME and starts cloudflared. Saved tunnels start again when HTMLUI starts.
+
+SECURITY
+--------
+cloudflare_portal.json and users.json contain secrets and are excluded from Git/update transfer. Keep filesystem access to the HTMLUI directory restricted.
