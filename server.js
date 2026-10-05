@@ -8,6 +8,7 @@ const dgram = require("dgram");
 const net = require("net");
 const os = require("os");
 const crypto = require("crypto");
+const { CloudAccess } = require('./nuvex-cloud');
 const outdoorWeather = require('./weather');
 let FFMPEG_BIN = process.env.FFMPEG_PATH || "ffmpeg";
 let FFMPEG_FALLBACK = null;
@@ -40,36 +41,10 @@ const WEBOS_APPS_FILE = path.join(__dirname, "webos_tv_apps.json");
 const NAX_MEDIA_CACHE_FILE = path.join(__dirname, "nax_media_cache.json");
 const SETTINGS_SECURITY_FILE = path.join(__dirname, "settings_security.json");
 const AUTH_USERS_FILE = path.join(__dirname, "users.json");
-const CLOUDFLARE_CONFIG_FILE = path.join(__dirname, "cloudflare_portal.json");
-let cloudflaredProcess = null;
 function writePrivateJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2), { mode: 0o600 }); try { fs.chmodSync(file, 0o600); } catch (_) {} }
 function hashPassword(password) { const salt=crypto.randomBytes(16).toString('hex'); return {salt,passwordHash:crypto.scryptSync(String(password),salt,64).toString('hex')}; }
 function writeAuthUsers(users) { writePrivateJson(AUTH_USERS_FILE, {users}); }
-function readCloudflareConfig() { try { return JSON.parse(fs.readFileSync(CLOUDFLARE_CONFIG_FILE,'utf8')); } catch (_) { return {}; } }
-function writeCloudflareConfig(value) { writePrivateJson(CLOUDFLARE_CONFIG_FILE, value); }
-function cloudflareRequest(method, pathname, token, body) { return new Promise((resolve,reject)=>{ const payload=body==null?null:JSON.stringify(body); const r=https.request({hostname:'api.cloudflare.com',port:443,path:'/client/v4'+pathname,method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',...(payload?{'Content-Length':Buffer.byteLength(payload)}:{})}},resp=>{let data='';resp.on('data',c=>data+=c);resp.on('end',()=>{try{const j=JSON.parse(data||'{}');if(resp.statusCode>=400||j.success===false)return reject(new Error((j.errors&&j.errors[0]&&j.errors[0].message)||('Cloudflare HTTP '+resp.statusCode)));resolve(j.result)}catch(e){reject(e)}})});r.on('error',reject);if(payload)r.write(payload);r.end(); }); }
-const PORTAL_BIN_DIR = path.join(__dirname, '.portal-bin');
-function cloudflaredLocalPath(){ return path.join(PORTAL_BIN_DIR, process.platform === 'win32' ? 'cloudflared.exe' : 'cloudflared'); }
-function cloudflaredDownloadUrl(){
-  const a=os.arch();
-  if(process.platform==='win32' && (a==='x64'||a==='ia32')) return 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-'+(a==='x64'?'amd64':'386')+'.exe';
-  if(process.platform==='linux' && (a==='x64'||a==='arm64')) return 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-'+(a==='x64'?'amd64':'arm64');
-  if(process.platform==='darwin' && (a==='x64'||a==='arm64')) return 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-'+(a==='x64'?'amd64':'arm64')+'.tgz';
-  return null;
-}
-function downloadFile(url,dest,redirects=0){return new Promise((resolve,reject)=>{if(redirects>8)return reject(new Error('Te veel redirects bij downloaden van cloudflared'));const mod=url.startsWith('https:')?https:http;const r=mod.get(url,{headers:{'User-Agent':'HTMLUI-Portal/1.0'}},resp=>{if(resp.statusCode>=300&&resp.statusCode<400&&resp.headers.location){resp.resume();return resolve(downloadFile(new URL(resp.headers.location,url).toString(),dest,redirects+1));}if(resp.statusCode!==200){resp.resume();return reject(new Error('Download cloudflared mislukt (HTTP '+resp.statusCode+')'));}const tmp=dest+'.download';const f=fs.createWriteStream(tmp,{mode:0o700});resp.pipe(f);f.on('finish',()=>f.close(()=>{try{fs.renameSync(tmp,dest);try{fs.chmodSync(dest,0o700)}catch(_){}resolve(dest)}catch(e){reject(e)}}));f.on('error',reject);});r.on('error',reject);});}
-function execCheck(bin,args){return new Promise((resolve,reject)=>{const p=spawn(bin,args,{stdio:['ignore','pipe','pipe'],windowsHide:true});let out='';p.stdout.on('data',d=>out+=d);p.stderr.on('data',d=>out+=d);p.on('error',reject);p.on('exit',c=>c===0?resolve(out.trim()):reject(new Error(out.trim()||('Exit code '+c))));});}
-async function ensureCloudflared(){
-  if(process.env.CLOUDFLARED_PATH){await execCheck(process.env.CLOUDFLARED_PATH,['--version']);return {bin:process.env.CLOUDFLARED_PATH,installed:false};}
-  const local=cloudflaredLocalPath();
-  if(fs.existsSync(local)){try{await execCheck(local,['--version']);return {bin:local,installed:false};}catch(_){try{fs.unlinkSync(local)}catch(__){}}}
-  const url=cloudflaredDownloadUrl(); if(!url) throw new Error('Automatische cloudflared-installatie wordt niet ondersteund op '+process.platform+'/'+os.arch());
-  if(process.platform==='darwin') throw new Error('Automatische installatie op macOS vereist nog een handmatige cloudflared-installatie');
-  fs.mkdirSync(PORTAL_BIN_DIR,{recursive:true,mode:0o700}); await downloadFile(url,local); await execCheck(local,['--version']); return {bin:local,installed:true};
-}
-function startCloudflared(token,binOverride) { if(cloudflaredProcess && !cloudflaredProcess.killed) return; const bin=binOverride||process.env.CLOUDFLARED_PATH||(fs.existsSync(cloudflaredLocalPath())?cloudflaredLocalPath():'cloudflared'); cloudflaredProcess=spawn(bin,['tunnel','--no-autoupdate','run','--token',token],{stdio:['ignore','pipe','pipe'],windowsHide:true}); cloudflaredProcess.stdout.on('data',d=>console.log('[Cloudflare]',String(d).trim())); cloudflaredProcess.stderr.on('data',d=>console.log('[Cloudflare]',String(d).trim())); cloudflaredProcess.on('error',e=>{console.error('[Cloudflare] start failed:',e.message);cloudflaredProcess=null}); cloudflaredProcess.on('exit',()=>{cloudflaredProcess=null}); }
-function stopCloudflared(){ if(cloudflaredProcess){try{cloudflaredProcess.kill()}catch(_){} cloudflaredProcess=null;} }
-
+const nuvexCloud = new CloudAccess({directory:__dirname, readUsers:readAuthUsers, version:require('./package.json').version});
 const authSessions = new Map();
 const authFailures = new Map();
 const AUTH_SESSION_TTL = Math.max(15 * 60 * 1000, Number(process.env.HTML_UI_SESSION_HOURS || 24) * 60 * 60 * 1000);
@@ -390,7 +365,7 @@ async function updateFromGithub() {
   const roots = fs.readdirSync(extractDir, { withFileTypes: true }).filter(x => x.isDirectory());
   if (!roots.length) throw new Error("GitHub archive is empty");
   const sourceRoot = path.join(extractDir, roots[0].name);
-  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "smarthome_state.before-update.json", "github_update.json", "github-update-status.json", "webos_tv_keys.json", "webos_tv_apps.json", "settings_security.json", "users.json", "cloudflare_portal.json", "weather-config.json"]);
+  const protectedNames = new Set(["node_modules", ".git", "smarthome_state.json", "smarthome_state.before-update.json", "github_update.json", "github-update-status.json", "webos_tv_keys.json", "webos_tv_apps.json", "settings_security.json", "users.json", "cloudflare_portal.json", "nuvex_cloud_access.json", "weather-config.json"]);
   const copyTree = (src, dest) => {
     for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
       if (protectedNames.has(ent.name)) continue;
@@ -1467,7 +1442,7 @@ const server = http.createServer((req, res) => {
   // Home Screen icons must also be available before signing in.
   if (req.method === 'GET' && ['/apple-touch-icon.png', '/apple-touch-icon-precomposed.png', '/nuvex-sidebar-mobile.png'].includes(requestPath)) {
     const file = path.join(__dirname, requestPath === '/nuvex-sidebar-mobile.png' ? 'nuvex-sidebar-mobile.png' : 'apple-touch-icon.png');
-    if (!fs.existsSync(file)) { res.writeHead(404); return res.end(); }
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end(); }
     res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=3600', 'X-Content-Type-Options': 'nosniff' });
     return fs.createReadStream(file).pipe(res);
   }
@@ -1476,7 +1451,7 @@ const server = http.createServer((req, res) => {
   }
   if (req.method === 'GET' && ['/nuvex-motion.js', '/nuvex-status.js', '/nuvex-swipe.js', '/nuvex-theme.css', '/login-media/startup.mp4'].includes(requestPath)) {
     const file = path.join(__dirname, requestPath.slice(1));
-    if (!fs.existsSync(file)) { res.writeHead(404); return res.end(); }
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end(); }
     const size = fs.statSync(file).size, video = requestPath.endsWith('.mp4');
     const headers = { 'Content-Type': video ? 'video/mp4' : requestPath.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' };
     const range = video && req.headers.range;
@@ -1531,7 +1506,7 @@ const server = http.createServer((req, res) => {
     const isSidebarLogo = requestPath === "/nuvex-ai-sidebar-logo.png";
     const name = requestPath.endsWith(".mp4") ? "background.mp4" : (requestPath.endsWith("startup-fullscreen.png") ? "startup-fullscreen.png" : (requestPath.endsWith(".jpg") ? "background-4k.jpg" : "background.png"));
     const file = isSidebarLogo ? path.join(__dirname, "nuvex-ai-sidebar-logo.png") : path.join(__dirname, "login-media", name);
-    if (!fs.existsSync(file)) { res.writeHead(404); return res.end("Not found"); }
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end("Not found"); }
     const headers = { "Content-Type": name.endsWith(".mp4") ? "video/mp4" : (name.endsWith(".jpg") ? "image/jpeg" : "image/png"), "Cache-Control":"no-cache, no-store, must-revalidate", "X-Content-Type-Options":"nosniff" };
     res.writeHead(200, headers); return fs.createReadStream(file).pipe(res);
   }
@@ -1548,7 +1523,7 @@ const server = http.createServer((req, res) => {
 
   if (requestPath === "/nuvex-home-control.png" && req.method === "GET") {
     const file = path.join(__dirname, "nuvex-home-control.png");
-    if (!fs.existsSync(file)) { res.writeHead(404); return res.end(); }
+    if (!fs.existsSync(file) || !fs.statSync(file).isFile()) { res.writeHead(404); return res.end(); }
     res.writeHead(200, { "Content-Type":"image/png", "Cache-Control":"public, max-age=3600", "X-Content-Type-Options":"nosniff" });
     return res.end(fs.readFileSync(file));
   }
@@ -1599,10 +1574,23 @@ const server = http.createServer((req, res) => {
   }
   const portalUserMatch=requestPath.match(/^\/api\/portal\/users\/(.+)$/);
   if(portalUserMatch && req.method==='DELETE') { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});const email=normalizeEmail(decodeURIComponent(portalUserMatch[1]));if(email===session.email)return jsonResponse(res,400,{ok:false,error:'Je kunt je eigen account niet verwijderen'});let users=readAuthUsers(),next=users.filter(u=>normalizeEmail(u.email)!==email);if(next.length===users.length)return jsonResponse(res,404,{ok:false,error:'Gebruiker niet gevonden'});writeAuthUsers(next);return jsonResponse(res,200,{ok:true}); }
-  if (requestPath === "/api/portal/cloudflare" && req.method === "GET") { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});const c=readCloudflareConfig();return jsonResponse(res,200,{ok:true,configured:!!c.tunnelToken,running:!!cloudflaredProcess,cloudflaredInstalled:!!(process.env.CLOUDFLARED_PATH||fs.existsSync(cloudflaredLocalPath())),accountId:c.accountId||'',zoneId:c.zoneId||'',hostname:c.hostname||'',tunnelId:c.tunnelId||'',tunnelName:c.tunnelName||'htmlui-portal',hasApiToken:!!c.apiToken}); }
-  if (requestPath === "/api/portal/cloudflare/setup" && req.method === "POST") { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false,error:'Admin and Settings access required'});return readJsonBody(req,32768,async(e,input)=>{if(e)return jsonResponse(res,400,{ok:false,error:e.message});try{const old=readCloudflareConfig(),apiToken=String(input.apiToken||old.apiToken||'').trim(),accountId=String(input.accountId||'').trim(),zoneId=String(input.zoneId||'').trim(),hostname=String(input.hostname||'').trim().toLowerCase(),tunnelName=String(input.tunnelName||'htmlui-portal').trim();if(!apiToken||!accountId||!zoneId||!hostname)throw new Error('Account ID, Zone ID, hostname en API-token zijn verplicht');let tunnelId=old.tunnelId,tunnelToken=old.tunnelToken;if(!tunnelId){const t=await cloudflareRequest('POST','/accounts/'+encodeURIComponent(accountId)+'/cfd_tunnel',apiToken,{name:tunnelName,config_src:'cloudflare'});tunnelId=t.id;}tunnelToken=await cloudflareRequest('GET','/accounts/'+encodeURIComponent(accountId)+'/cfd_tunnel/'+encodeURIComponent(tunnelId)+'/token',apiToken);await cloudflareRequest('PUT','/accounts/'+encodeURIComponent(accountId)+'/cfd_tunnel/'+encodeURIComponent(tunnelId)+'/configurations',apiToken,{config:{ingress:[{hostname,service:'http://localhost:'+PORT},{service:'http_status:404'}]}});const records=await cloudflareRequest('GET','/zones/'+encodeURIComponent(zoneId)+'/dns_records?type=CNAME&name='+encodeURIComponent(hostname),apiToken);const dns={type:'CNAME',name:hostname,content:tunnelId+'.cfargotunnel.com',proxied:true};if(Array.isArray(records)&&records[0])await cloudflareRequest('PUT','/zones/'+encodeURIComponent(zoneId)+'/dns_records/'+records[0].id,apiToken,dns);else await cloudflareRequest('POST','/zones/'+encodeURIComponent(zoneId)+'/dns_records',apiToken,dns);const cf=await ensureCloudflared();writeCloudflareConfig({accountId,zoneId,hostname,tunnelName,tunnelId,tunnelToken,apiToken,updatedAt:new Date().toISOString()});stopCloudflared();startCloudflared(tunnelToken,cf.bin);await new Promise(r=>setTimeout(r,1200));return jsonResponse(res,200,{ok:true,hostname,tunnelId,running:!!cloudflaredProcess,cloudflaredInstalled:true,downloaded:cf.installed});}catch(err){return jsonResponse(res,500,{ok:false,error:err.message});}}); }
-  if (requestPath === "/api/portal/cloudflare/start" && req.method === "POST") { const session=authSession(req),c=readCloudflareConfig();if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false});if(!c.tunnelToken)return jsonResponse(res,400,{ok:false,error:'Cloudflare is nog niet geconfigureerd'});return ensureCloudflared().then(cf=>{startCloudflared(c.tunnelToken,cf.bin);return jsonResponse(res,200,{ok:true,cloudflaredInstalled:true});}).catch(e=>jsonResponse(res,500,{ok:false,error:e.message})); }
-  if (requestPath === "/api/portal/cloudflare/stop" && req.method === "POST") { const session=authSession(req);if(!session)return jsonResponse(res,401,{ok:false});if(session.role!=='admin'||!extendSettingsAccess(settingsTokenFromRequest(req)))return jsonResponse(res,403,{ok:false});stopCloudflared();return jsonResponse(res,200,{ok:true}); }
+  if (requestPath.startsWith('/api/portal/nuvex-cloud/')) {
+    const session = authSession(req);
+    if (!session) return jsonResponse(res,401,{ok:false,error:'Log eerst in.'});
+    if (session.role !== 'admin' || !extendSettingsAccess(settingsTokenFromRequest(req))) return jsonResponse(res,403,{ok:false,error:'Ontgrendel de instellingen als admin.'});
+    if (req.method === 'GET' && requestPath.endsWith('/status')) return jsonResponse(res,200,{ok:true,...nuvexCloud.status()});
+    if (req.method !== 'POST' || !requestPath.endsWith('/set-enabled')) return jsonResponse(res,404,{ok:false});
+    let origin; try { origin = new URL(req.headers.origin); } catch (_) { return jsonResponse(res,403,{ok:false,error:'Ongeldige origin.'}); }
+    if (origin.host !== req.headers.host || !['http:','https:'].includes(origin.protocol)) return jsonResponse(res,403,{ok:false,error:'Ongeldige origin.'});
+    return readJsonBody(req,4096,async(error,input)=>{
+      if(error) return jsonResponse(res,400,{ok:false,error:error.message});
+      const active = authSession(req);
+      if (!active || active.role !== 'admin' || !extendSettingsAccess(settingsTokenFromRequest(req))) return jsonResponse(res,403,{ok:false,error:'Ontgrendel de instellingen opnieuw.'});
+      try { return jsonResponse(res,200,{ok:true,...await nuvexCloud.setEnabled(input.enabled,active.email,input.url)}); }
+      catch(error) { return jsonResponse(res,400,{ok:false,error:error.message}); }
+    });
+  }
+
   if (requestPath === "/login.html" && req.method === "GET") {
     const file = path.join(__dirname, 'login.html');
     res.writeHead(200, { "Content-Type":"text/html; charset=utf-8", "Cache-Control":"no-store", "X-Frame-Options":"DENY", "Content-Security-Policy":"frame-ancestors 'none'; base-uri 'self'; form-action 'self'" });
@@ -2281,11 +2269,16 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let requestPath2 = requestPath;
+  let decodedPath;
+  try { decodedPath = decodeURIComponent(requestPath); } catch (_) { return jsonResponse(res,400,{ok:false}); }
+  const segments = decodedPath.replace(/\\/g,'/').split('/');
+  const privateNames = new Set(['users.json','settings_security.json','github_update.json','github-update-status.json','cloudflare_portal.json','nuvex_cloud_access.json','webos_tv_keys.json','nuvex-cloud.js','nuvex-cloud-ca.pem']);
+  if (segments.some(name=>privateNames.has(name) || name.startsWith('.') || /^nuvex_cloud_access\.json\..*\.tmp$/.test(name))) return jsonResponse(res,404,{ok:false});
+  let requestPath2 = decodedPath;
   if (requestPath2 === "/") requestPath2 = "/index.html";
 
   const file = path.join(__dirname, requestPath2);
-  if (!file.startsWith(__dirname) || !fs.existsSync(file)) {
+  if (!file.startsWith(__dirname) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
     res.writeHead(404);
     return res.end("Not found");
   }
@@ -2374,7 +2367,7 @@ server.listen(PORT, BIND_HOST, () => {
     console.log("[KNX] Herstellen van de opgeslagen verbinding na serverstart.");
     setTimeout(() => connectKNX(savedConnection), 500);
   }
-  const cf=readCloudflareConfig(); if(cf.tunnelToken){ try{startCloudflared(cf.tunnelToken);console.log('[Cloudflare] Saved tunnel starting automatically.')}catch(e){console.error('[Cloudflare]',e.message)} }
+  nuvexCloud.start();
   console.log("");
 });
 

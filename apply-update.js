@@ -9,7 +9,7 @@ const appDir = path.resolve(process.argv[3] || __dirname);
 const port = Number(process.argv[4] || 3010);
 const packageChanged = process.argv[5] === '1';
 const statusFile = path.join(appDir, 'github-update-status.json');
-const protectedNames = new Set(['node_modules', '.git', 'smarthome_state.json', 'smarthome_state.before-update.json', 'github_update.json', 'github-update-status.json', 'webos_tv_keys.json', 'webos_tv_apps.json', 'nax_media_cache.json', 'settings_security.json', 'weather-config.json']);
+const protectedNames = new Set(['node_modules', '.git', 'smarthome_state.json', 'smarthome_state.before-update.json', 'github_update.json', 'github-update-status.json', 'webos_tv_keys.json', 'webos_tv_apps.json', 'nax_media_cache.json', 'settings_security.json', 'users.json', 'cloudflare_portal.json', 'nuvex_cloud_access.json', 'weather-config.json']);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function writeStatus(state, extra = {}) {

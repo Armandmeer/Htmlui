@@ -1,11 +1,12 @@
 {
-  "name": "nuvex-ai-3.0",
-  "version": "3.0.0",
+  "name": "nuvex-ai",
+  "version": "0.4.0",
   "private": true,
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "create-user": "node create-user.js"
+    "create-user": "node create-user.js",
+    "test": "node --test nuvex-cloud.test.js nuvex-navigation.test.js nuvex-sliders.test.js nuvex-swipe.test.js weather.test.js"
   },
   "dependencies": {
     "knxultimate": "^6.0.6",

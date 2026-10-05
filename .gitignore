@@ -14,3 +14,6 @@ nax_media_cache.json
 server-*.log
 video-reference-*.png
 .codex-upload.ps1
+nuvex_cloud_access.json
+nuvex_cloud_access.json.*.tmp
+
