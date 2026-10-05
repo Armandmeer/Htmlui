@@ -45,7 +45,7 @@ class CloudAccess {
     const c = this.config;
     return { enabled: !!c, busy: this.busy, url: c ? c.url : 'https://cloud.nuvexai.nl', name: c ? c.name : '', id: c ? c.id : '', firstEmail: c ? c.firstEmail : '',
       certificateFingerprint: c && c.ca ? new X509Certificate(c.ca).fingerprint256 : '', lastHeartbeat: this.lastSeen,
-      online: !!c && !!this.lastSeen && Date.now() - this.lastSeen < 90000, error: this.error, remoteAccessEnabled: !!this.remote && this.remote.connected() };
+      online: !!c && !!this.lastSeen && Date.now() - this.lastSeen < 90000, error: this.error || (this.remote && this.remote.error) || '', remoteAccessEnabled: !!this.remote && this.remote.connected() };
   }
   trustedCa(config) {
     if (config.automatic && new URL(config.url).hostname === "192.168.40.119") {

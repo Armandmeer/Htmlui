@@ -7,6 +7,7 @@ class RemoteAccess {
     this.port=port;this.profile=profile;this.grant=grant;
     this.socket=null;this.config=null;this.timer=null;this.sockets=new Map();this.requests=new Set();
     this.alive=false;this.pingTimer=null;
+    this.error='';
   }
   connected(){return !!this.socket && this.socket.readyState===WebSocket.OPEN;}
   start(config,ca){
@@ -19,17 +20,26 @@ class RemoteAccess {
     const socket=new WebSocket(url,{headers:{Authorization:'Bearer '+config.token},rejectUnauthorized:true,...(this.ca?{ca:this.ca}:{}),handshakeTimeout:15000,maxPayload:24*1024*1024,perMessageDeflate:false});
     this.socket=socket;
     socket.on('open',()=>{
-      this.alive=true;
+      this.alive=true;this.error='';
       this.pingTimer=setInterval(()=>{if(!this.alive)return socket.terminate();this.alive=false;socket.ping();},25000);this.pingTimer.unref();
     });
     socket.on('pong',()=>{this.alive=true;});
     socket.on('message',raw=>{let data;try{data=JSON.parse(raw);}catch(_){return socket.close(1008);}
       this.handle(data,socket).catch(()=>this.reply(socket,{requestId:data.requestId,error:true}));
     });
-    socket.on('error',()=>{});
+    socket.on('error',error=>{
+      if(this.socket!==socket)return;
+      const message=String(error.message||'');
+      this.error=/CERT|TLS|SELF_SIGNED|UNABLE_TO_VERIFY/.test(error.code||'')?'Het HTTPS-certificaat voor de remote verbinding wordt niet vertrouwd.':
+        /response: 404/.test(message)?'De cloudserver ondersteunt de remote verbinding nog niet. Werk de cloudserver bij.':
+        /response: (400|426)/.test(message)?'De proxy weigert de WebSocket-verbinding. Controleer de proxyconfiguratie op de cloudserver.':
+        /response: (401|403)/.test(message)?'De cloudserver weigert de sleutel voor de remote verbinding.':
+        'De remote verbinding is niet beschikbaar. Nuvex probeert automatisch opnieuw.';
+    });
     socket.on('close',()=>{
       if(this.socket!==socket)return;
       clearInterval(this.pingTimer);this.pingTimer=null;this.socket=null;this.clearLocal();
+      if(!this.error)this.error='De remote verbinding is verbroken. Nuvex probeert automatisch opnieuw.';
       if(this.config){this.timer=setTimeout(()=>{this.timer=null;this.connect();},5000);this.timer.unref();}
     });
   }
@@ -79,6 +89,6 @@ class RemoteAccess {
     if(data.type==='ws-close' && ws)ws.terminate();
   }
   clearLocal(){for(const req of this.requests)req.destroy();this.requests.clear();for(const ws of this.sockets.values())ws.terminate();this.sockets.clear();}
-  stop(){this.config=null;clearTimeout(this.timer);this.timer=null;clearInterval(this.pingTimer);this.pingTimer=null;const socket=this.socket;this.socket=null;if(socket)socket.terminate();this.clearLocal();}
+  stop(){this.config=null;this.error='';clearTimeout(this.timer);this.timer=null;clearInterval(this.pingTimer);this.pingTimer=null;const socket=this.socket;this.socket=null;if(socket)socket.terminate();this.clearLocal();}
 }
 module.exports={RemoteAccess};

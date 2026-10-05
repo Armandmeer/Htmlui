@@ -62,6 +62,7 @@ class NuvexEndToEnd(unittest.IsolatedAsyncioTestCase):
                 page=await client.get(site.make_url('/admin'));self.assertEqual(page.status,200);self.assertIn('/_admin/app.js',await page.text())
                 r=await client.post(site.make_url('/_admin/api/login'),json={'email':'cloud-admin@example.com','password':'cloud-admin-test-password'},headers={'Origin':server.ORIGIN})
                 admin=await r.json();self.assertEqual(r.status,200,admin)
+                r=await client.get(site.make_url('/_admin/api/systems'));systems=await r.json();self.assertFalse(next(x for x in systems if x['id']=='live')['remoteConnected'])
                 r=await client.post(site.make_url('/_admin/api/delete-system'),json={'id':'live'},headers={'Origin':server.ORIGIN,'X-CSRF-Token':admin['csrf']});self.assertEqual(r.status,200)
         finally:
             process.terminate();process.wait(timeout=10);log.close()

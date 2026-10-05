@@ -114,24 +114,32 @@ class Portal:
                 count=row['count']+1 if row and row['reset']>now else 1
                 c.execute('INSERT OR REPLACE INTO attempts VALUES(?,?,?)',(key,count,row['reset'] if row and row['reset']>now else now+900))
             rows = [dict(r) for r in c.execute('SELECT id,name,accounts FROM systems WHERE revoked=0')]
-        matches=[r for r in rows if r['id'] in self.devices and any(a['email']==email and not a.get('disabled') for a in json.loads(r['accounts']))]
+        registered=[r for r in rows if any(a['email']==email and not a.get('disabled') for a in json.loads(r['accounts']))]
+        matches=[r for r in registered if r['id'] in self.devices]
+        if registered and not matches:
+            with server.connect() as c:server.audit(c,'portal.relay_unavailable',registered[0]['id'])
         if len(matches)>20: raise web.HTTPServiceUnavailable(text='Te veel systemen; neem contact op met de beheerder.')
         async def authenticate(row):
             try:
                 device = self.devices[row['id']]
                 profile = await device.call('auth-profile',email=email)
                 salt, expected, ticket = profile.get('salt',''),profile.get('passwordHash',''),profile.get('ticket','')
-                if not all(isinstance(x,str) for x in (salt,expected,ticket)) or len(salt)!=32 or len(expected)!=128 or len(ticket)>128:return None
+                if not all(isinstance(x,str) for x in (salt,expected,ticket)) or len(salt)!=32 or len(expected)!=128 or len(ticket)>128:
+                    with server.connect() as c:server.audit(c,'portal.profile_unavailable',row['id'])
+                    return None
                 try:bytes.fromhex(salt);bytes.fromhex(expected)
                 except ValueError:return None
                 async with self.logins:
                     actual=await asyncio.to_thread(hashlib.scrypt,password.encode(),salt=salt.encode(),n=16384,r=8,p=1,dklen=64,maxmem=64*1024*1024)
-                if not hmac.compare_digest(actual.hex(),expected):return None
+                if not hmac.compare_digest(actual.hex(),expected):
+                    with server.connect() as c:server.audit(c,'portal.password_mismatch',row['id'])
+                    return None
                 reply = await device.call('auth-grant',ticket=ticket)
                 cookie = reply.get('cookie','')
                 if reply.get('ok') and isinstance(cookie,str) and cookie.startswith('htmlui_session=') and len(cookie)<512:
                     return row['id'],{'name':row['name'],'cookie':cookie,'device':device}
-            except (web.HTTPException,KeyError): pass
+            except (web.HTTPException,KeyError):
+                with server.connect() as c:server.audit(c,'portal.relay_error',row['id'])
             return None
         results=await asyncio.gather(*(authenticate(r) for r in matches))
         accepted=dict(x for x in results if x)
@@ -227,6 +235,12 @@ class Portal:
         headers={k:v for k,v in req.headers.items() if k.lower() in ('cookie','origin','content-type','x-csrf-token','authorization')}
         async with self.http.request(req.method,self.backend+path,data=body,headers=headers,allow_redirects=False) as r:
             result=await r.read();out={k:v for k,v in r.headers.items() if k.lower() in ('content-type','set-cookie')}
+            if path=='/api/systems' and r.status==200:
+                rows=json.loads(result)
+                for row in rows:
+                    device=self.devices.get(row['id'])
+                    row['remoteConnected']=bool(not row['revoked'] and device and not device.ws.closed)
+                result=json.dumps(rows).encode()
             if path=='/':
                 result=result.replace(b'href="/style.css"',b'href="/_admin/style.css"').replace(b'src="/app.js"',b'src="/_admin/app.js"')
             if path=='/app.js':result=result.replace(b"'/api/",b"'/_admin/api/")
