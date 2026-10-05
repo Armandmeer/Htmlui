@@ -1,0 +1,10 @@
+{
+  "name": "Nuvex – voorbeeldlocatie",
+  "version": "1.0.0",
+  "firstRegisteredEmail": "eigenaar@example.com",
+  "adminEmail": "eigenaar@example.com",
+  "accounts": [
+    {"email": "eigenaar@example.com", "role": "admin"},
+    {"email": "medewerker@example.com", "role": "user"}
+  ]
+}

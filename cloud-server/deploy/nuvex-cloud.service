@@ -1,0 +1,26 @@
+[Unit]
+Description=Nuvex Cloud Access
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=nuvex-cloud
+Group=nuvex-cloud
+WorkingDirectory=/opt/nuvex-cloud
+EnvironmentFile=/etc/nuvex-cloud.env
+Environment=NUVEX_DB=/var/lib/nuvex-cloud/cloud.db
+ExecStart=/usr/bin/python3 /opt/nuvex-cloud/gateway.py
+Restart=on-failure
+RestartSec=5
+StateDirectory=nuvex-cloud
+StateDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/nuvex-cloud
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

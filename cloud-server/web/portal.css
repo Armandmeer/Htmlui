@@ -1,0 +1,75 @@
+
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}
+body{font-family:Inter,Segoe UI,Arial,sans-serif;color:#fff;background:#06101b;overflow:hidden}
+.media{position:fixed;inset:0;z-index:-3;background:#02070d url('/_portal/background.png') center center/cover no-repeat}
+.media video{width:100%;height:100%;object-fit:cover;display:none}
+.shade{position:fixed;inset:0;z-index:-2;background:radial-gradient(circle at center,transparent 0,rgba(1,7,14,.08) 48%,rgba(1,7,14,.34) 100%)}
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;padding:25vh 20px 20px}
+.card{width:min(430px,92vw);padding:28px 34px 30px;border-radius:27px;background:linear-gradient(145deg,rgba(18,31,50,.89),rgba(5,12,23,.93));border:1px solid transparent;background:linear-gradient(145deg,rgba(18,31,50,.92),rgba(5,12,23,.95)) padding-box,linear-gradient(110deg,#18d8ff 0%,rgba(72,165,255,.65) 38%,rgba(255,160,42,.75) 70%,#ff8d1d 100%) border-box;box-shadow:-8px 0 34px rgba(0,211,255,.42),8px 0 34px rgba(255,132,28,.36),0 24px 70px rgba(0,0,0,.52);backdrop-filter:blur(18px)}
+h1{margin:0 0 6px;font-size:28px;text-align:center}.sub{text-align:center;margin:0 0 20px;color:#aebbd0;font-size:13px}
+label{display:block;margin:13px 0 6px;font-size:12px;font-weight:700;color:#dbe8f7}
+.field{position:relative}input{width:100%;height:47px;padding:0 14px;border:1px solid rgba(139,184,224,.3);border-radius:10px;background:rgba(4,12,24,.77);color:white;font-size:15px;outline:none}
+input:focus{border-color:#1fd8ff;box-shadow:0 0 0 3px rgba(31,216,255,.12)}
+.eye{position:absolute;right:8px;top:8px;width:34px;height:30px;border:0;background:transparent;color:#c7d4e5;cursor:pointer}
+.primary{width:100%;height:49px;margin-top:22px;border:0;border-radius:11px;font-weight:900;font-size:15px;cursor:pointer;color:#04111b;background:linear-gradient(90deg,#22d8ff,#ff9b20)}
+.primary:disabled{opacity:.55}.error{min-height:18px;margin-top:11px;text-align:center;color:#ffabab;font-size:13px}
+@media(max-width:700px){.stage{padding-top:30vh}.card{padding:24px}}
+
+
+html,body{width:100%;height:100%;min-height:100%;margin:0;background:#02070d!important}
+body{background-image:url('/_portal/background.png')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;background-attachment:fixed!important}
+.bg,.background,.login-bg,.setup-bg{background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+video#bgVideo,video.bg-video,.bg-video{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;object-fit:cover!important;object-position:center center!important}
+
+
+@media (min-width:701px) and (min-height:701px){
+ .stage{padding-top:calc(clamp(330px,46vh,500px) + 105px)!important}
+}
+
+
+@media screen and (max-width:700px){
+ html,body{margin:0!important;width:100%!important;min-height:100%!important;min-height:100dvh!important;background:#050b12!important;background-image:none!important}
+ body{overflow-x:hidden!important;overflow-y:auto!important}
+ .media,.shade,#media,#bgVideo,.bg-video{display:none!important;visibility:hidden!important;background:none!important;background-image:none!important}
+ .stage{
+  box-sizing:border-box!important;width:100%!important;min-height:100vh!important;min-height:100dvh!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;
+  padding:calc(30px + env(safe-area-inset-top)) 14px max(30px,env(safe-area-inset-bottom))!important;
+ }
+ .mobile-auth-logo{
+  display:block!important;visibility:visible!important;width:min(84vw,360px)!important;height:auto!important;
+  max-height:none!important;object-fit:contain!important;margin:0 auto 26px!important;padding:0!important;
+ }
+ .card{
+  box-sizing:border-box!important;position:relative!important;width:min(100%,380px)!important;
+  margin:0 auto!important;padding:24px 20px 26px!important;border-radius:24px!important;
+ }
+}
+@media screen and (max-width:390px){
+ .mobile-auth-logo{width:min(82vw,315px)!important;margin-bottom:20px!important}
+ .card{width:min(100%,350px)!important;padding:21px 17px 23px!important}
+}
+
+
+/* The sidebar logo is a mobile-only auth element. Never let it enter desktop flex layout. */
+.mobile-auth-logo{display:none!important}
+@media screen and (max-width:700px){
+ .mobile-auth-logo{
+   display:block!important;width:min(72vw,285px)!important;height:auto!important;
+   margin:0 auto 18px!important;object-fit:contain!important;
+ }
+ .card{
+   width:min(88vw,330px)!important;padding:18px 16px 20px!important;
+   border-radius:21px!important;
+ }
+ h1{font-size:24px!important}.sub{font-size:12px!important;margin-bottom:14px!important}
+ label{margin-top:10px!important}
+ input{height:43px!important}
+ .primary{height:45px!important;margin-top:17px!important}
+}
+@media screen and (max-width:390px){
+ .mobile-auth-logo{width:min(68vw,250px)!important;margin-bottom:15px!important}
+ .card{width:min(86vw,315px)!important;padding:17px 15px 19px!important}
+}
+
+.admin-link{display:block;text-align:center;font-size:11px;color:#aebbd0;margin-top:19px;text-decoration:none;opacity:.65}.admin-link:hover,.admin-link:focus{opacity:1;text-decoration:underline}.system-option{display:block;width:100%;padding:15px;margin:10px 0;border:1px solid #496078;border-radius:10px;background:#09192a;color:white;text-align:left;cursor:pointer;font-size:15px}.secondary{background:none;border:0;color:#aebbd0;cursor:pointer;margin-top:12px}

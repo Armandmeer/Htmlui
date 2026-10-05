@@ -17,3 +17,9 @@ video-reference-*.png
 nuvex_cloud_access.json
 nuvex_cloud_access.json.*.tmp
 
+
+cloud-server/data/
+cloud-server/dist/
+cloud-server/tests/tls/
+cloud-server/.venv*/
+**/__pycache__/

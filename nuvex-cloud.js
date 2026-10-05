@@ -23,8 +23,8 @@ function safeError(error) {
   return 'Verbinding met de cloudserver mislukt. Controleer adres, bereikbaarheid en certificaat.';
 }
 class CloudAccess {
-  constructor({ directory, readUsers, version, request, interval = 30000 }) {
-    this.directory = directory;
+  constructor({ directory, readUsers, version, request, remote = null, interval = 30000 }) {
+    this.directory = directory; this.remote = remote;
     this.file = path.join(directory, 'nuvex_cloud_access.json');
     this.readUsers = readUsers; this.version = version; this.interval = interval;
     this.transport = request || this.request.bind(this);
@@ -45,7 +45,7 @@ class CloudAccess {
     const c = this.config;
     return { enabled: !!c, busy: this.busy, url: c ? c.url : 'https://cloud.nuvexai.nl', name: c ? c.name : '', id: c ? c.id : '', firstEmail: c ? c.firstEmail : '',
       certificateFingerprint: c && c.ca ? new X509Certificate(c.ca).fingerprint256 : '', lastHeartbeat: this.lastSeen,
-      online: !!c && !!this.lastSeen && Date.now() - this.lastSeen < 90000, error: this.error, remoteAccessEnabled: false };
+      online: !!c && !!this.lastSeen && Date.now() - this.lastSeen < 90000, error: this.error, remoteAccessEnabled: !!this.remote && this.remote.connected() };
   }
   trustedCa(config) {
     if (config.automatic && new URL(config.url).hostname === "192.168.40.119") {
@@ -137,6 +137,7 @@ class CloudAccess {
     return { ...this.status(), warning };
   }
   stop() {
+    if (this.remote) this.remote.stop();
     this.generation++; clearTimeout(this.timer); this.timer = null;
     for (const req of this.pending) req.destroy(new Error('Cloud Access stopped'));
     this.pending.clear();
@@ -173,7 +174,9 @@ class CloudAccess {
         if (!registration || typeof registration.id !== 'string' || !registration.id) throw new Error('Invalid registration');
         config.id=registration.id;this.save(config);
       }
-      await this.transport(config, '/device/heartbeat', snapshot, config.token);
+      const response = await this.transport(config, '/device/heartbeat', snapshot, config.token);
+      if (generation !== this.generation) return;
+      if (this.remote && response.remoteAccessEnabled) this.remote.start(config,this.trustedCa(config));
       if (generation !== this.generation) return;
       this.lastSeen = Date.now(); this.error = '';
     } catch (e) {

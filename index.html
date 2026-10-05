@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 
 <html lang="nl"><head><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=1"><link rel="icon" type="image/png" href="/apple-touch-icon.png?v=1"><meta name="apple-mobile-web-app-title" content="Nuvex AI"><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>Nuvex AI 0.4.0</title>
+<title>Nuvex AI 0.4.1</title>
 <style>
 :root{--bg:#080c10;--p:#111820;--p2:#172129;--line:#27333c;--text:#eef3f7;--muted:#8a98a4;--green:#69dda0;--red:#ff7777}
 *{box-sizing:border-box}body{margin:0;background:var(--bg) url("smart-home-bg.jpg") center/cover fixed;color:var(--text);font-family:Inter,system-ui,sans-serif}.app{display:grid;grid-template-columns:245px 1fr;min-height:100vh}
@@ -619,7 +619,7 @@ animation:none!important;transition:none!important;
 }
 </style>
 <style id="nuvexAi30LookFeelStyle">
-/* Nuvex AI 0.4.0 Look & Feel. Visual overrides only; controls and application logic stay untouched. */
+/* Nuvex AI 0.4.1 Look & Feel. Visual overrides only; controls and application logic stay untouched. */
 body.nuvex-look-default{--green:#20a9ff;--line:rgba(58,151,255,.34);--p:#071422;--p2:rgba(7,22,38,.82);background-color:#020b16!important}
 body.nuvex-look-default #nuvexUiBackground{filter:saturate(1.15) brightness(.58);background-color:#020b16}
 body.nuvex-look-default #nuvexUiBackground:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 35% 12%,rgba(0,132,255,.20),transparent 38%),radial-gradient(circle at 82% 35%,rgba(255,116,31,.12),transparent 30%),linear-gradient(135deg,rgba(0,8,20,.34),rgba(0,16,36,.18));pointer-events:none}
@@ -684,8 +684,8 @@ body.nuvex-look-default .settings-collapse-summary{border-radius:12px}
 <div class="muted" style="margin-top:8px">PNG, JPG or WEBP, maximum 12 MB. Imported backgrounds can be deleted at any time.</div>
 </div></details>
 <details class="card s12 settings-section" id="lookFeelSettingsCard">
-<summary class="settings-heading settings-collapse-summary"><div><h2>Look &amp; Feel</h2><div class="muted">Choose the visual style of Nuvex AI 0.4.0. This changes appearance only.</div></div></summary>
-<div class="settings-section-body"><label for="nuvexLookFeel">Look &amp; Feel</label><select id="nuvexLookFeel" onchange="setNuvexLookFeel(this.value)"><option value="default">Default</option><option value="normal">Normal</option></select><div class="muted" style="margin-top:8px">Default uses the Nuvex AI 0.4.0 glass/neon design. Normal keeps the original interface appearance.</div></div>
+<summary class="settings-heading settings-collapse-summary"><div><h2>Look &amp; Feel</h2><div class="muted">Choose the visual style of Nuvex AI 0.4.1. This changes appearance only.</div></div></summary>
+<div class="settings-section-body"><label for="nuvexLookFeel">Look &amp; Feel</label><select id="nuvexLookFeel" onchange="setNuvexLookFeel(this.value)"><option value="default">Default</option><option value="normal">Normal</option></select><div class="muted" style="margin-top:8px">Default uses the Nuvex AI 0.4.1 glass/neon design. Normal keeps the original interface appearance.</div></div>
 </details></div></section></template></div></main></div><div class="camera-fullscreen" id="cameraFullscreen" role="dialog" aria-modal="true" aria-label="Fullscreen camera"><div class="camera-fs-top"><span class="camera-fs-title" id="cameraFsTitle">Camera 1</span><button class="camera-fs-back" onclick="closeCameraFullscreen()">← Back</button></div><img id="cameraFullscreenStream" src="" alt="Fullscreen camera"></div><div class="settings-lock-overlay" id="settingsLockOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsLockTitle" onclick="settingsOverlayClick(event)">
  <div class="settings-lock-panel">
   <div class="settings-lock-icon">⚙</div>
@@ -2272,8 +2272,8 @@ function renderNuvexCloud(j,updateInputs=false){
  const checkbox=document.getElementById('nuvexCloudEnabled'),url=document.getElementById('nuvexCloudUrl');
  checkbox.checked=!!j.enabled;
  if(updateInputs)url.value=j.url||'https://cloud.nuvexai.nl';
- document.getElementById('nuvexCloudStatus').textContent=j.online?'Verbonden':j.enabled?'Verbinding maken':'Uitgeschakeld';
- document.getElementById('nuvexCloudResult').textContent=j.warning||j.error||(j.enabled?'Accounts worden automatisch gesynchroniseerd met de cloudserver.':'Cloud Access is uitgeschakeld. Er worden geen accounts verstuurd.');
+ document.getElementById('nuvexCloudStatus').textContent=j.remoteAccessEnabled?'Op afstand beschikbaar':j.online?'Geregistreerd':j.enabled?'Verbinding maken':'Uitgeschakeld';
+ document.getElementById('nuvexCloudResult').textContent=j.warning||j.error||(j.remoteAccessEnabled?'Dit systeem is beschikbaar via het Nuvex-cloudportaal.':j.enabled?'Accounts worden gesynchroniseerd. De remote verbinding wordt voorbereid.':'Cloud Access is uitgeschakeld. Er worden geen accounts verstuurd.');
 }
 async function loadNuvexCloud(updateInputs=true){try{
  const r=await fetch('/api/portal/nuvex-cloud/status',{headers:settingsRequestHeaders(),cache:'no-store'});

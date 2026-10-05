@@ -9,6 +9,7 @@ const net = require("net");
 const os = require("os");
 const crypto = require("crypto");
 const { CloudAccess } = require('./nuvex-cloud');
+const { RemoteAccess } = require('./nuvex-remote');
 const outdoorWeather = require('./weather');
 let FFMPEG_BIN = process.env.FFMPEG_PATH || "ffmpeg";
 let FFMPEG_FALLBACK = null;
@@ -44,7 +45,27 @@ const AUTH_USERS_FILE = path.join(__dirname, "users.json");
 function writePrivateJson(file, value) { fs.writeFileSync(file, JSON.stringify(value, null, 2), { mode: 0o600 }); try { fs.chmodSync(file, 0o600); } catch (_) {} }
 function hashPassword(password) { const salt=crypto.randomBytes(16).toString('hex'); return {salt,passwordHash:crypto.scryptSync(String(password),salt,64).toString('hex')}; }
 function writeAuthUsers(users) { writePrivateJson(AUTH_USERS_FILE, {users}); }
-const nuvexCloud = new CloudAccess({directory:__dirname, readUsers:readAuthUsers, version:require('./package.json').version});
+const cloudTickets = new Map();
+function cloudAuthProfile(email) {
+  for(const [ticket,record] of cloudTickets)if(record.expires<Date.now())cloudTickets.delete(ticket);
+  if(cloudTickets.size>=1000)return {ok:false};
+  const user=readAuthUsers().find(u=>normalizeEmail(u.email)===normalizeEmail(email) && u.disabled!==true);
+  if(!user || !/^[a-f0-9]{32}$/.test(user.salt) || !/^[a-f0-9]{128}$/.test(user.passwordHash))return {ok:false};
+  const ticket=crypto.randomBytes(32).toString('hex');
+  cloudTickets.set(ticket,{email:normalizeEmail(user.email),hash:user.passwordHash,expires:Date.now()+60000});
+  return {salt:user.salt,passwordHash:user.passwordHash,ticket};
+}
+function cloudAuthGrant(ticket) {
+  const record=cloudTickets.get(ticket);cloudTickets.delete(ticket);
+  if(!record || record.expires<Date.now())return {ok:false};
+  const user=readAuthUsers().find(u=>normalizeEmail(u.email)===record.email && u.disabled!==true && u.passwordHash===record.hash);
+  if(!user)return {ok:false};
+  const token=crypto.randomBytes(32).toString('hex');
+  authSessions.set(token,{email:record.email,role:String(user.role||'user'),expiresAt:Date.now()+AUTH_SESSION_TTL});
+  return {ok:true,cookie:AUTH_COOKIE+'='+token};
+}
+const remoteAccess = new RemoteAccess({port:PORT,profile:cloudAuthProfile,grant:cloudAuthGrant});
+const nuvexCloud = new CloudAccess({directory:__dirname, readUsers:readAuthUsers, version:require('./package.json').version,remote:remoteAccess});
 const authSessions = new Map();
 const authFailures = new Map();
 const AUTH_SESSION_TTL = Math.max(15 * 60 * 1000, Number(process.env.HTML_UI_SESSION_HOURS || 24) * 60 * 60 * 1000);
@@ -2272,7 +2293,7 @@ const server = http.createServer((req, res) => {
   let decodedPath;
   try { decodedPath = decodeURIComponent(requestPath); } catch (_) { return jsonResponse(res,400,{ok:false}); }
   const segments = decodedPath.replace(/\\/g,'/').split('/');
-  const privateNames = new Set(['users.json','settings_security.json','github_update.json','github-update-status.json','cloudflare_portal.json','nuvex_cloud_access.json','webos_tv_keys.json','nuvex-cloud.js','nuvex-cloud-ca.pem']);
+  const privateNames = new Set(['users.json','settings_security.json','github_update.json','github-update-status.json','cloudflare_portal.json','nuvex_cloud_access.json','webos_tv_keys.json','nuvex-cloud.js','nuvex-remote.js','nuvex-cloud-ca.pem']);
   if (segments.some(name=>privateNames.has(name) || name.startsWith('.') || /^nuvex_cloud_access\.json\..*\.tmp$/.test(name))) return jsonResponse(res,404,{ok:false});
   let requestPath2 = decodedPath;
   if (requestPath2 === "/") requestPath2 = "/index.html";
@@ -2350,7 +2371,7 @@ server.on("error", err => {
 
 const BIND_HOST = process.env.HTML_UI_BIND || "0.0.0.0";
 server.listen(PORT, BIND_HOST, () => {
-  startMdns();
+  if(process.env.NUVEX_DISABLE_MDNS!=='1') startMdns();
   console.log("");
   console.log("======================================");
   console.log("       SMART HOME KNX DASHBOARD");
