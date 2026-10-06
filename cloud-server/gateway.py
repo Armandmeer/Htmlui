@@ -1,5 +1,5 @@
 """Browser portal and authenticated outbound relay for Nuvex Cloud Access."""
-import asyncio, base64, hashlib, hmac, json, secrets, threading, time
+import asyncio, base64, hashlib, hmac, json, secrets, threading, time, ipaddress
 from http.cookies import SimpleCookie
 from pathlib import Path
 from aiohttp import web, ClientSession, ClientTimeout, DummyCookieJar, WSMsgType
@@ -10,6 +10,13 @@ MAX_FRAME = 24 * 1024 * 1024
 COOKIE = 'nuvex_portal'
 PREFIX = '/_cloud/'
 SECURITY = {'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'no-referrer', 'X-Frame-Options':'DENY'}
+
+def source_ip(req):
+    candidates=[req.headers.get('CF-Connecting-IP',''),req.headers.get('X-Nuvex-Source-IP',''),req.headers.get('X-Real-IP',''),req.headers.get('X-Forwarded-For','').split(',')[0].strip(),req.remote or '']
+    for candidate in candidates:
+        try:return str(ipaddress.ip_address(candidate))
+        except ValueError:continue
+    return ''
 
 class Device:
     def __init__(self, sid, ws):
@@ -59,14 +66,15 @@ class Portal:
     async def relay(self, req):
         auth = req.headers.get('Authorization','')
         with server.connect() as c:
-            row = c.execute('SELECT id FROM systems WHERE token=? AND revoked=0',(server.digest(auth[7:]) if auth.startswith('Bearer ') else '',)).fetchone()
+            row = c.execute('''SELECT systems.id,systems.mac_address FROM systems JOIN allowed_macs ON allowed_macs.mac=systems.mac_address WHERE systems.token=? AND systems.revoked=0''',(server.digest(auth[7:]) if auth.startswith('Bearer ') else '',)).fetchone()
         if not row: raise web.HTTPUnauthorized()
-        sid = row['id']
+        sid, remote_ip = row['id'], source_ip(req)
         ws = web.WebSocketResponse(heartbeat=20,max_msg_size=MAX_FRAME,compress=False)
         await ws.prepare(req)
         old = self.devices.get(sid)
         if old: await old.close()
         device = Device(sid,ws); self.devices[sid] = device
+        with server.connect() as c:server.audit(c,'relay.connected',sid,remote_ip,row['mac_address'])
         async def check():
             while not ws.closed:
                 await asyncio.sleep(5)
@@ -94,6 +102,7 @@ class Portal:
             monitor.cancel()
             if self.devices.get(sid) is device: self.devices.pop(sid,None)
             await device.close()
+            with server.connect() as c:server.audit(c,'relay.disconnected',sid,remote_ip,row['mac_address'])
         return ws
     async def login(self,req):
         if not self.origin_allowed(req): raise web.HTTPForbidden(text='Ongeldige origin.')
@@ -117,7 +126,7 @@ class Portal:
         registered=[r for r in rows if any(a['email']==email and not a.get('disabled') for a in json.loads(r['accounts']))]
         matches=[r for r in registered if r['id'] in self.devices]
         if registered and not matches:
-            with server.connect() as c:server.audit(c,'portal.relay_unavailable',registered[0]['id'])
+            with server.connect() as c:server.audit(c,'portal.relay_unavailable',registered[0]['id'],source_ip(req))
         if len(matches)>20: raise web.HTTPServiceUnavailable(text='Te veel systemen; neem contact op met de beheerder.')
         async def authenticate(row):
             try:
@@ -125,26 +134,26 @@ class Portal:
                 profile = await device.call('auth-profile',email=email)
                 salt, expected, ticket = profile.get('salt',''),profile.get('passwordHash',''),profile.get('ticket','')
                 if not all(isinstance(x,str) for x in (salt,expected,ticket)) or len(salt)!=32 or len(expected)!=128 or len(ticket)>128:
-                    with server.connect() as c:server.audit(c,'portal.profile_unavailable',row['id'])
+                    with server.connect() as c:server.audit(c,'portal.profile_unavailable',row['id'],source_ip(req))
                     return None
                 try:bytes.fromhex(salt);bytes.fromhex(expected)
                 except ValueError:return None
                 async with self.logins:
                     actual=await asyncio.to_thread(hashlib.scrypt,password.encode(),salt=salt.encode(),n=16384,r=8,p=1,dklen=64,maxmem=64*1024*1024)
                 if not hmac.compare_digest(actual.hex(),expected):
-                    with server.connect() as c:server.audit(c,'portal.password_mismatch',row['id'])
+                    with server.connect() as c:server.audit(c,'portal.password_mismatch',row['id'],source_ip(req))
                     return None
                 reply = await device.call('auth-grant',ticket=ticket)
                 cookie = reply.get('cookie','')
                 if reply.get('ok') and isinstance(cookie,str) and cookie.startswith('htmlui_session=') and len(cookie)<512:
                     return row['id'],{'name':row['name'],'cookie':cookie,'device':device}
             except (web.HTTPException,KeyError):
-                with server.connect() as c:server.audit(c,'portal.relay_error',row['id'])
+                with server.connect() as c:server.audit(c,'portal.relay_error',row['id'],source_ip(req))
             return None
         results=await asyncio.gather(*(authenticate(r) for r in matches))
         accepted=dict(x for x in results if x)
         if not accepted:
-            with server.connect() as c: server.audit(c,'portal.login_failed')
+            with server.connect() as c: server.audit(c,'portal.login_failed',ip_address=source_ip(req),detail=email)
             raise web.HTTPUnauthorized(text='E-mailadres of wachtwoord onjuist, of systeem offline.')
         # Isolate cloud administration from scripts served by a selected Nuvex system.
         with server.connect() as c:
@@ -158,7 +167,8 @@ class Portal:
         self.sessions[server.digest(token)]=state
         response=web.json_response(self.public(state))
         response.set_cookie(COOKIE,token,secure=not server.DEV,httponly=True,samesite='Strict',max_age=28800,path='/')
-        with server.connect() as c: server.audit(c,'portal.login')
+        with server.connect() as c:
+            for sid in accepted: server.audit(c,'portal.login',sid,source_ip(req),detail=email)
         return response
     def public(self,s):
         return {'csrf':s['csrf'],'selected':s['selected'],'systems':[{'id':key,'name':v['name']} for key,v in s['systems'].items()]}
@@ -233,6 +243,7 @@ class Portal:
     async def backend_proxy(self,req,path):
         body=await req.read()
         headers={k:v for k,v in req.headers.items() if k.lower() in ('cookie','origin','content-type','x-csrf-token','authorization')}
+        headers['X-Nuvex-Source-IP']=source_ip(req)
         async with self.http.request(req.method,self.backend+path,data=body,headers=headers,allow_redirects=False) as r:
             result=await r.read();out={k:v for k,v in r.headers.items() if k.lower() in ('content-type','set-cookie')}
             if path=='/api/systems' and r.status==200:

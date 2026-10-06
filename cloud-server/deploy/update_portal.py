@@ -26,6 +26,7 @@ def main():
         service.write_text(previous[service].replace('/opt/nuvex-cloud/server.py serve','/opt/nuvex-cloud/gateway.py'))
         text=previous[snippet].replace('proxy_set_header Connection "";', 'proxy_set_header Upgrade $http_upgrade;\nproxy_set_header Connection $nuvex_connection;')
         text=text.replace('proxy_read_timeout 30s;','proxy_read_timeout 90s;')
+        if 'X-Nuvex-Source-IP' not in text:text=text.replace('proxy_set_header Host $host;','proxy_set_header Host $host;\nproxy_set_header X-Nuvex-Source-IP $remote_addr;')
         snippet.write_text(text)
         text=previous[conf].replace('client_max_body_size 128k;','client_max_body_size 8m;')
         if '$nuvex_connection' not in text:text="map $http_upgrade $nuvex_connection { default upgrade; '' close; }\n"+text

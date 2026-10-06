@@ -1,6 +1,6 @@
 """Nuvex Cloud Access: dependency-free registration service."""
-import os, json, sqlite3, secrets, hashlib, hmac, time, argparse
-import subprocess, threading, re, atexit
+import os, json, sqlite3, secrets, hashlib, hmac, time, argparse, ipaddress
+import subprocess, threading, re, atexit, urllib.request, urllib.parse
 from pathlib import Path
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from http.cookies import SimpleCookie
@@ -111,11 +111,32 @@ def init():
         CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY, at INTEGER, event TEXT, system_id TEXT);
         CREATE TABLE IF NOT EXISTS attempts(key TEXT PRIMARY KEY, count INTEGER, reset INTEGER);
         CREATE TABLE IF NOT EXISTS revoked_keys(token TEXT PRIMARY KEY);
+        CREATE TABLE IF NOT EXISTS allowed_macs(mac TEXT PRIMARY KEY, label TEXT, added INTEGER);
         ''')
-        if 'enrollment' not in [r['name'] for r in c.execute('PRAGMA table_info(systems)')]:
+        system_columns = [r['name'] for r in c.execute('PRAGMA table_info(systems)')]
+        if 'enrollment' not in system_columns:
             c.execute("ALTER TABLE systems ADD COLUMN enrollment TEXT NOT NULL DEFAULT 'paired'")
-def audit(c, event, sid=''):
-    c.execute('INSERT INTO audit(at,event,system_id) VALUES(?,?,?)', (int(time.time()), event, sid))
+        for name in ('ip_address','mac_address','location'):
+            if name not in system_columns: c.execute(f"ALTER TABLE systems ADD COLUMN {name} TEXT NOT NULL DEFAULT ''")
+        audit_columns = [r['name'] for r in c.execute('PRAGMA table_info(audit)')]
+        for name in ('ip_address','mac_address','detail'):
+            if name not in audit_columns: c.execute(f"ALTER TABLE audit ADD COLUMN {name} TEXT NOT NULL DEFAULT ''")
+def audit(c, event, sid='', ip_address='', mac_address='', detail=''):
+    c.execute('INSERT INTO audit(at,event,system_id,ip_address,mac_address,detail) VALUES(?,?,?,?,?,?)',
+              (int(time.time()), event, sid, str(ip_address or '')[:64], str(mac_address or '')[:32], str(detail or '')[:300]))
+def normalize_mac(value):
+    raw = re.sub(r'[^0-9A-Fa-f]', '', str(value or ''))
+    if len(raw) != 12 or raw == '000000000000': raise ValueError('Ongeldig MAC-adres.')
+    return ':'.join(raw[i:i+2] for i in range(0,12,2)).upper()
+def estimate_location(value):
+    try:
+        address = ipaddress.ip_address(str(value or '').strip())
+        if address.is_private or address.is_loopback or address.is_link_local: return 'Lokaal netwerk'
+        url = 'https://ipwho.is/' + urllib.parse.quote(str(address)) + '?fields=success,city,region,country'
+        with urllib.request.urlopen(url, timeout=3) as response: data = json.load(response)
+        if not data.get('success', True): return 'Locatie onbekend'
+        return ', '.join(str(data.get(key,'')).strip() for key in ('city','region','country') if str(data.get(key,'')).strip())[:180] or 'Locatie onbekend'
+    except Exception: return 'Locatie onbekend'
 def accounts(data):
     items = data.get('accounts')
     if not isinstance(items, list) or not 1 <= len(items) <= 500: raise ValueError('Geef 1 tot 500 accounts op.')
@@ -137,6 +158,12 @@ class Handler(BaseHTTPRequestHandler):
         self.request.settimeout(20)
         super().setup()
     def log_message(self, *args): pass  # Never log credentials or registration bodies.
+    def source_ip(self):
+        direct = str(self.client_address[0] if self.client_address else '')
+        forwarded = str(self.headers.get('X-Nuvex-Source-IP','')).strip() if direct in ('127.0.0.1','::1') else ''
+        candidate = forwarded or direct
+        try: return str(ipaddress.ip_address(candidate))
+        except ValueError: return direct[:64]
     def send(self, status, payload, cookie=None, content_type='application/json'):
         body = payload.encode() if isinstance(payload, str) else json.dumps(payload).encode()
         self.send_response(status)
@@ -160,13 +187,16 @@ class Handler(BaseHTTPRequestHandler):
             if self.path == '/api/session': return self.send(200, {'csrf':s['csrf']})
             if self.path == '/api/tunnel': return self.send(200, TUNNEL.status())
             if self.path == '/api/status':
-                return self.send(200, {'version':'0.4.1' if REMOTE_ACCESS else '0.3.0','uptimeSeconds':int(time.time())-STARTED,'serverTime':int(time.time()),'httpsRequired':not DEV,'remoteAccessEnabled':REMOTE_ACCESS})
+                allowed = c.execute('SELECT count(*) FROM allowed_macs').fetchone()[0]
+                return self.send(200, {'version':'0.4.1' if REMOTE_ACCESS else '0.3.0','uptimeSeconds':int(time.time())-STARTED,'serverTime':int(time.time()),'httpsRequired':not DEV,'remoteAccessEnabled':REMOTE_ACCESS,'allowedMacCount':allowed})
             if self.path == '/api/systems':
                 rows = []
-                for r in c.execute('SELECT id,name,first_email,admin_email,accounts,version,seen,revoked,enrollment FROM systems ORDER BY seen DESC'):
+                for r in c.execute('SELECT id,name,first_email,admin_email,accounts,version,seen,revoked,enrollment,ip_address,mac_address,location FROM systems ORDER BY seen DESC'):
                     d = dict(r); d['accounts'] = json.loads(d['accounts']); d['online'] = not d['revoked'] and time.time()-d['seen'] < 90; rows.append(d)
                 return self.send(200, rows)
-            if self.path == '/api/audit': return self.send(200, [dict(r) for r in c.execute('SELECT * FROM audit ORDER BY id DESC LIMIT 100')])
+            if self.path == '/api/audit':
+                return self.send(200, [dict(r) for r in c.execute('''SELECT audit.*,COALESCE(NULLIF(audit.mac_address,''),systems.mac_address,'') AS effective_mac,COALESCE(systems.name,'') AS system_name FROM audit LEFT JOIN systems ON systems.id=audit.system_id ORDER BY audit.id DESC LIMIT 250''')])
+            if self.path == '/api/allowed-macs': return self.send(200, [dict(r) for r in c.execute('SELECT mac,label,added FROM allowed_macs ORDER BY label,mac')])
         self.send(404, {'error':'Niet gevonden.'})
     def do_POST(self):
         try:
@@ -190,11 +220,11 @@ class Handler(BaseHTTPRequestHandler):
                     if len(password)>1024: raise ValueError('Wachtwoord te lang.')
                     hashed = hashlib.pbkdf2_hmac('sha256',password.encode(),bytes.fromhex(r['salt']) if r else b'0'*32,600000).hex()
                     if not r or not hmac.compare_digest(hashed,r['password']):
-                        audit(c,'admin.login_failed')
+                        audit(c,'admin.login_failed',ip_address=self.source_ip(),detail=str(data.get('email','')).lower().strip())
                         return self.send(401, {'error':'Onjuiste inloggegevens.'})
                     token, csrf = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
                     c.execute('DELETE FROM sessions WHERE expires<?',(now,))
-                    c.execute('INSERT INTO sessions VALUES(?,?,?)',(digest(token),csrf,now+28800)); audit(c,'admin.login')
+                    c.execute('INSERT INTO sessions VALUES(?,?,?)',(digest(token),csrf,now+28800)); audit(c,'admin.login',ip_address=self.source_ip(),detail=r['email'])
                     return self.send(200, {'csrf':csrf}, 'session='+token+'; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800'+('' if DEV else '; Secure'))
                 if self.path.startswith('/api/'):
                     s = self.session(c)
@@ -223,8 +253,19 @@ class Handler(BaseHTTPRequestHandler):
                         return self.send(200, result)
                     if self.path == '/api/logout':
                         c.execute('DELETE FROM sessions WHERE token=?',(s['token'],))
-                        audit(c,'admin.logout')
+                        audit(c,'admin.logout',ip_address=self.source_ip())
                         return self.send(200, {}, 'session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'+('' if DEV else '; Secure'))
+                    if self.path == '/api/allowed-macs/add':
+                        mac = normalize_mac(data.get('mac'))
+                        label = str(data.get('label','')).strip()[:100]
+                        c.execute('INSERT OR REPLACE INTO allowed_macs(mac,label,added) VALUES(?,?,?)',(mac,label,now))
+                        audit(c,'mac.allowed',ip_address=self.source_ip(),mac_address=mac,detail=label)
+                        return self.send(200, {'mac':mac,'label':label})
+                    if self.path == '/api/allowed-macs/remove':
+                        mac = normalize_mac(data.get('mac'))
+                        c.execute('DELETE FROM allowed_macs WHERE mac=?',(mac,))
+                        audit(c,'mac.removed',ip_address=self.source_ip(),mac_address=mac)
+                        return self.send(200, {})
                     if self.path == '/api/pairing':
                         code = secrets.token_urlsafe(24)
                         c.execute('DELETE FROM pairing WHERE expires<?',(now,))
@@ -250,6 +291,11 @@ class Handler(BaseHTTPRequestHandler):
                     first = str(data.get('firstRegisteredEmail','')).strip().lower()
                     name, version = str(data.get('name','')).strip(), str(data.get('version',''))
                     if not any(x['email']==first for x in items) or not 1 <= len(name) <= 100 or len(version)>100: raise ValueError('Ongeldige registratie.')
+                    mac, source_ip = normalize_mac(data.get('macAddress')), self.source_ip()
+                    if not c.execute('SELECT 1 FROM allowed_macs WHERE mac=?',(mac,)).fetchone():
+                        audit(c,'system.mac_denied',ip_address=source_ip,mac_address=mac,detail=name)
+                        return self.send(403,{'error':'Dit MAC-adres staat niet in de cloudtoelatingslijst.'})
+                    location = estimate_location(source_ip)
                     sid = digest(key)[:36]
                     c.execute('BEGIN IMMEDIATE')
                     if c.execute('SELECT 1 FROM revoked_keys WHERE token=?',(digest(key),)).fetchone():return self.send(403,{'error':'Installatiesleutel ingetrokken.'})
@@ -258,8 +304,11 @@ class Handler(BaseHTTPRequestHandler):
                     if not existing:
                         if c.execute('SELECT count(*) FROM systems').fetchone()[0] >= 10000 or c.execute("SELECT count(*) FROM audit WHERE event='system.auto_registered' AND at>?",(now-3600,)).fetchone()[0] >= 100:
                             return self.send(429,{'error':'Registratielimiet bereikt.'})
-                        c.execute("INSERT INTO systems(id,name,token,first_email,admin_email,accounts,version,seen,enrollment) VALUES(?,?,?,?,?,?,?,?, 'automatic')",(sid,name,digest(key),first,admin,json.dumps(items),version,now))
-                        audit(c,'system.auto_registered',sid)
+                        c.execute("INSERT INTO systems(id,name,token,first_email,admin_email,accounts,version,seen,enrollment,ip_address,mac_address,location) VALUES(?,?,?,?,?,?,?,?, 'automatic',?,?,?)",(sid,name,digest(key),first,admin,json.dumps(items),version,now,source_ip,mac,location))
+                        audit(c,'system.auto_registered',sid,source_ip,mac,name)
+                    else:
+                        if existing['mac_address'] and existing['mac_address'] != mac: return self.send(403,{'error':'MAC-adres komt niet overeen met deze installatie.'})
+                        c.execute('UPDATE systems SET name=?,admin_email=?,accounts=?,version=?,seen=?,ip_address=?,mac_address=?,location=? WHERE id=?',(name,admin,json.dumps(items),version,now,source_ip,mac,location,sid))
                     return self.send(200,{'id':sid,'heartbeatSeconds':30,'remoteAccessEnabled':REMOTE_ACCESS})
                 if self.path == '/device/register':
                     items, admin = accounts(data)
@@ -267,25 +316,38 @@ class Handler(BaseHTTPRequestHandler):
                     if not any(x['email']==first for x in items): raise ValueError('Eerste geregistreerde account ontbreekt.')
                     name, version = str(data.get('name','')).strip(), str(data.get('version',''))
                     if not 1 <= len(name) <= 100 or len(version)>100: raise ValueError('Ongeldige naam of versie.')
+                    mac, source_ip = normalize_mac(data.get('macAddress')), self.source_ip()
+                    if not c.execute('SELECT 1 FROM allowed_macs WHERE mac=?',(mac,)).fetchone():
+                        audit(c,'system.mac_denied',ip_address=source_ip,mac_address=mac,detail=name)
+                        return self.send(403,{'error':'Dit MAC-adres staat niet in de cloudtoelatingslijst.'})
+                    location = estimate_location(source_ip)
                     c.execute('BEGIN IMMEDIATE')
                     result = c.execute('DELETE FROM pairing WHERE code=? AND expires>?',(digest(str(data.get('pairingCode',''))),now))
                     if result.rowcount != 1: return self.send(403, {'error':'Koppelcode verlopen of gebruikt.'})
                     sid, token = secrets.token_urlsafe(18), secrets.token_urlsafe(48)
-                    c.execute('INSERT INTO systems(id,name,token,first_email,admin_email,accounts,version,seen) VALUES(?,?,?,?,?,?,?,?)',(sid,name,digest(token),first,admin,json.dumps(items),version,now)); audit(c,'system.registered',sid)
+                    c.execute('INSERT INTO systems(id,name,token,first_email,admin_email,accounts,version,seen,ip_address,mac_address,location) VALUES(?,?,?,?,?,?,?,?,?,?,?)',(sid,name,digest(token),first,admin,json.dumps(items),version,now,source_ip,mac,location)); audit(c,'system.registered',sid,source_ip,mac,name)
                     return self.send(201, {'id':sid,'token':token,'heartbeatSeconds':30})
                 if self.path in ('/device/heartbeat','/device/disable'):
                     auth = self.headers.get('Authorization','')
                     r = c.execute('SELECT * FROM systems WHERE token=? AND revoked=0',(digest(auth[7:]) if auth.startswith('Bearer ') else '',)).fetchone()
                     if not r: return self.send(401, {'error':'Systeem niet geautoriseerd.'})
                     if self.path.endswith('disable'):
-                        c.execute('UPDATE systems SET revoked=1 WHERE id=?',(r['id'],)); audit(c,'system.disabled',r['id'])
+                        c.execute('UPDATE systems SET revoked=1 WHERE id=?',(r['id'],)); audit(c,'system.disabled',r['id'],self.source_ip(),r['mac_address'])
                     else:
                         items, admin = accounts(data)
-                        version = str(data.get('version',r['version']))
-                        if len(version)>100: raise ValueError('Ongeldige versie.')
+                        version, name = str(data.get('version',r['version'])), str(data.get('name','')).strip()
+                        mac, source_ip = normalize_mac(data.get('macAddress')), self.source_ip()
+                        if len(version)>100 or not 1 <= len(name) <= 100: raise ValueError('Ongeldige naam of versie.')
+                        if not c.execute('SELECT 1 FROM allowed_macs WHERE mac=?',(mac,)).fetchone():
+                            audit(c,'system.mac_denied',r['id'],source_ip,mac,name)
+                            return self.send(403,{'error':'Dit MAC-adres staat niet in de cloudtoelatingslijst.'})
+                        if r['mac_address'] and r['mac_address'] != mac:
+                            audit(c,'system.mac_mismatch',r['id'],source_ip,mac,name)
+                            return self.send(403,{'error':'MAC-adres komt niet overeen met deze installatie.'})
+                        location = r['location'] if r['ip_address']==source_ip and r['location'] else estimate_location(source_ip)
                         if json.loads(r['accounts']) != items or r['admin_email'] != admin: audit(c,'system.accounts_updated',r['id'])
-                        if now-r['seen'] >= 90: audit(c,'system.reconnected',r['id'])
-                        c.execute('UPDATE systems SET admin_email=?,accounts=?,version=?,seen=? WHERE id=?',(admin,json.dumps(items),version,now,r['id']))
+                        if now-r['seen'] >= 90: audit(c,'system.reconnected',r['id'],source_ip,mac,name)
+                        c.execute('UPDATE systems SET name=?,admin_email=?,accounts=?,version=?,seen=?,ip_address=?,mac_address=?,location=? WHERE id=?',(name,admin,json.dumps(items),version,now,source_ip,mac,location,r['id']))
                     return self.send(200, {'heartbeatSeconds':30,'remoteAccessEnabled':REMOTE_ACCESS})
                 return self.send(404, {'error':'Niet gevonden.'})
         except (ValueError, TypeError, AttributeError): self.send(400, {'error':'Ongeldige invoer.'})

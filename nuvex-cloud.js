@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const https = require('node:https');
+const os = require('node:os');
 const { X509Certificate, randomBytes } = require('node:crypto');
 
 function cloudUrl(value) {
@@ -21,6 +22,15 @@ function safeError(error) {
   if (error.cloudStatus === 401 || error.cloudStatus === 403) return 'Cloudtoegang geweigerd. Activeer opnieuw of controleer het clouddashboard.';
   if (error.code && /CERT|TLS|SELF_SIGNED|UNABLE_TO_VERIFY/.test(error.code)) return 'Cloudverbinding wacht op een geldig vooraf ingesteld servercertificaat. De installatiebeheerder moet het cloudcertificaat in het softwarepakket controleren.';
   return 'Verbinding met de cloudserver mislukt. Controleer adres, bereikbaarheid en certificaat.';
+}
+function systemMacAddress() {
+  const candidates=[];
+  for (const [name,entries] of Object.entries(os.networkInterfaces())) for (const info of entries || []) {
+    if (!info.internal && info.mac && info.mac !== '00:00:00:00:00:00') candidates.push({...info,name});
+  }
+  const virtual=/virtual|vmware|vbox|hyper-v|vpn|tunnel|bluetooth|loopback/i;
+  candidates.sort((a,b)=>(virtual.test(a.name)?1:0)-(virtual.test(b.name)?1:0)||(a.family==='IPv4'?0:1)-(b.family==='IPv4'?0:1)||a.name.localeCompare(b.name));
+  return String(candidates[0]?.mac||'').toUpperCase();
 }
 class CloudAccess {
   constructor({ directory, readUsers, version, request, remote = null, interval = 30000 }) {
@@ -43,7 +53,7 @@ class CloudAccess {
   }
   status() {
     const c = this.config;
-    return { enabled: !!c, busy: this.busy, url: c ? c.url : 'https://cloud.nuvexai.nl', name: c ? c.name : '', id: c ? c.id : '', firstEmail: c ? c.firstEmail : '',
+    return { enabled: !!c, busy: this.busy, url: c ? c.url : 'https://cloud.nuvexai.nl', name: c ? c.name : '', id: c ? c.id : '', firstEmail: c ? c.firstEmail : '', macAddress: systemMacAddress(),
       certificateFingerprint: c && c.ca ? new X509Certificate(c.ca).fingerprint256 : '', lastHeartbeat: this.lastSeen,
       online: !!c && !!this.lastSeen && Date.now() - this.lastSeen < 90000, error: this.error || (this.remote && this.remote.error) || '', remoteAccessEnabled: !!this.remote && this.remote.connected() };
   }
@@ -64,7 +74,8 @@ class CloudAccess {
       firstEmail = users[0].email;
     }
     const admin = active.find(u => normalize(u.email) === normalize(preferredAdmin || firstEmail)) || active[0];
-    return { name, version: this.version, firstRegisteredEmail: normalize(firstEmail), adminEmail: normalize(admin.email),
+    const macAddress=systemMacAddress();if(!macAddress)throw new Error('Geen bruikbaar MAC-adres gevonden. Sluit de Nuvex-server eerst op het netwerk aan.');
+    return { name, macAddress, version: this.version, firstRegisteredEmail: normalize(firstEmail), adminEmail: normalize(admin.email),
       accounts: users.map(u => ({ email: normalize(u.email), role: u.role === 'admin' ? 'admin' : 'user', disabled: u.disabled === true })) };
   }
   save(config) {
@@ -118,18 +129,20 @@ class CloudAccess {
       return this.status();
     } finally { this.busy = false; }
   }
-  async setEnabled(enabled, adminEmail, address = "https://cloud.nuvexai.nl") {
+  async setEnabled(enabled, adminEmail, address = "https://cloud.nuvexai.nl", systemName = "") {
     if (typeof enabled !== 'boolean') throw new Error('Ongeldige checkboxwaarde.');
     if (!enabled) return this.disable();
     const url = cloudUrl(String(address).includes('://') ? address : 'https://' + address);
+    const name=String(systemName||'').trim();
+    if(!name||name.length>100)throw new Error('Vul eerst een duidelijke systeemnaam in (maximaal 100 tekens).');
     let warning = '';
     if (this.config) {
-      if (this.config.url === url) return this.status();
+      if (this.config.url === url) {if(this.config.name!==name){this.config.name=name;this.save(this.config);this.schedule(0);}return this.status();}
       const result = await this.disable();
       warning = result.warning;
     }
     if (this.busy || fs.existsSync(this.file)) throw new Error('Deactiveer eerst de bestaande cloudinstellingen.');
-    const snapshot = this.payload(require('node:os').hostname().slice(0,100),null,adminEmail);
+    const snapshot = this.payload(name,null,adminEmail);
     const certFile = path.join(this.directory,'nuvex-cloud-ca.pem');
     const cert = new URL(url).hostname === '192.168.40.119' && fs.existsSync(certFile) ? certificate(fs.readFileSync(certFile,'utf8')) : null;
     const config = {enabled:true,automatic:true,url,name:snapshot.name,firstEmail:snapshot.firstRegisteredEmail,primaryAdmin:snapshot.adminEmail,token:randomBytes(48).toString('base64url'),...(cert?{ca:cert.pem}:{})};

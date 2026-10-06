@@ -1,5 +1,5 @@
 """Reference integration; Nuvex supplies accounts from its own user database."""
-import argparse, json, os, time, tempfile, urllib.request, urllib.error
+import argparse, json, os, time, tempfile, urllib.request, urllib.error, uuid
 from pathlib import Path
 
 def nuvex_payload(directory, name, first_email=None, preferred_admin=None):
@@ -15,7 +15,8 @@ def nuvex_payload(directory, name, first_email=None, preferred_admin=None):
     if not active: raise ValueError('Geen actieve Nuvex-admin beschikbaar.')
     admin=next((u for u in active if u['email'].lower()==str(preferred_admin or first_email).lower()),active[0])
     version=json.loads((directory/'package.json').read_text(encoding='utf-8-sig')).get('version','3.0.0')
-    return {'name':name,'version':version,'firstRegisteredEmail':first_email.lower().strip(), 'adminEmail':admin['email'].lower().strip(),
+    mac=':'.join(f'{uuid.getnode():012X}'[i:i+2] for i in range(0,12,2))
+    return {'name':name,'macAddress':mac,'version':version,'firstRegisteredEmail':first_email.lower().strip(), 'adminEmail':admin['email'].lower().strip(),
             'accounts':[{'email':u['email'],'role':u.get('role','user'),'disabled':u.get('disabled',False)} for u in users]}
 
 def request(base, route, data, token=None):

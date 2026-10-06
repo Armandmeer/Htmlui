@@ -1674,7 +1674,7 @@ const server = http.createServer((req, res) => {
       if(error) return jsonResponse(res,400,{ok:false,error:error.message});
       const active = authSession(req);
       if (!active || active.role !== 'admin' || !extendSettingsAccess(settingsTokenFromRequest(req))) return jsonResponse(res,403,{ok:false,error:'Ontgrendel de instellingen opnieuw.'});
-      try { return jsonResponse(res,200,{ok:true,...await nuvexCloud.setEnabled(input.enabled,active.email,input.url)}); }
+      try { return jsonResponse(res,200,{ok:true,...await nuvexCloud.setEnabled(input.enabled,active.email,input.url,input.name)}); }
       catch(error) { return jsonResponse(res,400,{ok:false,error:error.message}); }
     });
   }
