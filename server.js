@@ -11,7 +11,7 @@ const crypto = require("crypto");
 const { CloudAccess } = require('./nuvex-cloud');
 const { RemoteAccess } = require('./nuvex-remote');
 const outdoorWeather = require('./weather');
-let FFMPEG_BIN = process.env.FFMPEG_PATH || "ffmpeg";
+let FFMPEG_BIN = process.env.FFMPEG_PATH || null;
 let FFMPEG_FALLBACK = null;
 try { FFMPEG_FALLBACK = require("ffmpeg-static") || null; } catch (_) {}
 if (!FFMPEG_FALLBACK) {
@@ -20,7 +20,11 @@ if (!FFMPEG_FALLBACK) {
     : [path.join(__dirname,'node_modules','ffmpeg-static','ffmpeg'), path.join(__dirname,'node_modules','ffmpeg-static','ffmpeg.exe')];
   FFMPEG_FALLBACK = candidates.find(x => { try { return fs.existsSync(x); } catch (_) { return false; } }) || null;
 }
-function ffmpegCandidates(){ return [...new Set([FFMPEG_BIN, FFMPEG_FALLBACK].filter(Boolean))]; }
+function ffmpegCandidates(){
+  const candidates = [FFMPEG_FALLBACK, FFMPEG_BIN].filter(Boolean);
+  if (!candidates.length) candidates.push("ffmpeg");
+  return [...new Set(candidates)];
+}
 
 // knxultimate is published with a default export.
 // This fallback works with both CommonJS interop shapes.
@@ -604,10 +608,13 @@ function streamRtspUrl(req, res, rtspUrl) {
     const bin=candidates[candidateIndex++];
     if(!bin){ console.error('[CAMERA] ffmpeg niet beschikbaar. Installeer dependencies met npm install of zet FFMPEG_PATH.'); try{res.end()}catch(_){} return; }
     console.log('[CAMERA] ffmpeg:',bin);
-    ff=spawn(bin,["-hide_banner","-loglevel","warning","-rtsp_transport","tcp","-fflags","nobuffer","-flags","low_delay","-i",String(rtspUrl),"-an","-c:v","mjpeg","-q:v","5","-r","10","-f","mjpeg","pipe:1"],{windowsHide:true});
-    ff.on('error',err=>{console.error('[CAMERA] ffmpeg error:',err.message);try{ff.kill()}catch(_){};start();});
-    ff.stdout.on('data',chunk=>{if(closed)return;buffer=Buffer.concat([buffer,chunk]);while(true){const a=buffer.indexOf(Buffer.from([0xff,0xd8]));if(a<0){if(buffer.length>1024*1024)buffer=buffer.slice(-65536);break}const b=buffer.indexOf(Buffer.from([0xff,0xd9]),a+2);if(b<0){if(a>0)buffer=buffer.slice(a);break}const jpg=buffer.slice(a,b+2);buffer=buffer.slice(b+2);try{res.write('--frame\r\nContent-Type: image/jpeg\r\nContent-Length: '+jpg.length+'\r\n\r\n');res.write(jpg);res.write('\r\n')}catch(_){cleanup();break}}});
-    ff.stderr.on('data',data=>{const msg=String(data).trim();if(msg)console.error('[CAMERA]',msg)});
+    const child=spawn(bin,["-hide_banner","-loglevel","warning","-rtsp_transport","tcp","-fflags","nobuffer","-flags","low_delay","-i",String(rtspUrl),"-an","-c:v","mjpeg","-q:v","5","-r","10","-f","mjpeg","pipe:1"],{windowsHide:true});
+    ff=child;
+    let spawnFailed=false;
+    child.once('error',err=>{spawnFailed=true;console.error('[CAMERA] ffmpeg error:',err.message);if(closed||ff!==child)return;if(candidateIndex<candidates.length)return start();try{res.end()}catch(_){};cleanup();});
+    child.once('close',()=>{if(closed||spawnFailed||ff!==child)return;try{res.end()}catch(_){};cleanup();});
+    child.stdout.on('data',chunk=>{if(closed||ff!==child)return;buffer=Buffer.concat([buffer,chunk]);while(true){const a=buffer.indexOf(Buffer.from([0xff,0xd8]));if(a<0){if(buffer.length>1024*1024)buffer=buffer.slice(-65536);break}const b=buffer.indexOf(Buffer.from([0xff,0xd9]),a+2);if(b<0){if(a>0)buffer=buffer.slice(a);break}const jpg=buffer.slice(a,b+2);buffer=buffer.slice(b+2);try{res.write('--frame\r\nContent-Type: image/jpeg\r\nContent-Length: '+jpg.length+'\r\n\r\n');res.write(jpg);res.write('\r\n')}catch(_){cleanup();break}}});
+    child.stderr.on('data',data=>{const msg=String(data).trim();if(msg)console.error('[CAMERA]',msg)});
   };
   start();
 }
@@ -1727,19 +1734,28 @@ const server = http.createServer((req, res) => {
     const url = String(camera.url || '');
     if (!/^rtsps?:\/\//i.test(url)) { res.writeHead(200, {"Content-Type":"application/json"}); return res.end(JSON.stringify({ok:true,type:"http",url})); }
     const candidates=ffmpegCandidates();
-    let probe=null,idx=0,err='';
+    let probe=null,idx=0,err='',responseSent=false;
+    const finishProbe=(payload)=>{
+      if(responseSent||res.writableEnded||res.destroyed)return;
+      responseSent=true;
+      res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});
+      res.end(JSON.stringify(payload));
+    };
     const runProbe=()=>{
       const bin=candidates[idx++];
-      if(!bin){res.writeHead(200,{"Content-Type":"application/json"});return res.end(JSON.stringify({ok:false,error:"FFmpeg not available. Run npm install or set FFMPEG_PATH."}));}
+      if(!bin)return finishProbe({ok:false,error:"FFmpeg not available. Run npm install or set FFMPEG_PATH."});
       err='';
-      probe=spawn(bin,["-hide_banner","-loglevel","error","-rtsp_transport","tcp","-i",url,"-t","1","-f","null","-"],{windowsHide:true});
-      probe.stderr.on('data',d=>{err+=String(d)});
-      probe.on('close',code=>{
-        if(code===0){res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});return res.end(JSON.stringify({ok:true}));}
+      const child=spawn(bin,["-hide_banner","-loglevel","error","-rtsp_transport","tcp","-i",url,"-t","1","-f","null","-"],{windowsHide:true});
+      probe=child;
+      let attemptSettled=false;
+      child.stderr.on('data',d=>{err+=String(d)});
+      child.once('close',code=>{
+        if(attemptSettled||responseSent)return;attemptSettled=true;
+        if(code===0)return finishProbe({ok:true});
         if(idx<candidates.length)return runProbe();
-        res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});res.end(JSON.stringify({ok:false,error:err.trim().slice(-800)||'FFmpeg could not open the RTSP stream'}));
+        finishProbe({ok:false,error:err.trim().slice(-800)||'FFmpeg could not open the RTSP stream'});
       });
-      probe.on('error',e=>{err=e.message;if(idx<candidates.length)return runProbe();res.writeHead(200,{"Content-Type":"application/json"});res.end(JSON.stringify({ok:false,error:err}));});
+      child.once('error',e=>{if(attemptSettled||responseSent)return;attemptSettled=true;err=e.message;if(idx<candidates.length)return runProbe();finishProbe({ok:false,error:err});});
     };
     runProbe();
     return;

@@ -306,7 +306,7 @@ body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){
 
 /* Center incomplete lighting rows while retaining the full-row card width. */
 body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){
-  --lighting-columns:1;display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:12px;
+  --lighting-columns:1;display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:flex-start;gap:12px;
 }
 body.nuvex-motion #pageHost .lighting-root .devices>.lighting-room-section{flex:0 0 100%;width:100%;min-width:0}
 body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices)>:is(.lighting-control,.rgbw-control){
