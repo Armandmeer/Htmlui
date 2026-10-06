@@ -6,7 +6,7 @@ ROOT=Path(__file__).parent
 OUTPUT=ROOT/'dist'
 def build():
     OUTPUT.mkdir(exist_ok=True)
-    files=[ROOT/n for n in ('server.py','gateway.py','client.py','accounts.example.json','README.md','START-HIER.md','install.sh')]
+    files=[ROOT/n for n in ('server.py','gateway.py','client.py','accounts.example.json','README.md','START-HIER.md','UPDATE-CLOUDSERVER.md','install.sh')]
     for folder in ('web','deploy','docs','tests','sd'):
         files.extend(f for f in (ROOT/folder).rglob('*') if f.is_file() and '__pycache__' not in f.parts)
     files=sorted(files)
