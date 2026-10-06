@@ -619,6 +619,40 @@ function streamRtspUrl(req, res, rtspUrl) {
   start();
 }
 
+function snapshotRtspUrl(req, res, rtspUrl) {
+  if (!/^rtsps?:\/\//i.test(String(rtspUrl || ''))) { res.writeHead(400, { "Content-Type":"text/plain; charset=utf-8" }); return res.end("Only RTSP/RTSPS camera URLs can be proxied."); }
+  const candidates=ffmpegCandidates();
+  let child=null,candidateIndex=0,finished=false;
+  const stop=()=>{try{if(child)child.kill('SIGTERM')}catch(_){}};
+  const finish=(status,body,type='text/plain; charset=utf-8')=>{
+    if(finished||res.writableEnded||res.destroyed)return;
+    finished=true;stop();
+    const payload=Buffer.isBuffer(body)?body:Buffer.from(String(body||''));
+    res.writeHead(status,{"Content-Type":type,"Content-Length":payload.length,"Cache-Control":"no-store, no-cache, must-revalidate","X-Content-Type-Options":"nosniff"});
+    res.end(payload);
+  };
+  res.on('close',()=>{if(!res.writableEnded){finished=true;stop()}});
+  const start=()=>{
+    const bin=candidates[candidateIndex++];
+    if(!bin)return finish(503,'FFmpeg not available. Run npm install or set FFMPEG_PATH.');
+    const chunks=[];let size=0,stderr='',settled=false;
+    const fail=message=>{if(settled||finished)return;settled=true;clearTimeout(timer);stop();if(candidateIndex<candidates.length)return start();finish(502,message||'Camera snapshot unavailable');};
+    child=spawn(bin,["-hide_banner","-loglevel","error","-rtsp_transport","tcp","-i",String(rtspUrl),"-frames:v","1","-an","-c:v","mjpeg","-q:v","4","-f","image2pipe","pipe:1"],{windowsHide:true});
+    const timer=setTimeout(()=>fail('Camera snapshot timed out'),9000);
+    child.stdout.on('data',chunk=>{if(settled||finished)return;size+=chunk.length;if(size>8*1024*1024)return fail('Camera snapshot is too large');chunks.push(chunk)});
+    child.stderr.on('data',data=>{stderr+=String(data)});
+    child.once('error',error=>fail(error.message));
+    child.once('close',code=>{
+      if(settled||finished)return;settled=true;clearTimeout(timer);
+      const image=Buffer.concat(chunks);
+      if(code===0&&image.length>4&&image[0]===0xff&&image[1]===0xd8&&image[image.length-2]===0xff&&image[image.length-1]===0xd9)return finish(200,image,'image/jpeg');
+      if(candidateIndex<candidates.length)return start();
+      finish(502,stderr.trim().slice(-800)||'Camera snapshot unavailable');
+    });
+  };
+  start();
+}
+
 function streamCamera(req, res, cameraIndex = 0) {
   const rtspUrl = CAMERA_RTSP[cameraIndex];
   if (!rtspUrl) { res.writeHead(404); return res.end("Camera not found"); }
@@ -635,6 +669,17 @@ function streamConfiguredCamera(req, res, encodedId) {
   if (!camera || !camera.url) { res.writeHead(404); return res.end('Configured camera not found'); }
   if (!/^rtsps?:\/\//i.test(String(camera.url))) { res.writeHead(400, { 'Content-Type':'text/plain; charset=utf-8' }); return res.end('Configured camera is not an RTSP/RTSPS source'); }
   return streamRtspUrl(req, res, String(camera.url));
+}
+function snapshotConfiguredCamera(req, res, encodedId) {
+  let id = '';
+  try { id = decodeURIComponent(String(encodedId || '')); } catch (_) {}
+  if (!id) { res.writeHead(400); return res.end('Camera id missing'); }
+  let state = {};
+  try { if (fs.existsSync(STATE_FILE)) state = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); } catch (_) {}
+  const devices = Array.isArray(state.genericDevices) ? state.genericDevices : [];
+  const camera = devices.find(x => String(x.id || '') === id && x.type === 'camera');
+  if (!camera || !camera.url) { res.writeHead(404); return res.end('Configured camera not found'); }
+  return snapshotRtspUrl(req, res, String(camera.url));
 }
 function broadcast(data) {
   const msg = JSON.stringify(data);
@@ -1717,6 +1762,10 @@ const server = http.createServer((req, res) => {
   const configuredCamMatch = requestPath.match(/^\/camera\/configured\/(.+)\.mjpg$/);
   if (configuredCamMatch && req.method === "GET") {
     return streamConfiguredCamera(req, res, configuredCamMatch[1]);
+  }
+  const configuredSnapshotMatch = requestPath.match(/^\/camera\/configured\/(.+)\.jpg$/);
+  if (configuredSnapshotMatch && req.method === "GET") {
+    return snapshotConfiguredCamera(req, res, configuredSnapshotMatch[1]);
   }
   if (requestPath === "/camera.mjpg" && req.method === "GET") {
     return streamCamera(req, res, 0);
