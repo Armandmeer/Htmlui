@@ -294,7 +294,7 @@ body.nuvex-motion #pageHost .camera-root .camera-grid{width:100%;max-width:none;
 /* Keep scrolling unobtrusive and use available width for the light controls. */
 body.nuvex-motion.nuvex-has-swipe-hint main{scrollbar-width:none;-ms-overflow-style:none;padding-bottom:16px!important}
 body.nuvex-motion.nuvex-has-swipe-hint main::-webkit-scrollbar{display:none;width:0;height:0}
-body.nuvex-motion main:has(#lighting){max-width:1800px}
+body.nuvex-motion main:has(#lighting){width:100%;max-width:1800px;margin-left:auto;margin-right:auto}
 body.nuvex-motion #pageHost .lighting-root{container-type:inline-size}
 body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){grid-template-columns:minmax(0,1fr)}
 @container(min-width:560px){body.nuvex-motion #pageHost .lighting-root :is(.devices,.lighting-room-devices){grid-template-columns:repeat(2,minmax(0,1fr))}}
