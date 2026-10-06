@@ -34,6 +34,9 @@ class Integration(unittest.TestCase):
         self.assertEqual(self.req('/device/register',data)[0],403)
         device={'Authorization':'Bearer '+registration['token']}
         self.assertEqual(self.req('/device/heartbeat',data,device)[0],200)
+        data['version']='0.4.1'
+        self.assertEqual(self.req('/device/heartbeat',data,device)[0],200)
+        self.assertEqual(next(r for r in self.req('/api/systems',headers=auth)[1] if r['id']==registration['id'])['version'],'0.4.1')
         self.assertEqual(self.req('/api/systems')[0],401)
         system=next(r for r in self.req('/api/systems',headers=auth)[1] if r['id']==registration['id']);self.assertTrue(system['online']);self.assertNotIn('token',system)
         data['accounts']=[{'email':'other@example.com','role':'admin'}];data['adminEmail']='other@example.com'

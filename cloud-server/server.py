@@ -281,9 +281,11 @@ class Handler(BaseHTTPRequestHandler):
                         c.execute('UPDATE systems SET revoked=1 WHERE id=?',(r['id'],)); audit(c,'system.disabled',r['id'])
                     else:
                         items, admin = accounts(data)
+                        version = str(data.get('version',r['version']))
+                        if len(version)>100: raise ValueError('Ongeldige versie.')
                         if json.loads(r['accounts']) != items or r['admin_email'] != admin: audit(c,'system.accounts_updated',r['id'])
                         if now-r['seen'] >= 90: audit(c,'system.reconnected',r['id'])
-                        c.execute('UPDATE systems SET admin_email=?,accounts=?,seen=? WHERE id=?',(admin,json.dumps(items),now,r['id']))
+                        c.execute('UPDATE systems SET admin_email=?,accounts=?,version=?,seen=? WHERE id=?',(admin,json.dumps(items),version,now,r['id']))
                     return self.send(200, {'heartbeatSeconds':30,'remoteAccessEnabled':REMOTE_ACCESS})
                 return self.send(404, {'error':'Niet gevonden.'})
         except (ValueError, TypeError, AttributeError): self.send(400, {'error':'Ongeldige invoer.'})

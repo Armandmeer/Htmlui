@@ -45,6 +45,15 @@ class NuvexEndToEnd(unittest.IsolatedAsyncioTestCase):
                 print('Nuvex log:',(Path(tmp.name)/'node.log').read_text())
                 print('Runtime cloud state:',json.loads((appdir/'nuvex_cloud_access.json').read_text()).get('id'))
                 raise AssertionError('Nuvex did not establish its authenticated outgoing relay; local HTTP '+details)
+            probe=await asyncio.create_subprocess_exec(node,str(appdir/'cloud-diagnose.js'),cwd=appdir,env=env,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.STDOUT)
+            output,_=await asyncio.wait_for(probe.communicate(),30)
+            self.assertEqual(probe.returncode,0,output.decode(errors='replace'))
+            self.assertIn(b'Remote WebSocket: verbinding geslaagd',output)
+            self.assertNotIn(token.encode(),output);self.assertNotIn(password.encode(),output)
+            for _ in range(120):
+                if 'live' in portal.devices:break
+                await asyncio.sleep(.1)
+            self.assertIn('live',portal.devices)
             async with ClientSession(cookie_jar=CookieJar(unsafe=True),connector=TCPConnector(ssl=trust)) as client:
                 r=await client.post(site.make_url('/_cloud/login'),json={'email':email,'password':password},headers={'Origin':server.ORIGIN})
                 data=await r.json();self.assertEqual(r.status,200,data);self.assertEqual(data['selected'],'live')
