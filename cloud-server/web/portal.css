@@ -73,4 +73,4 @@ video#bgVideo,video.bg-video,.bg-video{position:fixed!important;inset:0!importan
 }
 
 .admin-link{display:block;text-align:center;font-size:11px;color:#aebbd0;margin-top:19px;text-decoration:none;opacity:.65}.admin-link:hover,.admin-link:focus{opacity:1;text-decoration:underline}.system-option{display:block;width:100%;padding:15px;margin:10px 0;border:1px solid #496078;border-radius:10px;background:#09192a;color:white;text-align:left;cursor:pointer;font-size:15px}.secondary{background:none;border:0;color:#aebbd0;cursor:pointer;margin-top:12px}
-.system-hint{margin:12px 3px 0;color:#8292a7;font-size:11px;line-height:1.45;text-align:center}.cloud-login-status{position:fixed;right:18px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:5;display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(91,222,171,.3);border-radius:999px;background:rgba(5,17,28,.78);color:#c9e6db;font-size:11px;font-weight:700;backdrop-filter:blur(10px)}.cloud-login-dot{width:7px;height:7px;border-radius:50%;background:#63e6a8;box-shadow:0 0 10px #63e6a8}
+.system-hint{margin:12px 3px 0;color:#8292a7;font-size:11px;line-height:1.45;text-align:center}
