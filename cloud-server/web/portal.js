@@ -6,7 +6,7 @@ async function api(path,body){
  const data=await response.json();if(!response.ok)throw Error(data.error||'Verbinding mislukt.');return data;
 }
 function showSystems(data){
- csrf=data.csrf;$('login').hidden=true;$('choices').hidden=false;$('title').textContent='Kies je systeem';$('subtitle').textContent='Met welk Nuvex-systeem wil je verbinden?';$('systems').replaceChildren();
+ csrf=data.csrf;$('login').hidden=true;$('choices').hidden=false;$('title').textContent='Kies je systeem';$('subtitle').textContent=`${data.systems.length} systemen beschikbaar voor dit account. Kies welk systeem je wilt openen.`;$('systems').replaceChildren();
  for(const system of data.systems){const button=document.createElement('button');button.type='button';button.className='system-option';button.textContent=system.name;button.onclick=async()=>{button.disabled=true;try{await api('select',{id:system.id});location.replace('/');}catch(e){$('error').textContent=e.message;button.disabled=false;}};$('systems').append(button);}
 }
 $('eye').onclick=()=>{$('password').type=$('password').type==='password'?'text':'password';};

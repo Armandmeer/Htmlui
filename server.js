@@ -467,6 +467,8 @@ const DEFAULT = {
 let knx = null;
 let connected = false;
 let lastKnxActivityAt = 0;
+let lastKnxStatusMessage = "KNX offline";
+const knxStatusLog = [];
 let config = { ...DEFAULT };
 const sockets = new Set();
 let githubUpdateInProgress = false;
@@ -1340,9 +1342,18 @@ async function naxMonitor() {
 }
 setInterval(naxMonitor, 2500); setTimeout(naxMonitor, 900);
 
+function recordKnxStatusLog(message, cls = "") {
+  const entry = { at: Date.now(), text: String(message || ""), cls };
+  knxStatusLog.push(entry);
+  if (knxStatusLog.length > 80) knxStatusLog.shift();
+  return entry;
+}
+
 function status(ok, message) {
   connected = ok;
   if (ok) lastKnxActivityAt = Date.now();
+  lastKnxStatusMessage = String(message || (ok ? "KNX connected" : "KNX offline"));
+  recordKnxStatusLog(lastKnxStatusMessage, ok ? "ok" : "err");
   console.log(`[KNX] ${message}`);
   broadcast({ type: "knx-status", connected: ok, message });
 }
@@ -1457,6 +1468,7 @@ function connectKNX(newConfig) {
         const dpt = dptlib.resolve("1.001");
         const value = !!dptlib.fromBuffer(raw, dpt);
         broadcast({ type: "camera-feedback", ga, value });
+        recordKnxStatusLog(`CAMERA FEEDBACK ${ga} = ${value}`, "ok");
         console.log(`[KNX] CAMERA FEEDBACK ${ga} = ${value}`);
         return;
       }
@@ -1465,6 +1477,7 @@ function connectKNX(newConfig) {
         const dpt = dptlib.resolve("1.001");
         const value = !!dptlib.fromBuffer(raw, dpt);
         broadcast({ type: "feedback", ga, value: value ? 1 : 0 });
+        recordKnxStatusLog("SWITCH FEEDBACK " + ga + " = " + (value ? "ON" : "OFF"), "ok");
         console.log("[KNX] SWITCH FEEDBACK " + ga + " = " + (value ? "ON" : "OFF"));
         return;
       }
@@ -1473,6 +1486,7 @@ function connectKNX(newConfig) {
         const dpt = dptlib.resolve("1.001");
         const value = !!dptlib.fromBuffer(raw, dpt);
         broadcast({ type: "security-feedback", ga, value });
+        recordKnxStatusLog(`SECURITY FEEDBACK ${ga} = ${value}`, "ok");
         console.log(`[KNX] SECURITY FEEDBACK ${ga} = ${value}`);
         return;
       }
@@ -1480,6 +1494,7 @@ function connectKNX(newConfig) {
       const dpt = dptlib.resolve("5.001");
       const value = dptlib.fromBuffer(raw, dpt);
       broadcast({ type: "feedback", ga, value: Number(value) });
+      recordKnxStatusLog(`FEEDBACK ${ga} = ${value}%`, "ok");
       console.log(`[KNX] FEEDBACK ${ga} = ${value}%`);
     } catch (err) {
       console.error("[KNX] Feedback decode:", err.message);
@@ -1673,6 +1688,16 @@ const server = http.createServer((req, res) => {
   if (!session) {
     if (requestPath.startsWith('/api/') || requestPath.startsWith('/camera')) return jsonResponse(res, 401, {ok:false,error:'Authentication required'});
     res.writeHead(302, { Location:'/login.html', 'Cache-Control':'no-store' }); return res.end();
+  }
+
+  if (requestPath === '/api/knx/status' && req.method === 'GET') {
+    const active = connected || (lastKnxActivityAt > 0 && Date.now() - lastKnxActivityAt < 90000);
+    return jsonResponse(res, 200, {
+      connected: active,
+      message: connected ? (lastKnxStatusMessage || 'KNX connected') : active ? 'KNX communication active' : 'KNX offline',
+      activityAt: lastKnxActivityAt,
+      log: knxStatusLog
+    });
   }
 
 

@@ -1006,6 +1006,25 @@ function updateKnxUi(connected,message,source='server'){
  renderOverviewErrors();
 }
 
+let lastKnxHttpLogAt=0,lastKnxHttpMessage='';
+async function pollKnxHttpStatus(){
+ try{
+  const response=await fetch('/api/knx/status',{cache:'no-store'});
+  if(!response.ok)return;
+  const data=await response.json();
+  const message=String(data.message||'');
+  updateKnxUi(!!data.connected,message!==lastKnxHttpMessage?message:'','http');
+  lastKnxHttpMessage=message;
+  for(const entry of Array.isArray(data.log)?data.log:[]){
+   const at=Number(entry.at||0);if(!at||at<=lastKnxHttpLogAt)continue;
+   logBuffer.push({time:new Date(at).toLocaleTimeString(),text:String(entry.text||''),cls:String(entry.cls||'')});
+   if(logBuffer.length>80)logBuffer.shift();lastKnxHttpLogAt=Math.max(lastKnxHttpLogAt,at);
+  }
+  renderCommunicationLog();
+ }catch(_){}
+}
+setInterval(pollKnxHttpStatus,3000);setTimeout(pollKnxHttpStatus,450);
+
 function toast(s){const t=document.getElementById('toast');t.textContent=s;t.style.display='block';clearTimeout(timer);timer=setTimeout(()=>t.style.display='none',2000)}
 function cameraOnline(i){window.cameraStates=window.cameraStates||[false,false,false,false];window.cameraStates[i]=true;const e=document.getElementById('cameraStatus');if(e){const n=window.cameraStates.filter(Boolean).length;e.textContent=n+' / 4 Live';e.className=n?'badge online':'badge offline'}}
 function cameraOffline(i){window.cameraStates=window.cameraStates||[false,false,false,false];window.cameraStates[i]=false;const e=document.getElementById('cameraStatus');if(e){const n=window.cameraStates.filter(Boolean).length;e.textContent=n+' / 4 Live';e.className=n?'badge online':'badge offline'}}
